@@ -31,6 +31,8 @@
 #include             "string.h"
 #include             <stdlib.h>
 #include             <ctype.h>
+//include the data we created
+#include			"SelfDefine.h"
 
 
 //  This is a mapping of system call nmemonics with definitions
@@ -164,7 +166,13 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 			MEM_WRITE(Z502Halt, &mmio);
 			break;
-		defualt:
+		//Get Process ID
+		case SYSNUM_GET_PROCESS_ID:
+			if (strcpy((long*)SystemCallData->Argument[0], "") == 0) {
+
+			}
+			break;
+		default:
 			printf("ERROR. Unrecognized call type");
 			printf("Call_type: %i\n",call_type);
 	
@@ -250,17 +258,33 @@ void osInit(int argc, char *argv[]) {
     //  Creation and Switching of contexts should be done in a separate routine.
     //  This should be done by a "OsMakeProcess" routine, so that
     //  test0 runs on a process recognized by the operating system.
+	if ((argc > 1) && (strcmp(argv[1], "test0") == 0)) {
+		mmio.Mode = Z502InitializeContext;
+		mmio.Field1 = 0;
+		mmio.Field2 = (long)test0;
+		mmio.Field3 = (long)PageTable;
 
-    mmio.Mode = Z502InitializeContext;
-    mmio.Field1 = 0;
-    mmio.Field2 = (long) test0;
-    mmio.Field3 = (long) PageTable;
+		MEM_WRITE(Z502Context, &mmio);   // Start this new Context Sequence
+		mmio.Mode = Z502StartContext;
+		// Field1 contains the value of the context returned in the last call
+		// Suspends this current thread
+		mmio.Field2 = START_NEW_CONTEXT_AND_SUSPEND;
+		MEM_WRITE(Z502Context, &mmio);     // Start up the context
+	}
+	//goes to test1
+	if ((argc > 1) && (strcmp(argv[1], "test1") == 0)) {
+		mmio.Mode = Z502InitializeContext;
+		mmio.Field1 = 0;
+		mmio.Field2 = (long)test1;
+		mmio.Field3 = (long)PageTable;
 
-    MEM_WRITE(Z502Context, &mmio);   // Start this new Context Sequence
-    mmio.Mode = Z502StartContext;
-    // Field1 contains the value of the context returned in the last call
-    // Suspends this current thread
-    mmio.Field2 = START_NEW_CONTEXT_AND_SUSPEND;
-    MEM_WRITE(Z502Context, &mmio);     // Start up the context
-
+		MEM_WRITE(Z502Context, &mmio);   // Start this new Context Sequence
+		mmio.Mode = Z502StartContext;
+		// Field1 contains the value of the context returned in the last call
+		// Suspends this current thread
+		mmio.Field2 = START_NEW_CONTEXT_AND_SUSPEND;
+		MEM_WRITE(Z502Context, &mmio);     // Start up the context
+	}
 }                                               // End of osInit
+//************************osCreateProcess*****************//
+//generate and save state for each process
