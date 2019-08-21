@@ -33,7 +33,8 @@
 #include             <ctype.h>
 //include the data we created
 #include			"SelfDefine.h"
-//test for laptop
+//define the variables
+PCB pcb;
 
 
 //  This is a mapping of system call nmemonics with definitions
@@ -169,7 +170,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			break;
 		//Get Process ID
 		case SYSNUM_GET_PROCESS_ID:
-			if (strcpy((long*)SystemCallData->Argument[0], "") == 0) {
+			if (strcmp((long*)SystemCallData->Argument[0], "") == 0) {
 
 			}
 			break;
@@ -280,6 +281,7 @@ void osInit(int argc, char *argv[]) {
 		mmio.Field3 = (long)PageTable;
 
 		MEM_WRITE(Z502Context, &mmio);   // Start this new Context Sequence
+		pcb.context = mmio.Field1;
 		mmio.Mode = Z502StartContext;
 		// Field1 contains the value of the context returned in the last call
 		// Suspends this current thread
