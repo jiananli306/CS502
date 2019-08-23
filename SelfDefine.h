@@ -1,6 +1,10 @@
 //define all the component we need
 
 typedef         int                             INT32;
+//
+
+INT32 PID = 0;
+
 //PCB could refer to linux task_struct 
 typedef struct ProcessControlBlock {
 	//process management
@@ -10,7 +14,7 @@ typedef struct ProcessControlBlock {
 	char processName[20]; //related to QueueManager name size
 	INT32 PID;
 	INT32 priority;
-	void* context;//mmio.field1
+	void* newContext;//mmio.field1
 	void* address;//mmio.field2
 	void* pageTable;//mmio.field3
 

@@ -34,7 +34,7 @@
 //include the data we created
 #include			"SelfDefine.h"
 //define the variables
-PCB pcb;
+
 
 
 //  This is a mapping of system call nmemonics with definitions
@@ -162,7 +162,8 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			MEM_READ(Z502Clock, &mmio);
 			*(long*)SystemCallData->Argument[0] = mmio.Field1;
 			break;
-		//terminate system call
+		//terminate system call 
+		//for now it terminate the whole system which is not correct
 		case SYSNUM_TERMINATE_PROCESS:
 			mmio.Mode = Z502Action;
 			mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
@@ -170,8 +171,13 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			break;
 		//Get Process ID
 		case SYSNUM_GET_PROCESS_ID:
+			mmio.Mode = Z502GetCurrentContext;
+			mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+			MEM_READ(Z502Context, &mmio);
+			//check which process ID you need 
 			if (strcmp((long*)SystemCallData->Argument[0], "") == 0) {
-
+				*(long*)SystemCallData->Argument[1] = mmio.Field1;
+				*(long*)SystemCallData->Argument[2] = mmio.Field3;
 			}
 			break;
 		default:
@@ -194,7 +200,8 @@ void osInit(int argc, char *argv[]) {
     void *PageTable = (void *) calloc(2, NUMBER_VIRTUAL_PAGES);
     INT32 i;
     MEMORY_MAPPED_IO mmio;
-
+	PCB pcb;
+	pcb.pageTable = PageTable;
     // Demonstrates how calling arguments are passed thru to here
 
     aprintf("Program called with %d arguments:", argc);
@@ -266,6 +273,9 @@ void osInit(int argc, char *argv[]) {
 		mmio.Field2 = (long)test0;
 		mmio.Field3 = (long)PageTable;
 
+		//PID = PID + 1;
+		//printf("test for PID: %i \n", PID);
+
 		MEM_WRITE(Z502Context, &mmio);   // Start this new Context Sequence
 		mmio.Mode = Z502StartContext;
 		// Field1 contains the value of the context returned in the last call
@@ -281,7 +291,8 @@ void osInit(int argc, char *argv[]) {
 		mmio.Field3 = (long)PageTable;
 
 		MEM_WRITE(Z502Context, &mmio);   // Start this new Context Sequence
-		pcb.context = mmio.Field1;
+		pcb.PID = PID + 1;
+		pcb.newContext = mmio.Field1;
 		mmio.Mode = Z502StartContext;
 		// Field1 contains the value of the context returned in the last call
 		// Suspends this current thread
