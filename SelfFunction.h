@@ -2,6 +2,7 @@
 
 typedef         int                             INT32;
 //
+extern void osCreatProcess(int argc, char* argv[]);
 
 INT32 PID = 0;
 

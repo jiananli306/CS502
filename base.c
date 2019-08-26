@@ -32,7 +32,8 @@
 #include             <stdlib.h>
 #include             <ctype.h>
 //include the data we created
-#include			"SelfDefine.h"
+//#include			"SelfFunction.h"
+
 //define the variables
 
 
@@ -200,8 +201,8 @@ void osInit(int argc, char *argv[]) {
     void *PageTable = (void *) calloc(2, NUMBER_VIRTUAL_PAGES);
     INT32 i;
     MEMORY_MAPPED_IO mmio;
-	PCB pcb;
-	pcb.pageTable = PageTable;
+	
+	
     // Demonstrates how calling arguments are passed thru to here
 
     aprintf("Program called with %d arguments:", argc);
@@ -244,61 +245,6 @@ void osInit(int argc, char *argv[]) {
 	    exit(0);
     }
     free(Temporary);
-    //  Determine if the switch was set, and if so go to demo routine.
-    //  We do this by Initializing and Starting a context that contains
-    //     the address where the new test is run.
-    //  Look at this carefully - this is an example of how you will start
-    //     all of the other tests.
-
-    if ((argc > 1) && (strcmp(argv[1], "sample") == 0)) {
-        mmio.Mode = Z502InitializeContext;
-        mmio.Field1 = 0;
-        mmio.Field2 = (long) SampleCode;
-        mmio.Field3 = (long) PageTable;
-
-        MEM_WRITE(Z502Context, &mmio);   // Start of Make Context Sequence
-        mmio.Mode = Z502StartContext;
-        // Field1 contains the value of the context returned in the last call
-        mmio.Field2 = START_NEW_CONTEXT_AND_SUSPEND;
-        MEM_WRITE(Z502Context, &mmio);     // Start up the context
-
-    } // End of handler for sample code - This routine should never return here
-    //  By default test0 runs if no arguments are given on the command line
-    //  Creation and Switching of contexts should be done in a separate routine.
-    //  This should be done by a "OsMakeProcess" routine, so that
-    //  test0 runs on a process recognized by the operating system.
-	if ((argc > 1) && (strcmp(argv[1], "test0") == 0)) {
-		mmio.Mode = Z502InitializeContext;
-		mmio.Field1 = 0;
-		mmio.Field2 = (long)test0;
-		mmio.Field3 = (long)PageTable;
-
-		//PID = PID + 1;
-		//printf("test for PID: %i \n", PID);
-
-		MEM_WRITE(Z502Context, &mmio);   // Start this new Context Sequence
-		mmio.Mode = Z502StartContext;
-		// Field1 contains the value of the context returned in the last call
-		// Suspends this current thread
-		mmio.Field2 = START_NEW_CONTEXT_AND_SUSPEND;
-		MEM_WRITE(Z502Context, &mmio);     // Start up the context
-	}
-	//goes to test1
-	if ((argc > 1) && (strcmp(argv[1], "test1") == 0)) {
-		mmio.Mode = Z502InitializeContext;
-		mmio.Field1 = 0;
-		mmio.Field2 = (long)test1;
-		mmio.Field3 = (long)PageTable;
-
-		MEM_WRITE(Z502Context, &mmio);   // Start this new Context Sequence
-		pcb.PID = PID + 1;
-		pcb.newContext = mmio.Field1;
-		mmio.Mode = Z502StartContext;
-		// Field1 contains the value of the context returned in the last call
-		// Suspends this current thread
-		mmio.Field2 = START_NEW_CONTEXT_AND_SUSPEND;
-		MEM_WRITE(Z502Context, &mmio);     // Start up the context
-	}
-}                                               // End of osInit
-//************************osCreateProcess*****************//
-//generate and save state for each process
+	//call os creat process
+	osCreatProcess(argc,argv);
+}  // End of osInit
