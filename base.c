@@ -32,9 +32,10 @@
 #include             <stdlib.h>
 #include             <ctype.h>
 //include the data we created
-//#include			"SelfFunction.h"
+#include			"SelfFunction.h"
 
 //define the variables
+
 
 
 
@@ -141,6 +142,11 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
     short i;
 	INT32 Time;
 	MEMORY_MAPPED_IO mmio;
+	PCB* currentPCB;
+	currentPCB = (PCB*)malloc(sizeof(PCB));
+	if (currentPCB == 0)
+		printf("We didn't complete the malloc in pcb.");
+	
 
 	///write the code here. testing
 
@@ -177,7 +183,8 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			MEM_READ(Z502Context, &mmio);
 			//check which process ID you need 
 			if (strcmp((long*)SystemCallData->Argument[0], "") == 0) {
-				*(long*)SystemCallData->Argument[1] = mmio.Field1;
+				currentPCB = QNextItemInfo(QID_ready);
+				*(long*)SystemCallData->Argument[1] = currentPCB->PID;
 				*(long*)SystemCallData->Argument[2] = mmio.Field3;
 			}
 			break;

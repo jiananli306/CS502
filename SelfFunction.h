@@ -1,10 +1,7 @@
 //define all the component we need
 
-typedef         int                             INT32;
-//
-extern void osCreatProcess(int argc, char* argv[]);
 
-INT32 PID = 0;
+INT32 PID;
 
 //PCB could refer to linux task_struct 
 typedef struct ProcessControlBlock {
@@ -28,5 +25,9 @@ typedef struct ProcessControlBlock {
 
 }PCB;
 
+
+
 ///PCB queue
 ///1. ready queue 2.suspend queue 3.block queue
+INT32 QID_ready;
+extern void osCreatProcess(int argc, char* argv[]);

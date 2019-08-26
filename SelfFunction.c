@@ -10,7 +10,6 @@
 //define the variables
 
 
-typedef         int                             INT32;
 
 
 //osCreateProcess
@@ -19,6 +18,8 @@ typedef         int                             INT32;
 ///input:
 ///output:
 void osCreatProcess(int argc, char* argv[]) {
+	//INT32 PID = 0;
+	//INT32 QID_ready = 0;
 	void* PageTable = (void*)calloc(2, NUMBER_VIRTUAL_PAGES);
 	MEMORY_MAPPED_IO mmio;
 	//define the pcb
@@ -28,7 +29,7 @@ void osCreatProcess(int argc, char* argv[]) {
 	if (pcb == 0)
 		printf("We didn't complete the malloc in pcb.");
 
-	INT32 QID_ready;
+	
 	//create a ready queue to store pcb
 	QID_ready = QCreate("readyQueue");
 	//check which test we will run
@@ -51,7 +52,11 @@ void osCreatProcess(int argc, char* argv[]) {
 	///put the pcb into ready queue
 	QInsert(QID_ready, pcb->priority, pcb);
 
-		printf("%s", QGetName(QID_ready));
+	////testing
+	//QInsert(QID_ready, 3, pcb);
+	//QInsert(QID_ready, 4, pcb);
+	//QInsert(QID_ready, 2, pcb);
+	//ttttt1 = QRemoveHead(QID_ready);	//ttttt = QNextItemInfo(QID_ready);	//QPrint(QID_ready);	//printf("%s\n", QGetName(QID_ready));	
 
 
 
