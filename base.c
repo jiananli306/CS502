@@ -188,6 +188,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 	currentPCB = (PCB*)malloc(sizeof(PCB));
 	if (currentPCB == 0)
 		printf("We didn't complete the malloc in pcb.");
+	void* PageTable = (void*)calloc(2, NUMBER_VIRTUAL_PAGES);
 	
 
 	///write the code here. testing
@@ -241,14 +242,35 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 		case SYSNUM_CREATE_PROCESS:
 			//check priority first
 			if ((INT32)SystemCallData->Argument[0] < 1) {
-				*(long*)SystemCallData->Argument[1] = "illegal priority";
+				*(long*)SystemCallData->Argument[3] = -1;
+				*(long*)SystemCallData->Argument[4] = ERR_BAD_PARAM;// "illegal priority";
 			}
-			else if (CurrentProcessNumber > 15) {
-				*(long*)SystemCallData->Argument[1] = "too many process";
+			else if (CurrentProcessNumber > MAX_Process_number) {
+				*(long*)SystemCallData->Argument[3] = -1;
+				*(long*)SystemCallData->Argument[4] = ERR_BAD_PARAM;// "too many process";
 			}
 			else {//create process here
-				//createProcess(ProcessName, StartingAddress, InitialPriority, &ProcessID, &ErrorReturned);
+				currentPCB->PID = PID + 1;
+				strncpy(currentPCB->processName, (char*)SystemCallData->Argument[0], sizeof((char*)SystemCallData->Argument[0]));
+				currentPCB->address = (long)SystemCallData->Argument[1];
+				currentPCB->priority = (long)SystemCallData->Argument[2];
+				currentPCB->pageTable = PageTable;
+				CurrentProcessNumber = CurrentProcessNumber + 1;
+				{
+					mmio.Mode = Z502ReturnValue;
+					mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+					MEM_READ(Z502Clock, &mmio);
+					currentPCB->timeCreated = mmio.Field1;
+				}
+				createProcess(currentPCB);
+				*(long*)SystemCallData->Argument[3] = currentPCB->PID;
+				*(long*)SystemCallData->Argument[4] = ERR_SUCCESS;// "correct";
 			}
+			break;
+		//SYSNUM_PHYSICAL_DISK_READ
+		case SYSNUM_PHYSICAL_DISK_READ:
+			break;
+		case SYSNUM_PHYSICAL_DISK_WRITE:
 			break;
 		default:
 			printf("ERROR. Unrecognized call type");

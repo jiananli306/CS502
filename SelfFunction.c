@@ -34,6 +34,8 @@ void osCreatProcess(int argc, char* argv[]) {
 	QID_ready = QCreate("readyQueue");
 	//create a timer quue to store pcb
 	QID_timer = QCreate("timerQueue");
+	//create a all process quue to store pcb
+	QID_allprocess = QCreate("allProcessQueue");
 	//get the current time
 	{
 		mmio.Mode = Z502ReturnValue;
@@ -65,6 +67,7 @@ void osCreatProcess(int argc, char* argv[]) {
 	// 
 	///put the pcb into ready queue
 	QInsert(QID_ready, pcb->priority, pcb);
+	QInsert(QID_allprocess, pcb->priority, pcb);
 
 	////testing
 	//QInsert(QID_ready, 3, pcb);
@@ -150,4 +153,19 @@ void startTimer(int during) {
 		MEM_WRITE(Z502Context, &mmio);
 	}
 }
+///create process and put it into ready queue
+void createProcess(PCB* currentPCB) {
+	MEMORY_MAPPED_IO mmio;
+	void* PageTable = (void*)calloc(2, NUMBER_VIRTUAL_PAGES);
 
+	mmio.Mode = Z502InitializeContext;
+	mmio.Field1 = 0;
+	mmio.Field2 = (long)currentPCB->address;
+	mmio.Field3 = (long)PageTable;
+	MEM_WRITE(Z502Context, &mmio);
+	currentPCB->newContext = (long*)mmio.Field1;
+	currentPCB->pageTable = PageTable;
+	//put it into ready queue
+	QInsert(QID_ready, currentPCB->priority, currentPCB);
+	QInsert(QID_allprocess, currentPCB->priority, currentPCB);
+}
