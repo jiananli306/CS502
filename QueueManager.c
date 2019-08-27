@@ -127,7 +127,7 @@ Struct = 001D2180, Order = 4294967295, QdStruct = 40EA6C, ... QNext = FFFFFFFF
 #include    "global.h"
 #include    "protos.h"
 
-#define    Q_TRACE                    TRUE
+#define    Q_TRACE                    FALSE
 #define    Q_MAX_NAME_LENGTH          20
 #define    Q_STRUCTURE_ID             57
 #define    Q_HEAD_STRUCTURE_ID        53

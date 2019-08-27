@@ -66,11 +66,17 @@ char *call_names[] = {"MemRead  ", "MemWrite ", "ReadMod  ", "GetTime  ",
 void InterruptHandler(void) {
     INT32 DeviceID;
     INT32 Status;
+	PCB* timerpcb;
+	INT32 current_time;
+	//allocate memory for pcb
+	timerpcb = (PCB*)malloc(sizeof(PCB));
+	if (timerpcb == 0)
+		printf("We didn't complete the malloc in pcb.");
 
     MEMORY_MAPPED_IO mmio;       // Enables communication with hardware
 
-    static BOOL  remove_this_from_your_interrupt_code = TRUE; /** TEMP **/
-    static INT32 how_many_interrupt_entries = 0;              /** TEMP **/
+    //static BOOL  remove_this_from_your_interrupt_code = TRUE; /** TEMP **/
+    //static INT32 how_many_interrupt_entries = 0;              /** TEMP **/
 
     // Get cause of interrupt
     mmio.Mode = Z502GetInterruptInfo;
@@ -78,18 +84,54 @@ void InterruptHandler(void) {
     MEM_READ(Z502InterruptDevice, &mmio);
     DeviceID = mmio.Field1;
     Status = mmio.Field2;
-    if (mmio.Field4 != ERR_SUCCESS) {
+	//build a while loop to catch all the interrupt
+	while (mmio.Field4 == ERR_SUCCESS) {
+		//DO the interrupt
+		///handle the timer interrput
+		if (DeviceID == TIMER_INTERRUPT) {
+			//get current time
+			{
+				mmio.Mode = Z502ReturnValue;
+				mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+				MEM_READ(Z502Clock, &mmio);
+				current_time = mmio.Field1;
+			}
+			//dequeue the first timer queue and put it into ready queue.
+			timerpcb = QRemoveHead(QID_timer);
+			timerpcb->timeCreated = current_time;
+			QInsert(QID_ready, (timerpcb->timeCreated), timerpcb);
+			//chech next timer queue context
+			if (QNextItemInfo(QID_timer) != -1) {
+				timerpcb = QNextItemInfo(QID_timer);
+				startTimer(timerpcb->timeCreated - current_time);
+			}
+		}
+
+
+		//catch next interrput
+			// Get cause of interrupt
+		mmio.Mode = Z502GetInterruptInfo;
+		mmio.Field1 = mmio.Field2 = mmio.Field3 = mmio.Field4 = 0;
+		MEM_READ(Z502InterruptDevice, &mmio);
+		DeviceID = mmio.Field1;
+		Status = mmio.Field2;
+	}
+
+
+
+   /* if (mmio.Field4 != ERR_SUCCESS) {
         aprintf( "The InterruptDevice call in the InterruptHandler has failed.\n");
         aprintf("The DeviceId and Status that were returned are not valid.\n");
-    }
+    }*/
     // HAVE YOU CHECKED THAT THE INTERRUPTING DEVICE FINISHED WITHOUT ERROR?
+	//if it is a timer interrupt
 
-    /** REMOVE THESE SIX LINES **/
-    how_many_interrupt_entries++; /** TEMP **/
-    if (remove_this_from_your_interrupt_code && (how_many_interrupt_entries < 10)) {
-        aprintf("InterruptHandler: Found device ID %d with status %d\n",
-                DeviceID, Status);
-    }
+    ///** REMOVE THESE SIX LINES **/
+    //how_many_interrupt_entries++; /** TEMP **/
+    //if (remove_this_from_your_interrupt_code && (how_many_interrupt_entries < 10)) {
+    //    aprintf("InterruptHandler: Found device ID %d with status %d\n",
+    //            DeviceID, Status);
+    //}
 
 }           // End of InterruptHandler
 
@@ -187,6 +229,10 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				*(long*)SystemCallData->Argument[1] = currentPCB->PID;
 				*(long*)SystemCallData->Argument[2] = mmio.Field3;
 			}
+			break;
+		//sleep for specific time
+		case SYSNUM_SLEEP:
+			startTimer((INT32)SystemCallData->Argument[0]);
 			break;
 		default:
 			printf("ERROR. Unrecognized call type");

@@ -12,6 +12,7 @@ typedef struct ProcessControlBlock {
 	char processName[20]; //related to QueueManager name size
 	INT32 PID;
 	INT32 priority;
+	INT32 timeCreated;
 	void* newContext;//mmio.field1
 	void* address;//mmio.field2
 	void* pageTable;//mmio.field3
@@ -29,5 +30,7 @@ typedef struct ProcessControlBlock {
 
 ///PCB queue
 ///1. ready queue 2.suspend queue 3.block queue
-INT32 QID_ready;
+INT32 QID_ready;//ready queue
+INT32 QID_timer;//timer queue
 extern void osCreatProcess(int argc, char* argv[]);
+extern void startTimer(int during);
