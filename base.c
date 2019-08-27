@@ -99,7 +99,7 @@ void InterruptHandler(void) {
 			//dequeue the first timer queue and put it into ready queue.
 			timerpcb = QRemoveHead(QID_timer);
 			timerpcb->timeCreated = current_time;
-			QInsert(QID_ready, (timerpcb->timeCreated), timerpcb);
+			QInsert(QID_ready, (timerpcb->priority), timerpcb);
 			//chech next timer queue context
 			if (QNextItemInfo(QID_timer) != -1) {
 				timerpcb = QNextItemInfo(QID_timer);
@@ -232,7 +232,23 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			break;
 		//sleep for specific time
 		case SYSNUM_SLEEP:
-			startTimer((INT32)SystemCallData->Argument[0]);
+			//check error first
+			if ((INT32)SystemCallData->Argument[0] > 0) {
+				startTimer((INT32)SystemCallData->Argument[0]);
+			}
+			break;
+		//create a new process
+		case SYSNUM_CREATE_PROCESS:
+			//check priority first
+			if ((INT32)SystemCallData->Argument[0] < 1) {
+				*(long*)SystemCallData->Argument[1] = "illegal priority";
+			}
+			else if (CurrentProcessNumber > 15) {
+				*(long*)SystemCallData->Argument[1] = "too many process";
+			}
+			else {//create process here
+				//createProcess(ProcessName, StartingAddress, InitialPriority, &ProcessID, &ErrorReturned);
+			}
 			break;
 		default:
 			printf("ERROR. Unrecognized call type");

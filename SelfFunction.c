@@ -60,6 +60,7 @@ void osCreatProcess(int argc, char* argv[]) {
 	pcb->newContext = mmio.Field1;
 	pcb->pageTable = PageTable;
 	pcb->priority = 1;
+	CurrentProcessNumber = CurrentProcessNumber + 1;
 	//pcb->timeCreated = 0;
 	// 
 	///put the pcb into ready queue

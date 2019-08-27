@@ -2,6 +2,8 @@
 
 
 INT32 PID;
+INT32 CurrentProcessNumber;
+#define         MAX_Process_number                 15
 
 //PCB could refer to linux task_struct 
 typedef struct ProcessControlBlock {
