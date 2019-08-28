@@ -28,13 +28,15 @@ typedef struct ProcessControlBlock {
 
 }PCB;
 
-
+PCB *currentPCB;
 
 ///PCB queue
 ///1. ready queue 2.suspend queue 3.block queue
 INT32 QID_ready;//ready queue
 INT32 QID_timer;//timer queue
 INT32 QID_allprocess;//all process generated
+extern void dispatcher();
 extern void osCreatProcess(int argc, char* argv[]);
 extern void startTimer(int during);
 extern void createProcess(PCB* currentPCB);
+extern int checkName(char* name);

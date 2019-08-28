@@ -131,7 +131,7 @@ void test1(void) {
  of the current process.  Later on we'll test the return of the PID of
  other processes.
  **************************************************************************/
-void test2(void) {
+void test222(void) {
 	long ErrorReturned;          // System call returns error here
 	long MyProcessID;            // Used as return of process id's.
 	long SleepTime = 100;
@@ -328,7 +328,7 @@ void test4(void) {
  **************************************************************************/
 #define         PRIORITY_TEST5                 10
 
-void test5(void) {
+void test2(void) {
 	long CurrentTime;
 	long ErrorReturned;
 	long OurProcessID;

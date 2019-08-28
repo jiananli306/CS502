@@ -99,7 +99,9 @@ void InterruptHandler(void) {
 			//dequeue the first timer queue and put it into ready queue.
 			timerpcb = QRemoveHead(QID_timer);
 			timerpcb->timeCreated = current_time;
-			QInsert(QID_ready, (timerpcb->priority), timerpcb);
+			if (timerpcb->PID != currentPCB->PID) {
+				QInsert(QID_ready, (timerpcb->priority), timerpcb);
+			}
 			//chech next timer queue context
 			if (QNextItemInfo(QID_timer) != -1) {
 				timerpcb = QNextItemInfo(QID_timer);
@@ -116,7 +118,7 @@ void InterruptHandler(void) {
 		DeviceID = mmio.Field1;
 		Status = mmio.Field2;
 	}
-
+	dispatcher();
 
 
    /* if (mmio.Field4 != ERR_SUCCESS) {
@@ -184,9 +186,9 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
     short i;
 	INT32 Time;
 	MEMORY_MAPPED_IO mmio;
-	PCB* currentPCB;
-	currentPCB = (PCB*)malloc(sizeof(PCB));
-	if (currentPCB == 0)
+	PCB* newPCB;
+	newPCB = (PCB*)malloc(sizeof(PCB));
+	if (newPCB == 0)
 		printf("We didn't complete the malloc in pcb.");
 	void* PageTable = (void*)calloc(2, NUMBER_VIRTUAL_PAGES);
 	
@@ -226,8 +228,12 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			MEM_READ(Z502Context, &mmio);
 			//check which process ID you need 
 			if (strcmp((long*)SystemCallData->Argument[0], "") == 0) {
-				currentPCB = QNextItemInfo(QID_ready);
+				//currentPCB = QNextItemInfo(QID_ready);
 				*(long*)SystemCallData->Argument[1] = currentPCB->PID;
+				*(long*)SystemCallData->Argument[2] = mmio.Field3;
+			}
+			else {
+				*(long*)SystemCallData->Argument[1] = checkName((char*)SystemCallData->Argument[0]);
 				*(long*)SystemCallData->Argument[2] = mmio.Field3;
 			}
 			break;
@@ -249,21 +255,25 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				*(long*)SystemCallData->Argument[3] = -1;
 				*(long*)SystemCallData->Argument[4] = ERR_BAD_PARAM;// "too many process";
 			}
-			else {//create process here
-				currentPCB->PID = PID + 1;
-				strncpy(currentPCB->processName, (char*)SystemCallData->Argument[0], sizeof((char*)SystemCallData->Argument[0]));
-				currentPCB->address = (long)SystemCallData->Argument[1];
-				currentPCB->priority = (long)SystemCallData->Argument[2];
-				currentPCB->pageTable = PageTable;
+			else if (checkName((char*)SystemCallData->Argument[0])!=-1) {
+				*(long*)SystemCallData->Argument[3] = -1;
+				*(long*)SystemCallData->Argument[4] = ERR_BAD_PARAM;// "same name";
+			}
+			else{//create process here
+				newPCB->PID = PID + 1;
+				strncpy(newPCB->processName, (char*)SystemCallData->Argument[0], sizeof((char*)SystemCallData->Argument[0]));
+				newPCB->address = (long)SystemCallData->Argument[1];
+				newPCB->priority = (long)SystemCallData->Argument[2];
+				newPCB->pageTable = PageTable;
 				CurrentProcessNumber = CurrentProcessNumber + 1;
 				{
 					mmio.Mode = Z502ReturnValue;
 					mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 					MEM_READ(Z502Clock, &mmio);
-					currentPCB->timeCreated = mmio.Field1;
+					newPCB->timeCreated = mmio.Field1;
 				}
-				createProcess(currentPCB);
-				*(long*)SystemCallData->Argument[3] = currentPCB->PID;
+				createProcess(newPCB);
+				*(long*)SystemCallData->Argument[3] = newPCB->PID;
 				*(long*)SystemCallData->Argument[4] = ERR_SUCCESS;// "correct";
 			}
 			break;
@@ -271,6 +281,8 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 		case SYSNUM_PHYSICAL_DISK_READ:
 			break;
 		case SYSNUM_PHYSICAL_DISK_WRITE:
+			break;
+		case SYSNUM_CHECK_DISK:
 			break;
 		default:
 			printf("ERROR. Unrecognized call type");
@@ -292,6 +304,7 @@ void osInit(int argc, char *argv[]) {
     void *PageTable = (void *) calloc(2, NUMBER_VIRTUAL_PAGES);
     INT32 i;
     MEMORY_MAPPED_IO mmio;
+	PID = 0;
 	
 	
     // Demonstrates how calling arguments are passed thru to here

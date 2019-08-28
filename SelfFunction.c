@@ -9,6 +9,37 @@
 #include			"SelfFunction.h"
 //define the variables
 
+//dispatcher deal with the pcb within the ready queue.
+///if there is no pcb with in ready queue, z502 idle.
+///otherwise run the next pcb.
+void dispatcher() {
+	//define the pcb
+	PCB* pcb;
+	//allocate memory for pcb
+	pcb = (PCB*)malloc(sizeof(PCB));
+	if (pcb == 0)
+		printf("We didn't complete the malloc in pcb.");
+	MEMORY_MAPPED_IO mmio;
+	//QRemoveHead(QID_ready);
+	//check the ready queue
+	///if ready queue is empty then idle, if not,process next context
+	if (QNextItemInfo(QID_ready) == -1)
+	{ //idle the current context and wait for the interrupt
+		mmio.Mode = Z502Action;
+		mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+		MEM_WRITE(Z502Idle, &mmio);
+	}
+	else//start the next context
+	{
+		pcb = QNextItemInfo(QID_ready);
+		mmio.Mode = Z502StartContext;
+		mmio.Field1 = pcb->newContext;
+		mmio.Field2 = START_NEW_CONTEXT_AND_SUSPEND;
+		mmio.Field3 = 0;
+		MEM_WRITE(Z502Context, &mmio);
+	}
+
+}
 
 
 
@@ -32,10 +63,13 @@ void osCreatProcess(int argc, char* argv[]) {
 	
 	//create a ready queue to store pcb
 	QID_ready = QCreate("readyQueue");
+	printf("%s\n", QGetName(QID_ready));
 	//create a timer quue to store pcb
 	QID_timer = QCreate("timerQueue");
+	printf("%s\n", QGetName(QID_timer));
 	//create a all process quue to store pcb
 	QID_allprocess = QCreate("allProcessQueue");
+	printf("%s\n", QGetName(QID_allprocess));
 	//get the current time
 	{
 		mmio.Mode = Z502ReturnValue;
@@ -66,7 +100,8 @@ void osCreatProcess(int argc, char* argv[]) {
 	//pcb->timeCreated = 0;
 	// 
 	///put the pcb into ready queue
-	QInsert(QID_ready, pcb->priority, pcb);
+	//QInsert(QID_ready, pcb->priority, pcb);
+	currentPCB = pcb;
 	QInsert(QID_allprocess, pcb->priority, pcb);
 
 	////testing
@@ -120,7 +155,8 @@ void startTimer(int during) {
 		MEM_WRITE(Z502Timer, &mmio);
 		//enqueue the current context into timer queue
 		///dequeue from ready queue
-		timerpcb = QRemoveHead(QID_ready);
+		//timerpcb = QRemoveHead(QID_ready);
+		timerpcb = currentPCB;
 		timerpcb->timeCreated = current_time;
 		///enqueue to timer queue by time order
 		QInsert(QID_timer, (timerpcb->timeCreated + during), timerpcb);
@@ -129,29 +165,31 @@ void startTimer(int during) {
 	{
 		//enqueue the current context into timer queue
 		///dequeue from ready queue
-		timerpcb = QRemoveHead(QID_ready);
+		//timerpcb = QRemoveHead(QID_ready);
+		timerpcb = currentPCB;
 		timerpcb->timeCreated = current_time;
 		///enqueue to timer queue by time order
 		QInsert(QID_timer, (timerpcb->timeCreated + during), timerpcb);
 	}
 		//printf("Got erroneous result for Status of Timer\n");
-	//check the ready queue
-	///if ready queue is empty then idle, if not,process next context
-	if (QNextItemInfo(QID_ready) == -1)
-	{ //idle the current context and wait for the interrupt
-		mmio.Mode = Z502Action;
-		mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
-		MEM_WRITE(Z502Idle, &mmio);
-	}
-	else//start the next context
-	{
-		nextpcb = QNextItemInfo(QID_ready);
-		mmio.Mode = Z502StartContext;
-		mmio.Field1 = nextpcb->newContext;
-		mmio.Field2 = START_NEW_CONTEXT_AND_SUSPEND;
-		mmio.Field3 = 0;
-		MEM_WRITE(Z502Context, &mmio);
-	}
+	////check the ready queue
+	/////if ready queue is empty then idle, if not,process next context
+	//if (QNextItemInfo(QID_ready) == -1)
+	//{ //idle the current context and wait for the interrupt
+	//	mmio.Mode = Z502Action;
+	//	mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+	//	MEM_WRITE(Z502Idle, &mmio);
+	//}
+	//else//start the next context
+	//{
+	//	nextpcb = QNextItemInfo(QID_ready);
+	//	mmio.Mode = Z502StartContext;
+	//	mmio.Field1 = nextpcb->newContext;
+	//	mmio.Field2 = START_NEW_CONTEXT_AND_SUSPEND;
+	//	mmio.Field3 = 0;
+	//	MEM_WRITE(Z502Context, &mmio);
+	//}
+	dispatcher();
 }
 ///create process and put it into ready queue
 void createProcess(PCB* currentPCB) {
@@ -168,4 +206,21 @@ void createProcess(PCB* currentPCB) {
 	//put it into ready queue
 	QInsert(QID_ready, currentPCB->priority, currentPCB);
 	QInsert(QID_allprocess, currentPCB->priority, currentPCB);
+}
+
+int checkName(char* name) {
+	int i;
+	PCB* temppcb;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	i = 0;
+
+	while (QWalk(QID_allprocess, i) == -1) {
+		temppcb = QWalk(QID_allprocess, 0);
+		if (strcmp(name, temppcb->processName) == 0) {
+			return temppcb->PID;
+		}
+		i++;
+	}
+	return -1;
 }
