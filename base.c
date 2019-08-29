@@ -260,7 +260,9 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				*(long*)SystemCallData->Argument[4] = ERR_BAD_PARAM;// "same name";
 			}
 			else{//create process here
-				newPCB->PID = PID + 1;
+				newPCB->PID = PID;
+				PID++;
+				printf("%d\n", PID);
 				strncpy(newPCB->processName, (char*)SystemCallData->Argument[0], sizeof((char*)SystemCallData->Argument[0]));
 				newPCB->address = (long)SystemCallData->Argument[1];
 				newPCB->priority = (long)SystemCallData->Argument[2];

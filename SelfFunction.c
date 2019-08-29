@@ -84,6 +84,9 @@ void osCreatProcess(int argc, char* argv[]) {
 		else if (strcmp(argv[1], "test0") == 0) { mmio.Field2 = (long)test0; pcb->address = mmio.Field2; strncpy(pcb->processName, "test0", sizeof("test0"));}
 		else if (strcmp(argv[1], "test1") == 0) { mmio.Field2 = (long)test1; pcb->address = mmio.Field2; strncpy(pcb->processName, "test01", sizeof("test1"));}
 		else if (strcmp(argv[1], "test2") == 0) { mmio.Field2 = (long)test2; pcb->address = mmio.Field2; strncpy(pcb->processName, "test02", sizeof("test2")); }
+		else if (strcmp(argv[1], "test3") == 0) { mmio.Field2 = (long)test3; pcb->address = mmio.Field2; strncpy(pcb->processName, "test03", sizeof("test3")); }
+		else if (strcmp(argv[1], "test4") == 0) { mmio.Field2 = (long)test4; pcb->address = mmio.Field2; strncpy(pcb->processName, "test04", sizeof("test4")); }
+		else if (strcmp(argv[1], "test5") == 0) { mmio.Field2 = (long)test5; pcb->address = mmio.Field2; strncpy(pcb->processName, "test05", sizeof("test5")); }
 	}
 
 	mmio.Mode = Z502InitializeContext;
@@ -92,7 +95,9 @@ void osCreatProcess(int argc, char* argv[]) {
 	mmio.Field3 = (long)PageTable;
 	MEM_WRITE(Z502Context, &mmio);   // Start this new Context Sequence
 	//put the infor into pcb node
-	pcb->PID = PID + 1;
+	pcb->PID = PID;
+	PID++;
+	printf("%d\n", PID);
 	pcb->newContext = mmio.Field1;
 	pcb->pageTable = PageTable;
 	pcb->priority = 1;
