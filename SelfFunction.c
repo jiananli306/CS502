@@ -108,7 +108,11 @@ void osCreatProcess(int argc, char* argv[]) {
 	//QInsert(QID_ready, 3, pcb);
 	//QInsert(QID_ready, 4, pcb);
 	//QInsert(QID_ready, 2, pcb);
-	//ttttt1 = QRemoveHead(QID_ready);	//ttttt = QNextItemInfo(QID_ready);	//QPrint(QID_ready);	//printf("%s\n", QGetName(QID_ready));	
+	//ttttt1 = QRemoveHead(QID_ready);
+	//ttttt = QNextItemInfo(QID_ready);
+	//QPrint(QID_ready);
+	//printf("%s\n", QGetName(QID_ready));
+	
 
 	mmio.Mode = Z502StartContext;
 	// Field1 contains the value of the context returned in the last call
