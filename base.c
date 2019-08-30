@@ -105,6 +105,7 @@ void InterruptHandler(void) {
 			//chech next timer queue context
 			if (QNextItemInfo(QID_timer) != -1) {
 				timerpcb = QNextItemInfo(QID_timer);
+				printf("timer time:%d\n", (timerpcb->timeCreated - current_time));
 				startTimer(timerpcb->timeCreated - current_time);
 			}
 		}

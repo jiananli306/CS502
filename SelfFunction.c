@@ -87,6 +87,8 @@ void osCreatProcess(int argc, char* argv[]) {
 		else if (strcmp(argv[1], "test3") == 0) { mmio.Field2 = (long)test3; pcb->address = mmio.Field2; strncpy(pcb->processName, "test03", sizeof("test3")); }
 		else if (strcmp(argv[1], "test4") == 0) { mmio.Field2 = (long)test4; pcb->address = mmio.Field2; strncpy(pcb->processName, "test04", sizeof("test4")); }
 		else if (strcmp(argv[1], "test5") == 0) { mmio.Field2 = (long)test5; pcb->address = mmio.Field2; strncpy(pcb->processName, "test05", sizeof("test5")); }
+		//else if (strcmp(argv[1], "testX") == 0) { mmio.Field2 = (long)testX; pcb->address = mmio.Field2; strncpy(pcb->processName, "testX", sizeof("testX")); }
+
 	}
 
 	mmio.Mode = Z502InitializeContext;
