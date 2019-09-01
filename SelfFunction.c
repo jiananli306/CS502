@@ -23,13 +23,14 @@ void dispatcher() {
 	//QRemoveHead(QID_ready);
 	//check the ready queue
 	///if ready queue is empty then idle, if not,process next context
-	if (QNextItemInfo(QID_ready) == -1)
-	{ //idle the current context and wait for the interrupt
-		mmio.Mode = Z502Action;
-		mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
-		MEM_WRITE(Z502Idle, &mmio);
+	while (QNextItemInfo(QID_ready) == -1)
+	{ //watetime here
+		//mmio.Mode = Z502Action;
+		//mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+		//MEM_WRITE(Z502Idle, &mmio);
+		for (;;) {}
 	}
-	else//start the next context
+	//start the next context
 	{
 		pcb = QNextItemInfo(QID_ready);
 		mmio.Mode = Z502StartContext;
@@ -75,7 +76,7 @@ void osCreatProcess(int argc, char* argv[]) {
 		mmio.Mode = Z502ReturnValue;
 		mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 		MEM_READ(Z502Clock, &mmio);
-		pcb->timeCreated = mmio.Field1;
+		pcb->timeCreated = (INT32)mmio.Field1;
 	}
 
 	//check which test we will run
@@ -150,7 +151,7 @@ void startTimer(int during) {
 		mmio.Mode = Z502ReturnValue;
 		mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 		MEM_READ(Z502Clock, &mmio);
-		current_time = mmio.Field1;
+		current_time = (INT32)mmio.Field1;
 	}
 	//check timer first
 	mmio.Mode = Z502Status;

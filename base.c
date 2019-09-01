@@ -94,7 +94,7 @@ void InterruptHandler(void) {
 				mmio.Mode = Z502ReturnValue;
 				mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 				MEM_READ(Z502Clock, &mmio);
-				current_time = mmio.Field1;
+				current_time = (INT32)mmio.Field1;
 			}
 			//dequeue the first timer queue and put it into ready queue.
 			timerpcb = QRemoveHead(QID_timer);
@@ -273,7 +273,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					mmio.Mode = Z502ReturnValue;
 					mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 					MEM_READ(Z502Clock, &mmio);
-					newPCB->timeCreated = mmio.Field1;
+					newPCB->timeCreated = (INT32)mmio.Field1;
 				}
 				createProcess(newPCB);
 				*(long*)SystemCallData->Argument[3] = newPCB->PID;
