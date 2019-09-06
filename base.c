@@ -84,10 +84,14 @@ void InterruptHandler(void) {
     MEM_READ(Z502InterruptDevice, &mmio);
     DeviceID = mmio.Field1;
     Status = mmio.Field2;
+	//QPrint(QID_ready);
+	//QPrint(QID_timer);
 	//build a while loop to catch all the interrupt
 	while (mmio.Field4 == ERR_SUCCESS) {
 		//DO the interrupt
 		///handle the timer interrput
+		//QPrint(QID_ready);
+		//QPrint(QID_timer);
 		if (DeviceID == TIMER_INTERRUPT) {
 			//get current time
 			{
@@ -95,18 +99,33 @@ void InterruptHandler(void) {
 				mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 				MEM_READ(Z502Clock, &mmio);
 				current_time = (INT32)mmio.Field1;
+				//printf("Time in interrupt %ld\n", current_time);
 			}
 			//dequeue the first timer queue and put it into ready queue.
 			timerpcb = QRemoveHead(QID_timer);
 			timerpcb->timeCreated = current_time;
-			if (timerpcb->PID != currentPCB->PID) {
-				QInsert(QID_ready, (timerpcb->priority), timerpcb);
-			}
+			//printf("%d", timerpcb->PID);
+			//printf("%d", currentPCB->PID);
+			//if (timerpcb->PID != currentPCB->PID) {
+			QInsert(QID_ready, (timerpcb->priority), timerpcb);
+			//}
 			//chech next timer queue context
 			if (QNextItemInfo(QID_timer) != -1) {
 				timerpcb = QNextItemInfo(QID_timer);
-				printf("timer time:%d\n", (timerpcb->timeCreated - current_time));
-				startTimer(timerpcb->timeCreated - current_time);
+				while (timerpcb->timeCreated < current_time)
+				{
+					timerpcb = QRemoveHead(QID_timer);
+					timerpcb->timeCreated = current_time;
+					QInsert(QID_ready, (timerpcb->priority), timerpcb);
+					timerpcb = QNextItemInfo(QID_timer);
+				}
+				//printf("timer time handleer:%d\n", (timerpcb->timeCreated - current_time));
+				//startTimer(timerpcb->timeCreated - current_time);
+				// Start the timer - here's the sequence to use
+				mmio.Mode = Z502Start;
+				mmio.Field1 = timerpcb->timeCreated - current_time;   // set the time of timer
+				mmio.Field2 = mmio.Field3 = 0;
+				MEM_WRITE(Z502Timer, &mmio);
 			}
 		}
 
@@ -119,7 +138,7 @@ void InterruptHandler(void) {
 		DeviceID = mmio.Field1;
 		Status = mmio.Field2;
 	}
-	dispatcher();
+	//dispatcher();
 
 
    /* if (mmio.Field4 != ERR_SUCCESS) {
@@ -185,6 +204,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
     short call_type;
     static short do_print = 10;
     short i;
+	INT32 PIDtemp;
 	INT32 Time;
 	MEMORY_MAPPED_IO mmio;
 	PCB* newPCB;
@@ -218,15 +238,37 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 		//terminate system call 
 		//for now it terminate the whole system which is not correct
 		case SYSNUM_TERMINATE_PROCESS:
-			mmio.Mode = Z502Action;
-			mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
-			MEM_WRITE(Z502Halt, &mmio);
+			if ((long)SystemCallData->Argument[0] == -2) {
+				//terminate whole system
+				mmio.Mode = Z502Action;
+				mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+				MEM_WRITE(Z502Halt, &mmio);
+			}
+			else if ((long)SystemCallData->Argument[0] == -1) {
+				//terminate the current context
+				PIDtemp = checkName(currentPCB->processName);
+				dequeueByPid(PIDtemp, QID_ready);
+				dequeueByPid(PIDtemp, QID_timer);
+				dequeueByPid(PIDtemp, QID_allprocess);
+				if (QNextItemInfo(QID_timer) == -1 && QNextItemInfo(QID_ready) == -1) {
+					//terminate whole system
+					mmio.Mode = Z502Action;
+					mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+					MEM_WRITE(Z502Halt, &mmio);
+
+				}
+				//QPrint(QID_timer);
+				//QPrint(QID_ready);
+				dispatcher();
+			}
+			
 			break;
 		//Get Process ID
 		case SYSNUM_GET_PROCESS_ID:
 			mmio.Mode = Z502GetCurrentContext;
 			mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 			MEM_READ(Z502Context, &mmio);
+			//printf("%s", currentPCB->processName);
 			//check which process ID you need 
 			if (strcmp((long*)SystemCallData->Argument[0], "") == 0) {
 				//currentPCB = QNextItemInfo(QID_ready);
@@ -234,8 +276,16 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				*(long*)SystemCallData->Argument[2] = mmio.Field3;
 			}
 			else {
-				*(long*)SystemCallData->Argument[1] = checkName((char*)SystemCallData->Argument[0]);
-				*(long*)SystemCallData->Argument[2] = mmio.Field3;
+				PIDtemp = checkName((char*)SystemCallData->Argument[0]);
+				if (PIDtemp == -1){
+					*(long*)SystemCallData->Argument[1] = PIDtemp;
+					*(long*)SystemCallData->Argument[2] = ERR_BAD_PARAM;
+				}
+				else {
+					*(long*)SystemCallData->Argument[1] = PIDtemp;
+					*(long*)SystemCallData->Argument[2] = mmio.Field3;
+				}
+				
 			}
 			break;
 		//sleep for specific time
@@ -263,8 +313,9 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			else{//create process here
 				newPCB->PID = PID;
 				PID++;
-				printf("%d\n", PID);
-				strncpy(newPCB->processName, (char*)SystemCallData->Argument[0], sizeof((char*)SystemCallData->Argument[0]));
+				//printf("%d\n", PID);
+				//printf("%s", (char*)SystemCallData->Argument[0]);
+				strcpy(newPCB->processName, (char*)SystemCallData->Argument[0]);
 				newPCB->address = (long)SystemCallData->Argument[1];
 				newPCB->priority = (long)SystemCallData->Argument[2];
 				newPCB->pageTable = PageTable;
