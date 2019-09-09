@@ -254,6 +254,10 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 		//for now it terminate the whole system which is not correct
 		case SYSNUM_TERMINATE_PROCESS:
 			if ((long)SystemCallData->Argument[0] == -2) {
+				QPrint(QID_suspend);
+				QPrint(QID_ready);
+				QPrint(QID_timer);
+				QPrint(QID_allprocess);
 				*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 				//terminate whole system
 				mmio.Mode = Z502Action;
@@ -270,7 +274,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					//QPrint(QID_suspend);
 					dequeueByPid(PIDtemp, QID_suspend);
 					dequeueByPid(PIDtemp, QID_allprocess);
-					if (QNextItemInfo(QID_timer) == -1 && QNextItemInfo(QID_ready) == -1&& QNextItemInfo(QID_suspend) == -1) {
+					if (QNextItemInfo(QID_timer) == -1 && QNextItemInfo(QID_ready) == -1) {
 						//terminate whole system
 						mmio.Mode = Z502Action;
 						mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
