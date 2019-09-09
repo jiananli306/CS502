@@ -245,7 +245,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 				MEM_WRITE(Z502Halt, &mmio);
 			}
-			else if ((long)SystemCallData->Argument[0] == -1 || strcmp(currentPCB->PID, (long)SystemCallData->Argument[0]) == 0) {
+			else if ((long)SystemCallData->Argument[0] == -1 || currentPCB->PID==(long)SystemCallData->Argument[0]) {
 				//terminate the current context
 				PIDtemp = checkName(currentPCB->processName);
 				if (PIDtemp >= 0)
@@ -320,7 +320,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 		//create a new process
 		case SYSNUM_CREATE_PROCESS:
 			//check priority first
-			if ((INT32)SystemCallData->Argument[0] < 1) {
+			if ((INT32)SystemCallData->Argument[2] < 1) {
 				*(long*)SystemCallData->Argument[3] = -1;
 				*(long*)SystemCallData->Argument[4] = ERR_BAD_PARAM;// "illegal priority";
 			}
@@ -341,7 +341,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				newPCB->address = (long)SystemCallData->Argument[1];
 				newPCB->priority = (long)SystemCallData->Argument[2];
 				newPCB->pageTable = PageTable;
-				CurrentProcessNumber = CurrentProcessNumber + 1;
+				CurrentProcessNumber++;
 				{
 					mmio.Mode = Z502ReturnValue;
 					mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;

@@ -292,7 +292,7 @@ int checkPID(INT32 PID) {
 	while (QWalk(QID_allprocess, i) != -1) {
 		//get the n th process
 		temppcb = QRemoveHead(QID_allprocess);
-		if (strcmp(PID, temppcb->PID) == 0) {
+		if (PID==temppcb->PID) {
 			QInsertOnTail(QID_allprocess, temppcb);
 			return temppcb->PID;
 		}
