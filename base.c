@@ -35,7 +35,8 @@
 #include			"SelfFunction.h"
 
 //define the variables
-
+//extern INT32 PID;
+//extern INT32 CurrentProcessNumber;
 
 
 
@@ -106,26 +107,40 @@ void InterruptHandler(void) {
 			timerpcb->timeCreated = current_time;
 			//printf("%d", timerpcb->PID);
 			//printf("%d", currentPCB->PID);
-			//if (timerpcb->PID != currentPCB->PID) {
-			QInsert(QID_ready, (timerpcb->priority), timerpcb);
-			//}
+			if (timerpcb->suspendFlag != 1) {
+				QInsert(QID_ready, (timerpcb->priority), timerpcb);
+			}
+			else {
+				QInsertOnTail(QID_suspend, timerpcb);
+			}
 			//chech next timer queue context
+			//QPrint(QID_timer);
 			if (QNextItemInfo(QID_timer) != -1) {
 				timerpcb = QNextItemInfo(QID_timer);
-				while (timerpcb->timeCreated < current_time)
+				while (QNextItemInfo(QID_timer) != -1 && timerpcb->timeCreated <= current_time)
 				{
 					timerpcb = QRemoveHead(QID_timer);
 					timerpcb->timeCreated = current_time;
-					QInsert(QID_ready, (timerpcb->priority), timerpcb);
+					//QInsert(QID_ready, (timerpcb->priority), timerpcb);
+					if (timerpcb->suspendFlag != 1) {
+						QInsert(QID_ready, (timerpcb->priority), timerpcb);
+					}
+					else {
+						QInsertOnTail(QID_suspend, timerpcb);
+					}
 					timerpcb = QNextItemInfo(QID_timer);
+
 				}
 				//printf("timer time handleer:%d\n", (timerpcb->timeCreated - current_time));
 				//startTimer(timerpcb->timeCreated - current_time);
 				// Start the timer - here's the sequence to use
-				mmio.Mode = Z502Start;
-				mmio.Field1 = timerpcb->timeCreated - current_time;   // set the time of timer
-				mmio.Field2 = mmio.Field3 = 0;
-				MEM_WRITE(Z502Timer, &mmio);
+				
+				if (QNextItemInfo(QID_timer) != -1) {
+					mmio.Mode = Z502Start;
+					mmio.Field1 = timerpcb->timeCreated - current_time;   // set the time of timer
+					mmio.Field2 = mmio.Field3 = 0;
+					MEM_WRITE(Z502Timer, &mmio);
+				}
 			}
 		}
 
@@ -252,6 +267,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				{
 					dequeueByPid(PIDtemp, QID_ready);
 					dequeueByPid(PIDtemp, QID_timer);
+					dequeueByPid(PIDtemp, QID_suspend);
 					dequeueByPid(PIDtemp, QID_allprocess);
 					if (QNextItemInfo(QID_timer) == -1 && QNextItemInfo(QID_ready) == -1) {
 						//terminate whole system
@@ -275,6 +291,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				{
 					dequeueByPid((long)SystemCallData->Argument[0], QID_ready);
 					dequeueByPid((long)SystemCallData->Argument[0], QID_timer);
+					dequeueByPid((long)SystemCallData->Argument[0], QID_suspend);
 					dequeueByPid((long)SystemCallData->Argument[0], QID_allprocess);
 					*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 				}
@@ -341,6 +358,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				newPCB->address = (long)SystemCallData->Argument[1];
 				newPCB->priority = (long)SystemCallData->Argument[2];
 				newPCB->pageTable = PageTable;
+				newPCB->suspendFlag = 0;
 				CurrentProcessNumber++;
 				{
 					mmio.Mode = Z502ReturnValue;
@@ -352,6 +370,27 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				*(long*)SystemCallData->Argument[3] = newPCB->PID;
 				*(long*)SystemCallData->Argument[4] = ERR_SUCCESS;// "correct";
 			}
+			break;
+		//suspend and resume process
+		case SYSNUM_SUSPEND_PROCESS:
+			//currnet process direct put into suspend queue
+			if ((INT32)SystemCallData->Argument[0] == -1) {
+				currentPCB->suspendFlag = 1;
+				QInsertOnTail(QID_suspend, currentPCB);
+				dispatcher();
+			}
+			else {//check process exit or not first
+				if (checkPID((INT32)SystemCallData->Argument[0]) == -1) {
+					*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+				}
+				else {//if process in ready queue, put into suspend queue
+					suspendByPid((INT32)SystemCallData->Argument[0], QID_ready);
+					//if process in timer queue, set the flag to 1
+					suspendByPid_timer((INT32)SystemCallData->Argument[0]);
+				}
+			}
+			break;
+		case SYSNUM_RESUME_PROCESS:
 			break;
 		//SYSNUM_PHYSICAL_DISK_READ
 		case SYSNUM_PHYSICAL_DISK_READ:

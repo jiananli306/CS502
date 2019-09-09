@@ -3,7 +3,7 @@
 
 INT32 PID;
 INT32 CurrentProcessNumber;
-#define         MAX_Process_number                 15
+#define         MAX_Process_number                 15//intotal there will be 16 process for max
 
 //PCB could refer to linux task_struct 
 typedef struct ProcessControlBlock {
@@ -18,6 +18,7 @@ typedef struct ProcessControlBlock {
 	void* newContext;//mmio.field1
 	void* address;//mmio.field2
 	void* pageTable;//mmio.field3
+	INT32 suspendFlag;
 
 	//memory management
 	///1. pointer to text segment 2.pointer to data segment 3. pointer to stack segment
@@ -35,6 +36,7 @@ PCB *currentPCB;
 INT32 QID_ready;//ready queue
 INT32 QID_timer;//timer queue
 INT32 QID_allprocess;//all process generated
+INT32 QID_suspend;
 //INT32 QID_terminated;//terminated process
 extern void dispatcher();
 extern void osCreatProcess(int argc, char* argv[]);
@@ -43,3 +45,5 @@ extern void createProcess(PCB* currentPCB);
 extern int checkName(char* name);
 extern void dequeueByPid(INT32 PID, INT32 QID);
 extern int checkPID(INT32 PID);
+extern void suspendByPid(INT32 PID, INT32 QID);
+extern void suspendByPid_timer(INT32 PID);

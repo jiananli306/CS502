@@ -8,7 +8,8 @@
 //include the data we created
 #include			"SelfFunction.h"
 //define the variables
-
+//extern INT32 PID;
+//extern INT32 CurrentProcessNumber;
 //waste time
 void WasteTime()
 {
@@ -89,6 +90,10 @@ void osCreatProcess(int argc, char* argv[]) {
 	//create a all process quue to store pcb
 	QID_allprocess = QCreate("allProcessQueue");
 	printf("%s\n", QGetName(QID_allprocess));
+	//create a suspend queue QID_suspend
+	QID_suspend = QCreate("suspendQueue");
+	printf("%s\n", QGetName(QID_suspend));
+
 	//get the current time
 	{
 		mmio.Mode = Z502ReturnValue;
@@ -122,7 +127,8 @@ void osCreatProcess(int argc, char* argv[]) {
 	pcb->newContext = mmio.Field1;
 	pcb->pageTable = PageTable;
 	pcb->priority = 1;
-	CurrentProcessNumber = CurrentProcessNumber + 1;
+	pcb->suspendFlag = 0;
+	CurrentProcessNumber ++;
 	//pcb->timeCreated = 0;
 	// 
 	///put the pcb into ready queue
@@ -326,4 +332,47 @@ void dequeueByPid(INT32 PID, INT32 QID) {
 	//QPrint(QID);
 	//QPrint(QID_timer);
 	//QPrint(QID_allprocess);
+}
+
+void suspendByPid(INT32 PID, INT32 QID) {
+
+	int i;
+	PCB* temppcb;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	i = 0;
+	while (QWalk(QID, i) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID);
+		if (temppcb->PID != PID) {
+			QInsertOnTail(QID, temppcb);
+			//QRemoveItem(QID, temppcb);
+		}
+		else {
+			temppcb->suspendFlag = 1;
+			QInsertOnTail(QID_suspend, temppcb);
+		}
+		i++;
+		//QInsertOnTail(QID, temppcb);
+	}
+}
+
+void suspendByPid_timer(INT32 PID) {
+	int i;
+	PCB* temppcb;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	i = 0;
+	while (QWalk(QID_timer, i) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID_timer);
+		if (temppcb->PID != PID) {
+			QInsertOnTail(QID_timer, temppcb);
+		}
+		else {
+			temppcb->suspendFlag = 1;
+			QInsertOnTail(QID_timer, temppcb);
+		}
+		i++;
+	}
 }
