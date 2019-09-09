@@ -374,23 +374,34 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 		//suspend and resume process
 		case SYSNUM_SUSPEND_PROCESS:
 			//currnet process direct put into suspend queue
-			if ((INT32)SystemCallData->Argument[0] == -1) {
-				currentPCB->suspendFlag = 1;
-				QInsertOnTail(QID_suspend, currentPCB);
-				dispatcher();
+			if ((INT32)SystemCallData->Argument[0] == -1|| (INT32)SystemCallData->Argument[0] == currentPCB->PID) {
+				//currentPCB->suspendFlag = 1;
+				//QInsertOnTail(QID_suspend, currentPCB);
+				//*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
+				//dispatcher();
+				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
 			}
 			else {//check process exit or not first
-				if (checkPID((INT32)SystemCallData->Argument[0]) == -1) {
+				if (checkPID((INT32)SystemCallData->Argument[0]) == -1|| checkPID_suspend((INT32)SystemCallData->Argument[0]) != -1) {
 					*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
 				}
 				else {//if process in ready queue, put into suspend queue
 					suspendByPid((INT32)SystemCallData->Argument[0], QID_ready);
 					//if process in timer queue, set the flag to 1
 					suspendByPid_timer((INT32)SystemCallData->Argument[0]);
+					*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 				}
 			}
 			break;
 		case SYSNUM_RESUME_PROCESS:
+			//check process exit or not first
+			if (checkPID_suspend((INT32)SystemCallData->Argument[0]) == -1) {
+				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+			}
+			else{//dequeue from suspend queue and put into ready queue
+				resumePID((INT32)SystemCallData->Argument[0]);
+				*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
+			}
 			break;
 		//SYSNUM_PHYSICAL_DISK_READ
 		case SYSNUM_PHYSICAL_DISK_READ:

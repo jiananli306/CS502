@@ -111,6 +111,9 @@ void osCreatProcess(int argc, char* argv[]) {
 		else if (strcmp(argv[1], "test3") == 0) { mmio.Field2 = (long)test3; pcb->address = mmio.Field2; strcpy(pcb->processName, "test03"); }
 		else if (strcmp(argv[1], "test4") == 0) { mmio.Field2 = (long)test4; pcb->address = mmio.Field2; strcpy(pcb->processName, "test04"); }
 		else if (strcmp(argv[1], "test5") == 0) { mmio.Field2 = (long)test5; pcb->address = mmio.Field2; strcpy(pcb->processName, "test05"); }
+		else if (strcmp(argv[1], "test6") == 0) { mmio.Field2 = (long)test6; pcb->address = mmio.Field2; strcpy(pcb->processName, "test06"); }
+		else if (strcmp(argv[1], "test7") == 0) { mmio.Field2 = (long)test7; pcb->address = mmio.Field2; strcpy(pcb->processName, "test07"); }
+		else if (strcmp(argv[1], "test8") == 0) { mmio.Field2 = (long)test8; pcb->address = mmio.Field2; strcpy(pcb->processName, "test08"); }
 		//else if (strcmp(argv[1], "testX") == 0) { mmio.Field2 = (long)testX; pcb->address = mmio.Field2; strncpy(pcb->processName, "testX", sizeof("testX")); }
 
 	}
@@ -374,5 +377,44 @@ void suspendByPid_timer(INT32 PID) {
 			QInsertOnTail(QID_timer, temppcb);
 		}
 		i++;
+	}
+}
+
+int checkPID_suspend(INT32 PID) {
+	int i;
+	PCB* temppcb;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	i = 0;
+
+	while (QWalk(QID_suspend, i) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID_suspend);
+		if (PID == temppcb->PID) {
+			QInsertOnTail(QID_suspend, temppcb);
+			return temppcb->PID;
+		}
+		i++;
+		QInsertOnTail(QID_suspend, temppcb);
+	}
+	return -1;
+}
+
+void resumePID(INT32 PID) {
+	int i;
+	PCB* temppcb;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	i = 0;
+	while (QWalk(QID_suspend, i) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID_suspend);
+		if (PID == temppcb->PID) {
+			temppcb->suspendFlag = 0;
+			QInsert(QID_ready, temppcb->priority,temppcb);
+			temppcb = QRemoveHead(QID_suspend);
+		}
+		i++;
+		QInsertOnTail(QID_suspend, temppcb);
 	}
 }
