@@ -431,6 +431,7 @@ void test6(void) {
 	 * get here, then we obviously weren't suspended.  Therefore
 	 * this must be an error.                                    */
 	ErrorExpected(ErrorReturned, "SUSPEND_PROCESS");
+	RESUME_PROCESS(OurProcessID, &ErrorReturned);
 
 	GET_TIME_OF_DAY(&TimeNow);
 	aprintf("TEST 6, PID %ld, Ends at Time %ld\n", OurProcessID, TimeNow);
@@ -1739,7 +1740,7 @@ void testX(void) {
                 (int) (EndingTime - StartingTime - RandomSleep));  // Time after interrupt
     }
     aprintf("TEST X, PID %2ld, Ends at Time %ld\n", OurProcessID, EndingTime);
-
+	
     TERMINATE_PROCESS(-1, &ErrorReturned);
     aprintf("ERROR: TestX should be terminated but isn't.\n");
 

@@ -353,11 +353,13 @@ void suspendByPid(INT32 PID, INT32 QID) {
 		}
 		else {
 			temppcb->suspendFlag = 1;
-			QInsertOnTail(QID_suspend, temppcb);
+			QInsert(QID_suspend, temppcb->priority,temppcb);
+			//QPrint(QID_suspend);
 		}
 		i++;
 		//QInsertOnTail(QID, temppcb);
 	}
+	//QPrint(QID_suspend);
 }
 
 void suspendByPid_timer(INT32 PID) {
@@ -391,7 +393,8 @@ int checkPID_suspend(INT32 PID) {
 		//get the n th process
 		temppcb = QRemoveHead(QID_suspend);
 		if (PID == temppcb->PID) {
-			QInsertOnTail(QID_suspend, temppcb);
+			QInsert(QID_suspend, temppcb->priority, temppcb);
+			//QPrint(QID_suspend);
 			return temppcb->PID;
 		}
 		i++;
@@ -412,9 +415,12 @@ void resumePID(INT32 PID) {
 		if (PID == temppcb->PID) {
 			temppcb->suspendFlag = 0;
 			QInsert(QID_ready, temppcb->priority,temppcb);
+			//QPrint(QID_ready);
 			temppcb = QRemoveHead(QID_suspend);
 		}
 		i++;
-		QInsertOnTail(QID_suspend, temppcb);
+		if (temppcb != -1) {
+			QInsertOnTail(QID_suspend, temppcb);
+		}
 	}
 }

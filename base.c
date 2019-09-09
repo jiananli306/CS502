@@ -267,9 +267,10 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				{
 					dequeueByPid(PIDtemp, QID_ready);
 					dequeueByPid(PIDtemp, QID_timer);
+					//QPrint(QID_suspend);
 					dequeueByPid(PIDtemp, QID_suspend);
 					dequeueByPid(PIDtemp, QID_allprocess);
-					if (QNextItemInfo(QID_timer) == -1 && QNextItemInfo(QID_ready) == -1) {
+					if (QNextItemInfo(QID_timer) == -1 && QNextItemInfo(QID_ready) == -1&& QNextItemInfo(QID_suspend) == -1) {
 						//terminate whole system
 						mmio.Mode = Z502Action;
 						mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
@@ -373,13 +374,14 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			break;
 		//suspend and resume process
 		case SYSNUM_SUSPEND_PROCESS:
+			//QPrint(QID_suspend);
 			//currnet process direct put into suspend queue
 			if ((INT32)SystemCallData->Argument[0] == -1|| (INT32)SystemCallData->Argument[0] == currentPCB->PID) {
-				//currentPCB->suspendFlag = 1;
-				//QInsertOnTail(QID_suspend, currentPCB);
-				//*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
-				//dispatcher();
-				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+				currentPCB->suspendFlag = 1;
+				QInsert(QID_suspend, currentPCB->priority,currentPCB);
+				*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
+				dispatcher();
+				//*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
 			}
 			else {//check process exit or not first
 				if (checkPID((INT32)SystemCallData->Argument[0]) == -1|| checkPID_suspend((INT32)SystemCallData->Argument[0]) != -1) {
@@ -392,9 +394,11 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 				}
 			}
+			//QPrint(QID_suspend);
 			break;
 		case SYSNUM_RESUME_PROCESS:
 			//check process exit or not first
+			//QPrint(QID_suspend);
 			if (checkPID_suspend((INT32)SystemCallData->Argument[0]) == -1) {
 				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
 			}
@@ -402,6 +406,8 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				resumePID((INT32)SystemCallData->Argument[0]);
 				*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 			}
+			//QPrint(QID_ready);
+			//QPrint(QID_suspend);
 			break;
 		//SYSNUM_PHYSICAL_DISK_READ
 		case SYSNUM_PHYSICAL_DISK_READ:
