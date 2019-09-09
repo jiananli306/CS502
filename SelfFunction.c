@@ -273,6 +273,7 @@ int checkName(char* name) {
 		//get the n th process
 		temppcb = QRemoveHead(QID_allprocess);
 		if (strcmp(name, temppcb->processName) == 0) {
+			QInsertOnTail(QID_allprocess, temppcb);
 			return temppcb->PID;
 		}
 		i++;
@@ -280,6 +281,28 @@ int checkName(char* name) {
 	}
 	return -1;
 }
+
+int checkPID(INT32 PID) {
+	int i;
+	PCB* temppcb;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	i = 0;
+	
+	while (QWalk(QID_allprocess, i) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID_allprocess);
+		if (strcmp(PID, temppcb->PID) == 0) {
+			QInsertOnTail(QID_allprocess, temppcb);
+			return temppcb->PID;
+		}
+		i++;
+		QInsertOnTail(QID_allprocess, temppcb);
+	}
+	return -1;
+}
+
+
 
 void dequeueByPid(INT32 PID, INT32 QID) {
 
@@ -293,11 +316,14 @@ void dequeueByPid(INT32 PID, INT32 QID) {
 	while (QWalk(QID, i) != -1) {
 		//get the n th process
 		temppcb = QRemoveHead(QID);
-		if (temppcb->PID == PID) {
-			QRemoveItem(QID, temppcb);
+		if (temppcb->PID != PID) {
+			QInsertOnTail(QID, temppcb);
+			//QRemoveItem(QID, temppcb);
 		}
 		i++;
-		QInsertOnTail(QID, temppcb);
+		//QInsertOnTail(QID, temppcb);
 	}
-	
+	//QPrint(QID);
+	//QPrint(QID_timer);
+	//QPrint(QID_allprocess);
 }

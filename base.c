@@ -239,28 +239,50 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 		//for now it terminate the whole system which is not correct
 		case SYSNUM_TERMINATE_PROCESS:
 			if ((long)SystemCallData->Argument[0] == -2) {
+				*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 				//terminate whole system
 				mmio.Mode = Z502Action;
 				mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 				MEM_WRITE(Z502Halt, &mmio);
 			}
-			else if ((long)SystemCallData->Argument[0] == -1) {
+			else if ((long)SystemCallData->Argument[0] == -1 || strcmp(currentPCB->PID, (long)SystemCallData->Argument[0]) == 0) {
 				//terminate the current context
 				PIDtemp = checkName(currentPCB->processName);
-				dequeueByPid(PIDtemp, QID_ready);
-				dequeueByPid(PIDtemp, QID_timer);
-				dequeueByPid(PIDtemp, QID_allprocess);
-				if (QNextItemInfo(QID_timer) == -1 && QNextItemInfo(QID_ready) == -1) {
-					//terminate whole system
-					mmio.Mode = Z502Action;
-					mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
-					MEM_WRITE(Z502Halt, &mmio);
+				if (PIDtemp >= 0)
+				{
+					dequeueByPid(PIDtemp, QID_ready);
+					dequeueByPid(PIDtemp, QID_timer);
+					dequeueByPid(PIDtemp, QID_allprocess);
+					if (QNextItemInfo(QID_timer) == -1 && QNextItemInfo(QID_ready) == -1) {
+						//terminate whole system
+						mmio.Mode = Z502Action;
+						mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+						MEM_WRITE(Z502Halt, &mmio);
 
+					}
+					//QPrint(QID_timer);
+					//QPrint(QID_ready);
+					*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
+					dispatcher();
 				}
-				//QPrint(QID_timer);
-				//QPrint(QID_ready);
-				dispatcher();
+				else {
+					*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+				}
 			}
+			else {
+				PIDtemp = checkPID((long)SystemCallData->Argument[0]);
+				if (PIDtemp >= 0)
+				{
+					dequeueByPid((long)SystemCallData->Argument[0], QID_ready);
+					dequeueByPid((long)SystemCallData->Argument[0], QID_timer);
+					dequeueByPid((long)SystemCallData->Argument[0], QID_allprocess);
+					*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
+				}
+				else {
+					*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+				}
+			}
+		
 			
 			break;
 		//Get Process ID

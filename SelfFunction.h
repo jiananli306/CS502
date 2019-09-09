@@ -42,3 +42,4 @@ extern void startTimer(int during);
 extern void createProcess(PCB* currentPCB);
 extern int checkName(char* name);
 extern void dequeueByPid(INT32 PID, INT32 QID);
+extern int checkPID(INT32 PID);
