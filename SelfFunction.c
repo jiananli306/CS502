@@ -173,6 +173,7 @@ void startTimer(int during) {
 	INT32 current_time;
 	PCB *timerpcb;
 	PCB *nextpcb;
+	char Success[] = "      Action Failed\0        Action Succeeded";
 	//allocate memory for pcb
 	timerpcb = (PCB*)malloc(sizeof(PCB));
 	if (timerpcb == 0)
@@ -187,7 +188,11 @@ void startTimer(int during) {
 		MEM_READ(Z502Clock, &mmio);
 		current_time = (INT32)mmio.Field1;
 	}
-	
+	READ_MODIFY(TimerQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_timer);
+	//printf("%s\n", &(Success[SPART * LockResult_timer]));
+
+
 	timerpcb = currentPCB;
 	timerpcb->timeCreated = current_time + during;
 	QInsert(QID_timer, (timerpcb->timeCreated), timerpcb);
@@ -224,16 +229,9 @@ void startTimer(int during) {
 			MEM_WRITE(Z502Timer, &mmio);
 	}
 
-	
-
-
-
-
-
-
-
-
-
+	READ_MODIFY(TimerQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_timer);
+	//printf("%s\n", &(Success[SPART * LockResult_timer]));
 
 
 

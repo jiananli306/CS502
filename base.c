@@ -69,6 +69,8 @@ void InterruptHandler(void) {
     INT32 Status;
 	PCB* timerpcb;
 	INT32 current_time;
+	char Success[] = "      Action Failed\0        Action Succeeded";
+
 	//allocate memory for pcb
 	timerpcb = (PCB*)malloc(sizeof(PCB));
 	if (timerpcb == 0)
@@ -93,6 +95,10 @@ void InterruptHandler(void) {
 		//QPrint(QID_ready);
 		//QPrint(QID_timer);
 		if (DeviceID == TIMER_INTERRUPT) {
+			READ_MODIFY(TimerQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+				&LockResult_timer);
+			//printf("%s\n", &(Success[SPART * LockResult_timer]));
+
 			//get current time
 			{
 				mmio.Mode = Z502ReturnValue;
@@ -129,6 +135,9 @@ void InterruptHandler(void) {
 				}
 
 			}
+			READ_MODIFY(TimerQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+				&LockResult_timer);
+			//printf("%s\n", &(Success[SPART * LockResult_timer]));
 		}
 
 
