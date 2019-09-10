@@ -416,6 +416,30 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			break;
 		case SYSNUM_CHECK_DISK:
 			break;
+		case SYSNUM_CHANGE_PRIORITY:
+			if ((INT32)SystemCallData->Argument[0] == -1) {
+				currentPCB->priority = (INT32)SystemCallData->Argument[1];
+				changePriority(currentPCB->PID, (INT32)SystemCallData->Argument[1], QID_allprocess);
+				*(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
+				QInsert(QID_ready,currentPCB->priority,currentPCB);
+				dispatcher();
+			}else if(checkPID((INT32)SystemCallData->Argument[0]) == -1) {
+				*(long*)SystemCallData->Argument[2] = ERR_BAD_PARAM;
+			}
+			else {
+				//change the priority from timer, ready and suspend queue
+				changePriority((INT32)SystemCallData->Argument[0], (INT32)SystemCallData->Argument[1], QID_allprocess);
+				changePriority((INT32)SystemCallData->Argument[0], (INT32)SystemCallData->Argument[1],QID_ready);
+				READ_MODIFY(TimerQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+					&LockResult_timer);
+				changePriority((INT32)SystemCallData->Argument[0], (INT32)SystemCallData->Argument[1],QID_timer);
+				READ_MODIFY(TimerQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+					&LockResult_timer);
+				changePriority((INT32)SystemCallData->Argument[0], (INT32)SystemCallData->Argument[1],QID_suspend);
+				*(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
+			}
+
+			break;
 		default:
 			printf("ERROR. Unrecognized call type");
 			printf("Call_type: %i\n",call_type);

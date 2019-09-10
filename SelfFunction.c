@@ -116,6 +116,8 @@ void osCreatProcess(int argc, char* argv[]) {
 		else if (strcmp(argv[1], "test6") == 0) { mmio.Field2 = (long)test6; pcb->address = mmio.Field2; strcpy(pcb->processName, "test06"); }
 		else if (strcmp(argv[1], "test7") == 0) { mmio.Field2 = (long)test7; pcb->address = mmio.Field2; strcpy(pcb->processName, "test07"); }
 		else if (strcmp(argv[1], "test8") == 0) { mmio.Field2 = (long)test8; pcb->address = mmio.Field2; strcpy(pcb->processName, "test08"); }
+		else if (strcmp(argv[1], "test12") == 0) { mmio.Field2 = (long)test12; pcb->address = mmio.Field2; strcpy(pcb->processName, "test12"); }
+		else if (strcmp(argv[1], "test13") == 0) { mmio.Field2 = (long)test13; pcb->address = mmio.Field2; strcpy(pcb->processName, "test13"); }
 		//else if (strcmp(argv[1], "testX") == 0) { mmio.Field2 = (long)testX; pcb->address = mmio.Field2; strncpy(pcb->processName, "testX", sizeof("testX")); }
 
 	}
@@ -232,80 +234,6 @@ void startTimer(int during) {
 	READ_MODIFY(TimerQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
 		&LockResult_timer);
 	//printf("%s\n", &(Success[SPART * LockResult_timer]));
-
-
-
-
-/*	{
-		//QPrint(QID_timer);
-		timerpcb = QNextItemInfo(QID_timer);
-		//printf("timer time:%d\n", (timerpcb->timeCreated - current_time));
-		//startTimer(timerpcb->timeCreated - current_time);
-		// Start the timer - here's the sequence to use
-		mmio.Mode = Z502Start;
-		printf("time for timer : %d \n", timerpcb->timeCreated - current_time);
-		mmio.Field1 = timerpcb->timeCreated - current_time;   // set the time 
-		//printf("Sleeptime : %d \n", mmio.Field1);
-		mmio.Field2 = mmio.Field3 = 0;
-		MEM_WRITE(Z502Timer, &mmio);
-	}
-	//QPrint(QID_timer);*/
-	
-
-
-	/*
-	
-	//check timer first
-	mmio.Mode = Z502Status;
-	mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
-	MEM_READ(Z502Timer, &mmio);
-	Status = mmio.Field1;
-	if (Status == DEVICE_FREE)//no timer is inuse now and start the first timer
-	{
-		timerpcb = currentPCB;
-		timerpcb->timeCreated = current_time + during;
-		///enqueue to timer queue by time order
-		QInsert(QID_timer, (timerpcb->timeCreated), timerpcb);
-		timerpcb = QNextItemInfo(QID_timer);
-
-
-		QPrint(QID_timer);
-		// Start the timer - here's the sequence to use
-		mmio.Mode = Z502Start;
-		mmio.Field1 = timerpcb->timeCreated - current_time; // set the time of timer
-		mmio.Field2 = mmio.Field3 = 0;
-		MEM_WRITE(Z502Timer, &mmio);
-		//enqueue the current context into timer queue
-		///dequeue from ready queue
-		//timerpcb = QRemoveHead(QID_ready);
-		//timerpcb = currentPCB;
-		//timerpcb->timeCreated = current_time + during;
-		///enqueue to timer queue by time order
-		//QInsert(QID_timer, (timerpcb->timeCreated), timerpcb);
-		//QPrint(QID_ready);
-		//QPrint(QID_timer);
-		//QPrint(QID_allprocess);
-	}//printf("Got expected (DEVICE_FREE) result for Status of Timer\n");//and do the next
-	else//timer is inuse now.put the current context into timer queue
-	{
-		//enqueue the current context into timer queue
-		///dequeue from ready queue
-		//timerpcb = QRemoveHead(QID_ready);
-		timerpcb = currentPCB;
-		timerpcb->timeCreated = current_time + during;
-		//printf("teetetetetete : %d", timerpcb->timeCreated);
-		///enqueue to timer queue by time order
-		QInsert(QID_timer, (timerpcb->timeCreated), timerpcb);
-		//
-		timerpcb = QNextItemInfo(QID_timer);
-		//printf("timer time:%d\n", (timerpcb->timeCreated - current_time));
-		//startTimer(timerpcb->timeCreated - current_time);
-		// Start the timer - here's the sequence to use
-		mmio.Mode = Z502Start;
-		mmio.Field1 = timerpcb->timeCreated - current_time;   // set the time of timer
-		mmio.Field2 = mmio.Field3 = 0;
-		MEM_WRITE(Z502Timer, &mmio);
-	}*/
 	dispatcher();
 }
 ///create process and put it into ready queue
@@ -509,5 +437,37 @@ void resumePID(INT32 PID) {
 		temppcb = QRemoveHead(QID_temp);
 		QInsert(QID_suspend, temppcb->priority, temppcb);
 	}
+	//QPrint(QID_temp);
+}
+
+
+void changePriority(INT32 PID,INT32 priority, INT32 QID) {
+	PCB* temppcb;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	//QPrint(QID);
+	while (QWalk(QID, 0) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID);
+
+		if (PID == temppcb->PID) {
+			temppcb->priority = priority;
+			QInsert(QID_temp, temppcb->priority, temppcb);
+		}
+		else {
+			QInsert(QID_temp, temppcb->priority, temppcb);
+		}
+	}
+	while (QWalk(QID_temp, 0) != -1) {
+		temppcb = QRemoveHead(QID_temp);
+		if (QID == QID_timer) {
+			QInsert(QID, temppcb->timeCreated, temppcb);
+		}
+		else {
+
+			QInsert(QID, temppcb->priority, temppcb);
+		}
+	}
+	//QPrint(QID);
 	//QPrint(QID_temp);
 }

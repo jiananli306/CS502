@@ -63,3 +63,4 @@ extern void suspendByPid(INT32 PID, INT32 QID);
 extern void suspendByPid_timer(INT32 PID);
 extern int checkPID_suspend(INT32 PID);
 extern void resumePID(INT32 PID);
+extern void changePriority(INT32 PID,INT32 priority, INT32 QID);
