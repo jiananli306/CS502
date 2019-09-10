@@ -64,3 +64,5 @@ extern void suspendByPid_timer(INT32 PID);
 extern int checkPID_suspend(INT32 PID);
 extern void resumePID(INT32 PID);
 extern void changePriority(INT32 PID,INT32 priority, INT32 QID);
+extern void pDisk_write(INT32 disk, INT32 sector, char* dataWrite);
+extern void pDisk_read(INT32 disk, INT32 sector, char* dataRead);

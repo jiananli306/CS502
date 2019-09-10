@@ -411,10 +411,31 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			break;
 		//SYSNUM_PHYSICAL_DISK_READ
 		case SYSNUM_PHYSICAL_DISK_READ:
+			if ((long)SystemCallData->Argument[0] >= 0 && (long)SystemCallData->Argument[0] <= 7) {
+				if ((long)SystemCallData->Argument[1] >= 0 && (long)SystemCallData->Argument[1] <= 2047) {
+					pDisk_read((long)SystemCallData->Argument[0], (long)SystemCallData->Argument[1], (char*)SystemCallData->Argument[2]);
+				}
+			}
 			break;
 		case SYSNUM_PHYSICAL_DISK_WRITE:
+			if ((long)SystemCallData->Argument[0] >= 0 && (long)SystemCallData->Argument[0] <= 7) {
+				if ((long)SystemCallData->Argument[1] >= 0 && (long)SystemCallData->Argument[1] <= 2047) {
+					pDisk_write((long)SystemCallData->Argument[0], (long)SystemCallData->Argument[1], (char*)SystemCallData->Argument[2]);
+				}
+			}
 			break;
 		case SYSNUM_CHECK_DISK:
+			if ((long)SystemCallData->Argument[0] >= 0 && (long)SystemCallData->Argument[0] <= 7) {
+				mmio.Mode = Z502CheckDisk;
+				mmio.Field1 = (long)SystemCallData->Argument[0];
+				mmio.Field2 = mmio.Field3 = mmio.Field4 = 0;
+				MEM_READ(Z502Disk, &mmio);
+				*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
+			}
+			else {
+				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+			}
+
 			break;
 		case SYSNUM_CHANGE_PRIORITY:
 			if ((INT32)SystemCallData->Argument[0] == -1) {
@@ -423,7 +444,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				*(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
 				QInsert(QID_ready,currentPCB->priority,currentPCB);
 				dispatcher();
-			}else if(checkPID((INT32)SystemCallData->Argument[0]) == -1) {
+			}else if(checkPID((INT32)SystemCallData->Argument[0]) == -1|| (INT32)SystemCallData->Argument[1] < 0) {
 				*(long*)SystemCallData->Argument[2] = ERR_BAD_PARAM;
 			}
 			else {
@@ -438,7 +459,10 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				changePriority((INT32)SystemCallData->Argument[0], (INT32)SystemCallData->Argument[1],QID_suspend);
 				*(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
 			}
-
+			break;
+		case SYSNUM_SEND_MESSAGE:
+			break;
+		case SYSNUM_RECEIVE_MESSAGE:
 			break;
 		default:
 			printf("ERROR. Unrecognized call type");

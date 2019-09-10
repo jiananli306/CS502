@@ -116,6 +116,7 @@ void osCreatProcess(int argc, char* argv[]) {
 		else if (strcmp(argv[1], "test6") == 0) { mmio.Field2 = (long)test6; pcb->address = mmio.Field2; strcpy(pcb->processName, "test06"); }
 		else if (strcmp(argv[1], "test7") == 0) { mmio.Field2 = (long)test7; pcb->address = mmio.Field2; strcpy(pcb->processName, "test07"); }
 		else if (strcmp(argv[1], "test8") == 0) { mmio.Field2 = (long)test8; pcb->address = mmio.Field2; strcpy(pcb->processName, "test08"); }
+		else if (strcmp(argv[1], "test9") == 0) { mmio.Field2 = (long)test9; pcb->address = mmio.Field2; strcpy(pcb->processName, "test09"); }
 		else if (strcmp(argv[1], "test12") == 0) { mmio.Field2 = (long)test12; pcb->address = mmio.Field2; strcpy(pcb->processName, "test12"); }
 		else if (strcmp(argv[1], "test13") == 0) { mmio.Field2 = (long)test13; pcb->address = mmio.Field2; strcpy(pcb->processName, "test13"); }
 		//else if (strcmp(argv[1], "testX") == 0) { mmio.Field2 = (long)testX; pcb->address = mmio.Field2; strncpy(pcb->processName, "testX", sizeof("testX")); }
@@ -470,4 +471,12 @@ void changePriority(INT32 PID,INT32 priority, INT32 QID) {
 	}
 	//QPrint(QID);
 	//QPrint(QID_temp);
+}
+
+
+void pDisk_write(INT32 disk, INT32 sector, char* dataWrite) {
+
+}
+void pDisk_read(INT32 disk, INT32 sector, char* dataRead) {
+
 }
