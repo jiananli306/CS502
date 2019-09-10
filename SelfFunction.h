@@ -36,7 +36,8 @@ PCB *currentPCB;
 INT32 QID_ready;//ready queue
 INT32 QID_timer;//timer queue
 INT32 QID_allprocess;//all process generated
-INT32 QID_suspend;
+INT32 QID_suspend;//suspend queue
+INT32 QID_temp;//temp Q for search
 //INT32 QID_terminated;//terminated process
 extern void dispatcher();
 extern void osCreatProcess(int argc, char* argv[]);

@@ -254,10 +254,10 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 		//for now it terminate the whole system which is not correct
 		case SYSNUM_TERMINATE_PROCESS:
 			if ((long)SystemCallData->Argument[0] == -2) {
-				QPrint(QID_suspend);
-				QPrint(QID_ready);
-				QPrint(QID_timer);
-				QPrint(QID_allprocess);
+				//QPrint(QID_suspend);
+				//QPrint(QID_ready);
+				//QPrint(QID_timer);
+				//QPrint(QID_allprocess);
 				*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 				//terminate whole system
 				mmio.Mode = Z502Action;
@@ -381,11 +381,11 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			//QPrint(QID_suspend);
 			//currnet process direct put into suspend queue
 			if ((INT32)SystemCallData->Argument[0] == -1|| (INT32)SystemCallData->Argument[0] == currentPCB->PID) {
-				currentPCB->suspendFlag = 1;
-				QInsert(QID_suspend, currentPCB->priority,currentPCB);
-				*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
-				dispatcher();
-				//*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+				//currentPCB->suspendFlag = 1;
+				//QInsert(QID_suspend, currentPCB->priority,currentPCB);
+				//*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
+				//dispatcher();
+				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
 			}
 			else {//check process exit or not first
 				if (checkPID((INT32)SystemCallData->Argument[0]) == -1|| checkPID_suspend((INT32)SystemCallData->Argument[0]) != -1) {

@@ -520,7 +520,7 @@ void test7(void) {
 	SLEEP((INT32 )10000);
 	GET_TIME_OF_DAY(&TimeNow);
 	aprintf("TEST 7, PID %ld, Ends at Time %ld\n", OurProcessID, TimeNow);
-	TERMINATE_PROCESS(-2, &ErrorReturned);
+	TERMINATE_PROCESS(-1, &ErrorReturned);
 
 }                        // End of test7
 

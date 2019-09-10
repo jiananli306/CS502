@@ -93,7 +93,9 @@ void osCreatProcess(int argc, char* argv[]) {
 	//create a suspend queue QID_suspend
 	QID_suspend = QCreate("suspendQueue");
 	printf("%s\n", QGetName(QID_suspend));
-
+	//create a temp queue QID_temp
+	QID_temp = QCreate("tempQueue");
+	printf("%s\n", QGetName(QID_temp));
 	//get the current time
 	{
 		mmio.Mode = Z502ReturnValue;
@@ -215,6 +217,7 @@ void startTimer(int during) {
 		//timerpcb = QRemoveHead(QID_ready);
 		timerpcb = currentPCB;
 		timerpcb->timeCreated = current_time + during;
+		//printf("teetetetetete : %d", timerpcb->timeCreated);
 		///enqueue to timer queue by time order
 		QInsert(QID_timer, (timerpcb->timeCreated), timerpcb);
 		//
@@ -269,15 +272,35 @@ void createProcess(PCB* currentPCB) {
 	//QPrint(QID_allprocess);
 
 }
+/////check by name so see it exit or not
+int checkName(char* name) {
+	PCB* temppcb;
+	int temppcb1 = -1;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	while (QWalk(QID_allprocess, 0) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID_allprocess);
+		QInsert(QID_temp, temppcb->priority, temppcb);
+		if (strcmp(name, temppcb->processName) == 0) {
+			temppcb1 = temppcb->PID;
+		}
+	}
+	while (QWalk(QID_temp, 0) != -1) {
+		temppcb = QRemoveHead(QID_temp);
+		QInsert(QID_allprocess, temppcb->priority, temppcb);
+	}
+	//QPrint(QID_temp);
+	return temppcb1;
+}
 
+/*
 int checkName(char* name) {
 	int i;
 	PCB* temppcb;
 	//allocate memory for pcb
 	temppcb = (PCB*)malloc(sizeof(PCB));
 	i = 0;
-	//QPrint(QID_allprocess);
-	//printf("aaaaaaaaaa %d", QWalk(QID_allprocess, 0));
 	while (QWalk(QID_allprocess, i) != -1) {
 		//get the n th process
 		temppcb = QRemoveHead(QID_allprocess);
@@ -290,7 +313,30 @@ int checkName(char* name) {
 	}
 	return -1;
 }
+*/
 
+//check pid from allprocess
+int checkPID(INT32 PID) {
+	PCB* temppcb;
+	int temppcb1 = -1;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	while (QWalk(QID_allprocess, 0) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID_allprocess);
+		QInsert(QID_temp, temppcb->priority, temppcb);
+		if (PID == temppcb->PID) {
+			temppcb1 = temppcb->PID;
+		}
+	}
+	while (QWalk(QID_temp, 0) != -1) {
+		temppcb = QRemoveHead(QID_temp);
+		QInsert(QID_allprocess, temppcb->priority, temppcb);
+	}
+	return temppcb1;
+}
+
+/*
 int checkPID(INT32 PID) {
 	int i;
 	PCB* temppcb;
@@ -310,9 +356,29 @@ int checkPID(INT32 PID) {
 	}
 	return -1;
 }
+*/
+///delete a pcd from spcific queue
+void dequeueByPid(INT32 PID, INT32 QID) {
+	PCB* temppcb;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	while (QWalk(QID, 0) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID);
+		QInsert(QID_temp, temppcb->priority, temppcb);
+		if (PID == temppcb->PID) {
+			QRemoveItem(QID_temp, temppcb);
+		}
+	}
+	while (QWalk(QID_temp, 0) != -1) {
+		temppcb = QRemoveHead(QID_temp);
+		QInsert(QID, temppcb->priority, temppcb);
+	}
+	//QPrint(QID_temp);
+}
 
 
-
+/*
 void dequeueByPid(INT32 PID, INT32 QID) {
 
 	int i;
@@ -320,23 +386,42 @@ void dequeueByPid(INT32 PID, INT32 QID) {
 	//allocate memory for pcb
 	temppcb = (PCB*)malloc(sizeof(PCB));
 	i = 0;
-	//QPrint(QID_allprocess);
-	//printf("aaaaaaaaaa %d", QWalk(QID_allprocess, 0));
 	while (QWalk(QID, i) != -1) {
 		//get the n th process
 		temppcb = QRemoveHead(QID);
 		if (temppcb->PID != PID) {
 			QInsertOnTail(QID, temppcb);
-			//QRemoveItem(QID, temppcb);
 		}
 		i++;
 		//QInsertOnTail(QID, temppcb);
 	}
-	//QPrint(QID);
-	//QPrint(QID_timer);
-	//QPrint(QID_allprocess);
 }
+*/
 
+//////suspend pid
+void suspendByPid(INT32 PID, INT32 QID) {
+	PCB* temppcb;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	while (QWalk(QID, 0) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID);
+		
+		if (PID == temppcb->PID) {
+			temppcb->suspendFlag = 1;
+			QInsert(QID_suspend, temppcb->priority, temppcb);
+		}
+		else {
+			QInsert(QID_temp, temppcb->priority, temppcb);
+		}
+	}
+	while (QWalk(QID_temp, 0) != -1) {
+		temppcb = QRemoveHead(QID_temp);
+		QInsert(QID, temppcb->priority, temppcb);
+	}
+	////QPrint(QID_temp);
+}
+/*
 void suspendByPid(INT32 PID, INT32 QID) {
 
 	int i;
@@ -361,7 +446,34 @@ void suspendByPid(INT32 PID, INT32 QID) {
 	}
 	//QPrint(QID_suspend);
 }
+*/
 
+//suspend pcb to timer queue
+void suspendByPid_timer(INT32 PID) {
+	PCB* temppcb;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	while (QWalk(QID_timer, 0) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID_timer);
+
+		if (PID == temppcb->PID) {
+			temppcb->suspendFlag = 1;
+			QInsert(QID_temp, temppcb->priority, temppcb);
+		}
+		else {
+			QInsert(QID_temp, temppcb->priority, temppcb);
+		}
+	}
+	while (QWalk(QID_temp, 0) != -1) {
+		temppcb = QRemoveHead(QID_temp);
+		QInsert(QID_timer, temppcb->priority, temppcb);
+	}
+	//QPrint(QID_temp);
+}
+
+
+/*
 void suspendByPid_timer(INT32 PID) {
 	int i;
 	PCB* temppcb;
@@ -381,7 +493,28 @@ void suspendByPid_timer(INT32 PID) {
 		i++;
 	}
 }
-
+*/
+///check a pid is suspend or not
+int checkPID_suspend(INT32 PID) {
+	PCB* temppcb;
+	int temppcb1 = -1;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	while (QWalk(QID_suspend, 0) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID_suspend);
+		QInsert(QID_temp, temppcb->priority, temppcb);
+		if (PID == temppcb->PID) {
+			temppcb1 = temppcb->PID;
+		}
+	}
+	while (QWalk(QID_temp, 0) != -1) {
+		temppcb = QRemoveHead(QID_temp);
+		QInsert(QID_suspend, temppcb->priority, temppcb);
+	}
+	return temppcb1;
+}
+/*
 int checkPID_suspend(INT32 PID) {
 	int i;
 	PCB* temppcb;
@@ -402,7 +535,33 @@ int checkPID_suspend(INT32 PID) {
 	}
 	return -1;
 }
+*/
 
+//resume a pcd
+void resumePID(INT32 PID) {
+	PCB* temppcb;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	while (QWalk(QID_suspend, 0) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID_suspend);
+
+		if (PID == temppcb->PID) {
+			temppcb->suspendFlag = 0;
+			QInsert(QID_ready, temppcb->priority, temppcb);
+		}
+		else {
+			QInsert(QID_temp, temppcb->priority, temppcb);
+		}
+	}
+	while (QWalk(QID_temp, 0) != -1) {
+		temppcb = QRemoveHead(QID_temp);
+		QInsert(QID_suspend, temppcb->priority, temppcb);
+	}
+	//QPrint(QID_temp);
+}
+
+/*
 void resumePID(INT32 PID) {
 	int i;
 	PCB* temppcb;
@@ -423,4 +582,5 @@ void resumePID(INT32 PID) {
 			QInsertOnTail(QID_suspend, temppcb);
 		}
 	}
-}
+	}
+*/
