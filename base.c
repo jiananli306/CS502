@@ -111,7 +111,7 @@ void InterruptHandler(void) {
 				QInsert(QID_ready, (timerpcb->priority), timerpcb);
 			}
 			else {
-				QInsertOnTail(QID_suspend, timerpcb);
+				QInsert(QID_suspend, timerpcb->priority,timerpcb);
 			}
 			//chech next timer queue context
 			//QPrint(QID_timer);
@@ -119,6 +119,9 @@ void InterruptHandler(void) {
 				timerpcb = QNextItemInfo(QID_timer);
 				while (QNextItemInfo(QID_timer) != -1 && timerpcb->timeCreated <= current_time)
 				{
+					//printf("**might have error here**********time:%d \n",current_time);
+					//QPrint(QID_timer);
+					//printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 					timerpcb = QRemoveHead(QID_timer);
 					timerpcb->timeCreated = current_time;
 					//QInsert(QID_ready, (timerpcb->priority), timerpcb);
@@ -126,9 +129,14 @@ void InterruptHandler(void) {
 						QInsert(QID_ready, (timerpcb->priority), timerpcb);
 					}
 					else {
-						QInsertOnTail(QID_suspend, timerpcb);
+						QInsert(QID_suspend, timerpcb->priority,timerpcb);
 					}
 					timerpcb = QNextItemInfo(QID_timer);
+					if (timerpcb == -1) {
+						break;
+					}
+					//QPrint(QID_timer);
+					//printf("****************************\n");
 
 				}
 				//printf("timer time handleer:%d\n", (timerpcb->timeCreated - current_time));

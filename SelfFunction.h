@@ -42,7 +42,7 @@ INT32 QID_temp;//temp Q for search
 extern void dispatcher();
 extern void osCreatProcess(int argc, char* argv[]);
 extern void startTimer(int during);
-extern void createProcess(PCB* currentPCB);
+extern void createProcess(PCB* currentPCB1);
 extern int checkName(char* name);
 extern void dequeueByPid(INT32 PID, INT32 QID);
 extern int checkPID(INT32 PID);
