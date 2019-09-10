@@ -370,7 +370,7 @@ void suspendByPid_timer(INT32 PID) {
 	PCB* temppcb;
 	//allocate memory for pcb
 	temppcb = (PCB*)malloc(sizeof(PCB));
-	READ_MODIFY(TimerQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+	READ_MODIFY(TimerQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 		&LockResult_timer);
 	while (QWalk(QID_timer, 0) != -1) {
 		//get the n th process
@@ -474,9 +474,61 @@ void changePriority(INT32 PID,INT32 priority, INT32 QID) {
 }
 
 
-void pDisk_write(INT32 disk, INT32 sector, char* dataWrite) {
+void pDisk_write(INT32 disk, INT32 sector, long dataWrite) {
+	char lock_write[20];
+	char lock_read[20];
+	MEMORY_MAPPED_IO mmio;
+	sprintf(lock_write, "writeDisk_%ld_lock", disk);
+	sprintf(lock_read, "readDisk_%ld_lock", disk);
+	//printf(lock_write);
+
+	READ_MODIFY(lock_write, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_disk);
+
+	mmio.Mode = Z502DiskWrite;
+	mmio.Field1 = disk; // Pick same disk location
+	mmio.Field2 = sector;
+	mmio.Field3 = (long)dataWrite;
+	MEM_WRITE(Z502Disk, &mmio);
+
+	READ_MODIFY(lock_write, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_disk);
 
 }
-void pDisk_read(INT32 disk, INT32 sector, char* dataRead) {
+void pDisk_read(INT32 disk, INT32 sector, long dataRead) {
+	char lock_read[20];
+	char lock_write[20];
+	MEMORY_MAPPED_IO mmio;
+	sprintf(lock_read, "readDisk_%ld_lock", disk);
+	sprintf(lock_write, "writeDisk_%ld_lock", disk);
+	
+
+
+	READ_MODIFY(lock_read, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_disk);
+	rc = rc + 1;
+	if(rc == 1){
+		READ_MODIFY(lock_write, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+			&LockResult_disk);
+	}
+	READ_MODIFY(lock_read, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_disk);
+
+
+	mmio.Mode = Z502DiskRead;
+	mmio.Field1 = disk; // Pick same disk location
+	mmio.Field2 = sector;
+	mmio.Field3 = (long)dataRead;
+	MEM_WRITE(Z502Disk, &mmio);
+
+	READ_MODIFY(lock_read, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_disk);
+	rc = rc - 1;
+	if(rc == 0){
+		READ_MODIFY(lock_write, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+			&LockResult_disk);
+	}
+	READ_MODIFY(lock_read, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_disk);
 
 }

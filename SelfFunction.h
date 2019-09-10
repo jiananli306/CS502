@@ -11,11 +11,30 @@ INT32 CurrentProcessNumber;
 #define			TimerQueue_lock				(MEMORY_INTERLOCK_BASE + 1)
 #define			ReadyQueue_lock				(MEMORY_INTERLOCK_BASE + 2)
 #define			suspendQueue_lock			(MEMORY_INTERLOCK_BASE + 3)
-#define			suspendQueue_lock			(MEMORY_INTERLOCK_BASE + 3)
+#define			suspendQueue_lock			(MEMORY_INTERLOCK_BASE + 4)
+
+#define			readDisk_0_lock			(MEMORY_INTERLOCK_BASE + 5)
+#define			writeDisk_0_lock			(MEMORY_INTERLOCK_BASE + 6)
+#define			readDisk_1_lock			(MEMORY_INTERLOCK_BASE + 7)
+#define			writeDisk_1_lock			(MEMORY_INTERLOCK_BASE + 8)
+#define			readDisk_2_lock			(MEMORY_INTERLOCK_BASE + 9)
+#define			writeDisk_2_lock			(MEMORY_INTERLOCK_BASE + 10)
+#define			readDisk_3_lock			(MEMORY_INTERLOCK_BASE + 11)
+#define			writeDisk_3_lock			(MEMORY_INTERLOCK_BASE + 12)
+#define			readDisk_4_lock			(MEMORY_INTERLOCK_BASE + 13)
+#define			writeDisk_4_lock			(MEMORY_INTERLOCK_BASE + 14)
+#define			readDisk_5_lock			(MEMORY_INTERLOCK_BASE + 15)
+#define			writeDisk_5_lock			(MEMORY_INTERLOCK_BASE + 16)
+#define			readDisk_6_lock			(MEMORY_INTERLOCK_BASE + 17)
+#define			writeDisk_6_lock			(MEMORY_INTERLOCK_BASE + 18)
+#define			readDisk_7_lock			(MEMORY_INTERLOCK_BASE + 19)
+#define			writeDisk_7_lock			(MEMORY_INTERLOCK_BASE + 20)
 //char Success[] = "      Action Failed\0        Action Succeeded";
 INT32 LockResult_timer;
 INT32 LockResult_ready;
 INT32 LockResult_suspend;
+INT32 LockResult_disk;
+INT32 rc;
 #define          SPART          22
 
 //PCB could refer to linux task_struct 
@@ -64,5 +83,5 @@ extern void suspendByPid_timer(INT32 PID);
 extern int checkPID_suspend(INT32 PID);
 extern void resumePID(INT32 PID);
 extern void changePriority(INT32 PID,INT32 priority, INT32 QID);
-extern void pDisk_write(INT32 disk, INT32 sector, char* dataWrite);
-extern void pDisk_read(INT32 disk, INT32 sector, char* dataRead);
+extern void pDisk_write(INT32 disk, INT32 sector, long dataWrite);
+extern void pDisk_read(INT32 disk, INT32 sector, long dataRead);

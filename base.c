@@ -413,14 +413,17 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 		case SYSNUM_PHYSICAL_DISK_READ:
 			if ((long)SystemCallData->Argument[0] >= 0 && (long)SystemCallData->Argument[0] <= 7) {
 				if ((long)SystemCallData->Argument[1] >= 0 && (long)SystemCallData->Argument[1] <= 2047) {
-					pDisk_read((long)SystemCallData->Argument[0], (long)SystemCallData->Argument[1], (char*)SystemCallData->Argument[2]);
+					//char disk_buffer_write[PGSIZE];
+					//strncpy(disk_buffer_write, (long)SystemCallData->Argument[2], 15);
+					//printf(disk_buffer_write);
+					pDisk_read((long)SystemCallData->Argument[0], (long)SystemCallData->Argument[1], (long)(char* )SystemCallData->Argument[2]);
 				}
 			}
 			break;
 		case SYSNUM_PHYSICAL_DISK_WRITE:
 			if ((long)SystemCallData->Argument[0] >= 0 && (long)SystemCallData->Argument[0] <= 7) {
 				if ((long)SystemCallData->Argument[1] >= 0 && (long)SystemCallData->Argument[1] <= 2047) {
-					pDisk_write((long)SystemCallData->Argument[0], (long)SystemCallData->Argument[1], (char*)SystemCallData->Argument[2]);
+					pDisk_write((long)SystemCallData->Argument[0], (long)SystemCallData->Argument[1], (long)(char*)SystemCallData->Argument[2]);
 				}
 			}
 			break;
