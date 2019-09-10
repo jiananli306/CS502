@@ -187,6 +187,23 @@ void startTimer(int during) {
 		MEM_READ(Z502Clock, &mmio);
 		current_time = (INT32)mmio.Field1;
 	}
+	/*
+	timerpcb = currentPCB;
+	timerpcb->timeCreated = current_time + during;
+	QInsert(QID_timer, (timerpcb->timeCreated), timerpcb);
+	timerpcb = QNextItemInfo(QID_timer);
+	printf("timer time:%d\n", (timerpcb->timeCreated - current_time));
+	//startTimer(timerpcb->timeCreated - current_time);
+	// Start the timer - here's the sequence to use
+	mmio.Mode = Z502Start;
+	mmio.Field1 = timerpcb->timeCreated - current_time;   // set the time of timer
+	mmio.Field2 = mmio.Field3 = 0;
+	MEM_WRITE(Z502Timer, &mmio);
+	*/
+
+
+
+	
 	//check timer first
 	mmio.Mode = Z502Status;
 	mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
@@ -230,25 +247,6 @@ void startTimer(int during) {
 		mmio.Field2 = mmio.Field3 = 0;
 		MEM_WRITE(Z502Timer, &mmio);
 	}
-		//printf("Got erroneous result for Status of Timer\n");
-	////check the ready queue
-	/////if ready queue is empty then idle, if not,process next context
-	//if (QNextItemInfo(QID_ready) == -1)
-	//{ //idle the current context and wait for the interrupt
-	//	mmio.Mode = Z502Action;
-	//	mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
-	//	MEM_WRITE(Z502Idle, &mmio);
-	//}
-	//else//start the next context
-	//{
-	//	nextpcb = QNextItemInfo(QID_ready);
-	//	mmio.Mode = Z502StartContext;
-	//	mmio.Field1 = nextpcb->newContext;
-	//	mmio.Field2 = START_NEW_CONTEXT_AND_SUSPEND;
-	//	mmio.Field3 = 0;
-	//	MEM_WRITE(Z502Context, &mmio);
-	//}
-	//QPrint(QID_timer);
 	dispatcher();
 }
 ///create process and put it into ready queue
