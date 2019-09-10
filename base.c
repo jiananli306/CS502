@@ -116,6 +116,7 @@ void InterruptHandler(void) {
 					//QInsert(QID_ready, (timerpcb->priority), timerpcb);
 					if (timerpcb->suspendFlag != 1) {
 						QInsert(QID_ready, (timerpcb->priority), timerpcb);
+						
 					}
 					else {
 						QInsert(QID_suspend, timerpcb->priority, timerpcb);
@@ -388,7 +389,9 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
 				}
 				else {//if process in ready queue, put into suspend queue
+					//QPrint(QID_ready);
 					suspendByPid((INT32)SystemCallData->Argument[0], QID_ready);
+					//QPrint(QID_ready);
 					//if process in timer queue, set the flag to 1
 					suspendByPid_timer((INT32)SystemCallData->Argument[0]);
 					*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;

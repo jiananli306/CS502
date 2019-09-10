@@ -9,8 +9,13 @@ INT32 CurrentProcessNumber;
 #define         SUSPEND_UNTIL_LOCKED        TRUE
 #define         DO_NOT_SUSPEND              FALSE
 #define			TimerQueue_lock				(MEMORY_INTERLOCK_BASE + 1)
+#define			ReadyQueue_lock				(MEMORY_INTERLOCK_BASE + 2)
+#define			suspendQueue_lock			(MEMORY_INTERLOCK_BASE + 3)
+#define			suspendQueue_lock			(MEMORY_INTERLOCK_BASE + 3)
 //char Success[] = "      Action Failed\0        Action Succeeded";
 INT32 LockResult_timer;
+INT32 LockResult_ready;
+INT32 LockResult_suspend;
 #define          SPART          22
 
 //PCB could refer to linux task_struct 

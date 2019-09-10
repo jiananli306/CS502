@@ -371,6 +371,7 @@ int checkPID(INT32 PID) {
 		temppcb = QRemoveHead(QID_temp);
 		QInsert(QID_allprocess, temppcb->priority, temppcb);
 	}
+	//QPrint(QID_temp);
 	return temppcb1;
 }
 
@@ -431,7 +432,7 @@ void suspendByPid(INT32 PID, INT32 QID) {
 			QInsert(QID, temppcb->priority, temppcb);
 		}
 	}
-	////QPrint(QID_temp);
+	//QPrint(QID_temp);
 }
 
 
@@ -440,6 +441,8 @@ void suspendByPid_timer(INT32 PID) {
 	PCB* temppcb;
 	//allocate memory for pcb
 	temppcb = (PCB*)malloc(sizeof(PCB));
+	READ_MODIFY(TimerQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_timer);
 	while (QWalk(QID_timer, 0) != -1) {
 		//get the n th process
 		temppcb = QRemoveHead(QID_timer);
@@ -456,6 +459,8 @@ void suspendByPid_timer(INT32 PID) {
 		temppcb = QRemoveHead(QID_temp);
 		QInsert(QID_timer, temppcb->timeCreated, temppcb);
 	}
+	READ_MODIFY(TimerQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_timer);
 	//QPrint(QID_temp);
 }
 
@@ -478,6 +483,7 @@ int checkPID_suspend(INT32 PID) {
 		temppcb = QRemoveHead(QID_temp);
 		QInsert(QID_suspend, temppcb->priority, temppcb);
 	}
+	//QPrint(QID_temp);
 	return temppcb1;
 }
 
