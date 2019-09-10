@@ -85,8 +85,7 @@ void InterruptHandler(void) {
     MEM_READ(Z502InterruptDevice, &mmio);
     DeviceID = mmio.Field1;
     Status = mmio.Field2;
-	//QPrint(QID_ready);
-	//QPrint(QID_timer);
+	
 	//build a while loop to catch all the interrupt
 	while (mmio.Field4 == ERR_SUCCESS) {
 		//DO the interrupt
@@ -102,26 +101,10 @@ void InterruptHandler(void) {
 				current_time = (INT32)mmio.Field1;
 				//printf("Time in interrupt %ld\n", current_time);
 			}
-			//dequeue the first timer queue and put it into ready queue.
-			timerpcb = QRemoveHead(QID_timer);
-			timerpcb->timeCreated = current_time;
-			//printf("%d", timerpcb->PID);
-			//printf("%d", currentPCB->PID);
-			if (timerpcb->suspendFlag != 1) {
-				QInsert(QID_ready, (timerpcb->priority), timerpcb);
-			}
-			else {
-				QInsert(QID_suspend, timerpcb->priority,timerpcb);
-			}
-			//chech next timer queue context
-			//QPrint(QID_timer);
+
 			if (QNextItemInfo(QID_timer) != -1) {
 				timerpcb = QNextItemInfo(QID_timer);
-				while (QNextItemInfo(QID_timer) != -1 && timerpcb->timeCreated <= current_time)
-				{
-					//printf("**might have error here**********time:%d \n",current_time);
-					//QPrint(QID_timer);
-					//printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+				while (QNextItemInfo(QID_timer) != -1 && timerpcb->timeCreated - current_time <= 0) {
 					timerpcb = QRemoveHead(QID_timer);
 					timerpcb->timeCreated = current_time;
 					//QInsert(QID_ready, (timerpcb->priority), timerpcb);
@@ -129,26 +112,22 @@ void InterruptHandler(void) {
 						QInsert(QID_ready, (timerpcb->priority), timerpcb);
 					}
 					else {
-						QInsert(QID_suspend, timerpcb->priority,timerpcb);
+						QInsert(QID_suspend, timerpcb->priority, timerpcb);
 					}
 					timerpcb = QNextItemInfo(QID_timer);
 					if (timerpcb == -1) {
 						break;
 					}
-					//QPrint(QID_timer);
-					//printf("****************************\n");
-
 				}
-				//printf("timer time handleer:%d\n", (timerpcb->timeCreated - current_time));
-				//startTimer(timerpcb->timeCreated - current_time);
-				// Start the timer - here's the sequence to use
-				
+
 				if (QNextItemInfo(QID_timer) != -1) {
 					mmio.Mode = Z502Start;
+					//printf("time for timer : %d \n", timerpcb->timeCreated - current_time);
 					mmio.Field1 = timerpcb->timeCreated - current_time;   // set the time of timer
 					mmio.Field2 = mmio.Field3 = 0;
 					MEM_WRITE(Z502Timer, &mmio);
 				}
+
 			}
 		}
 
@@ -262,10 +241,10 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 		//for now it terminate the whole system which is not correct
 		case SYSNUM_TERMINATE_PROCESS:
 			if ((long)SystemCallData->Argument[0] == -2) {
-				//QPrint(QID_suspend);
-				//QPrint(QID_ready);
-				//QPrint(QID_timer);
-				//QPrint(QID_allprocess);
+				QPrint(QID_suspend);
+				QPrint(QID_ready);
+				QPrint(QID_timer);
+				QPrint(QID_allprocess);
 				*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 				//terminate whole system
 				mmio.Mode = Z502Action;
@@ -410,7 +389,6 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			break;
 		case SYSNUM_RESUME_PROCESS:
 			//check process exit or not first
-			//QPrint(QID_suspend);
 			if (checkPID_suspend((INT32)SystemCallData->Argument[0]) == -1) {
 				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
 			}
@@ -418,8 +396,6 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				resumePID((INT32)SystemCallData->Argument[0]);
 				*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 			}
-			//QPrint(QID_ready);
-			//QPrint(QID_suspend);
 			break;
 		//SYSNUM_PHYSICAL_DISK_READ
 		case SYSNUM_PHYSICAL_DISK_READ:
