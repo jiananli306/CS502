@@ -34,7 +34,7 @@ INT32 LockResult_timer;
 INT32 LockResult_ready;
 INT32 LockResult_suspend;
 INT32 LockResult_disk;
-INT32 rc;
+INT32 rc[8];
 #define          SPART          22
 
 //PCB could refer to linux task_struct 

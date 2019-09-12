@@ -498,16 +498,20 @@ void pDisk_write(INT32 disk, INT32 sector, long dataWrite) {
 void pDisk_read(INT32 disk, INT32 sector, long dataRead) {
 	char lock_read[20];
 	char lock_write[20];
+	char rc_char;
 	MEMORY_MAPPED_IO mmio;
 	sprintf(lock_read, "readDisk_%ld_lock", disk);
 	sprintf(lock_write, "writeDisk_%ld_lock", disk);
+	sprintf(rc_char, "%ld", disk);
+	int i = rc_char - '0';
+	
 	
 
 
 	READ_MODIFY(lock_read, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 		&LockResult_disk);
-	rc = rc + 1;
-	if(rc == 1){
+	rc[i] = rc[i] + 1;
+	if(rc[i] == 1){
 		READ_MODIFY(lock_write, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 			&LockResult_disk);
 	}
@@ -523,8 +527,8 @@ void pDisk_read(INT32 disk, INT32 sector, long dataRead) {
 
 	READ_MODIFY(lock_read, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 		&LockResult_disk);
-	rc = rc - 1;
-	if(rc == 0){
+	rc[i] = rc[i] - 1;
+	if(rc[i] == 0){
 		READ_MODIFY(lock_write, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
 			&LockResult_disk);
 	}
