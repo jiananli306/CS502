@@ -33,7 +33,8 @@ INT32 CurrentProcessNumber;
 INT32 LockResult_timer;
 INT32 LockResult_ready;
 INT32 LockResult_suspend;
-INT32 LockResult_disk;
+INT32 LockResult_disk_write[8];
+INT32 LockResult_disk_read[8];
 INT32 rc[8];
 #define          SPART          22
 
@@ -70,6 +71,7 @@ INT32 QID_timer;//timer queue
 INT32 QID_allprocess;//all process generated
 INT32 QID_suspend;//suspend queue
 INT32 QID_temp;//temp Q for search
+INT32 QID_disk[8];
 //INT32 QID_terminated;//terminated process
 extern void dispatcher();
 extern void osCreatProcess(int argc, char* argv[]);

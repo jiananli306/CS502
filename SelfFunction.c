@@ -96,6 +96,16 @@ void osCreatProcess(int argc, char* argv[]) {
 	//create a temp queue QID_temp
 	QID_temp = QCreate("tempQueue");
 	printf("%s\n", QGetName(QID_temp));
+	//create 8 disk queue
+	int i = 0;
+	char diskName[20];
+	for (i = 0; i <= 7; i++)
+	{
+		sprintf(diskName, "Disk_%ld", i);
+		QID_disk[i] = QCreate(diskName);
+		printf("%s\n", QGetName(QID_disk[i]));
+
+	}
 	//get the current time
 	
 	mmio.Mode = Z502ReturnValue;
@@ -483,7 +493,7 @@ void pDisk_write(INT32 disk, INT32 sector, long dataWrite) {
 	//printf(lock_write);
 
 	READ_MODIFY(lock_write, DO_LOCK, SUSPEND_UNTIL_LOCKED,
-		&LockResult_disk);
+		&LockResult_disk_write[disk]);
 
 	mmio.Mode = Z502DiskWrite;
 	mmio.Field1 = disk; // Pick same disk location
@@ -492,31 +502,31 @@ void pDisk_write(INT32 disk, INT32 sector, long dataWrite) {
 	MEM_WRITE(Z502Disk, &mmio);
 
 	READ_MODIFY(lock_write, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
-		&LockResult_disk);
+		&LockResult_disk_write[disk]);
+
+	mmio.Mode = Z502Action;
+	mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+	MEM_WRITE(Z502Idle, &mmio);
 
 }
 void pDisk_read(INT32 disk, INT32 sector, long dataRead) {
 	char lock_read[20];
 	char lock_write[20];
-	char rc_char;
+	
 	MEMORY_MAPPED_IO mmio;
 	sprintf(lock_read, "readDisk_%ld_lock", disk);
 	sprintf(lock_write, "writeDisk_%ld_lock", disk);
-	sprintf(rc_char, "%ld", disk);
-	int i = rc_char - '0';
 	
-	
-
 
 	READ_MODIFY(lock_read, DO_LOCK, SUSPEND_UNTIL_LOCKED,
-		&LockResult_disk);
-	rc[i] = rc[i] + 1;
-	if(rc[i] == 1){
+		&LockResult_disk_read[disk]);
+	rc[disk] = rc[disk] + 1;
+	if(rc[disk] == 1){
 		READ_MODIFY(lock_write, DO_LOCK, SUSPEND_UNTIL_LOCKED,
-			&LockResult_disk);
+			&LockResult_disk_write[disk]);
 	}
 	READ_MODIFY(lock_read, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
-		&LockResult_disk);
+		&LockResult_disk_read[disk]);
 
 
 	mmio.Mode = Z502DiskRead;
@@ -526,13 +536,17 @@ void pDisk_read(INT32 disk, INT32 sector, long dataRead) {
 	MEM_WRITE(Z502Disk, &mmio);
 
 	READ_MODIFY(lock_read, DO_LOCK, SUSPEND_UNTIL_LOCKED,
-		&LockResult_disk);
-	rc[i] = rc[i] - 1;
-	if(rc[i] == 0){
+		&LockResult_disk_read[disk]);
+	rc[disk] = rc[disk] - 1;
+	if(rc[disk] == 0){
 		READ_MODIFY(lock_write, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
-			&LockResult_disk);
+			&LockResult_disk_write[disk]);
 	}
 	READ_MODIFY(lock_read, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
-		&LockResult_disk);
+		&LockResult_disk_read[disk]);
+
+	mmio.Mode = Z502Action;
+	mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+	MEM_WRITE(Z502Idle, &mmio);
 
 }

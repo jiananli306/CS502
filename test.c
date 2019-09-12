@@ -196,9 +196,11 @@ void test3(void) {
 	DataWritten->int_data[3] = OurProcessID;
 	GET_TIME_OF_DAY(&Time1);
 	PHYSICAL_DISK_WRITE(DiskID, Sector, (char* )(DataWritten->char_data));
+	//SLEEP(10000);
 	GET_TIME_OF_DAY(&Time2);
 	aprintf("Time to do disk write = %ld\n", Time2 - Time1);
 	GET_TIME_OF_DAY(&Time1);
+	
 	PHYSICAL_DISK_READ(DiskID, Sector, (char* )(DataRead->char_data));
 	GET_TIME_OF_DAY(&Time2);
 	aprintf("Time to do disk read = %ld\n", Time2 - Time1);
