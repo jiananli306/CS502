@@ -550,8 +550,19 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			}
 			break;
 		case SYSNUM_SEND_MESSAGE:
+			if (checkPID((INT32)SystemCallData->Argument[0]) == -1) {
+				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;//no PID
+			}else if((INT32)SystemCallData->Argument[2] > 100 || (INT32)SystemCallData->Argument[2] < 0) {
+				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;//wrong data length
+			}
 			break;
 		case SYSNUM_RECEIVE_MESSAGE:
+			if (checkPID((INT32)SystemCallData->Argument[0]) == -1) {
+				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;//no PID
+			}
+			else if ((INT32)SystemCallData->Argument[2] > 100 || (INT32)SystemCallData->Argument[2] < 0) {
+				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;//wrong data length
+			}
 			break;
 		default:
 			printf("ERROR. Unrecognized call type");
