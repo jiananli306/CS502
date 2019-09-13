@@ -1635,7 +1635,8 @@ void testD(void) {
         // Pick some disk to write to
 	// DO NOT change this algorithm.  Test 9 depends on using this
 	// same DiskID and knows the ProcessID from creating this testD
-        DiskID = (OurProcessID / 2) % MAX_NUMBER_OF_DISKS;
+        DiskID = (OurProcessID/ 2) % MAX_NUMBER_OF_DISKS;
+		//printf("******DiskID: %ld \n",DiskID);
         // Sector is chosen so that multiple processes each running testD
         //   will not write to the same sectors.
         Sector = OurProcessID + (Iterations * 17) % NUMBER_LOGICAL_SECTORS; // Bugfix 4.11

@@ -72,6 +72,9 @@ void InterruptHandler(void) {
 	INT32 current_time;
 	INT32 diskID_temp;
 	char Success[] = "      Action Failed\0        Action Succeeded";
+	char lock_disk[20];
+
+	
 
 	//allocate memory for pcb
 	timerpcb = (PCB*)malloc(sizeof(PCB));
@@ -155,10 +158,13 @@ void InterruptHandler(void) {
 				current_time = (INT32)mmio.Field1;
 				//printf("Time in interrupt %ld\n", current_time);
 			}
-
-			if (QNextItemInfo(QID_disk[diskID_temp]) != -1) {
+			sprintf(lock_disk, "Disk_%ld_lock", diskID_temp);
+			//printf("***********Disk id;;; %ld \n", diskID_temp);
+			//if (QNextItemInfo(QID_disk[diskID_temp]) != -1) {
 				diskpcb = QNextItemInfo(QID_disk[diskID_temp]);
 				if (QNextItemInfo(QID_disk[diskID_temp]) != -1) {
+					READ_MODIFY(lock_disk, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+						&LockResult_disk[0]);
 					diskpcb = QRemoveHead(QID_disk[diskID_temp]);
 					diskpcb->timeCreated = current_time;
 					//QInsert(QID_ready, (timerpcb->priority), timerpcb);
@@ -168,18 +174,39 @@ void InterruptHandler(void) {
 					else {
 						QInsert(QID_suspend, diskpcb->priority, diskpcb);
 					}
+					
+
 					diskpcb = QNextItemInfo(QID_disk[diskID_temp]);
 					if (diskpcb != -1){
 						if (diskpcb->WriteOrRead == 0) {
+							//printf("write_interrupt: ");
+							//QPrint(QID_disk[diskID_temp]);
 							//do next disk write
-							pDisk_write(diskpcb->diskID, diskpcb->sector, diskpcb->DiskData);
+							//printf("***********Disk id; %ld \n", diskpcb->diskID);
+							//pDisk_write(diskpcb->diskID, diskpcb->sector, diskpcb->DiskData);
+							mmio.Mode = Z502DiskWrite;
+							mmio.Field1 = diskpcb->diskID; // Pick same disk location
+							mmio.Field2 = diskpcb->sector;
+							mmio.Field3 = (long)diskpcb->DiskData;
+							MEM_WRITE(Z502Disk, &mmio);
 						}
 						else {//do next disk read
-							pDisk_read(diskpcb->diskID, diskpcb->sector, diskpcb->DiskData);
+							//pDisk_read(diskpcb->diskID, diskpcb->sector, diskpcb->DiskData);
+							//if disk queue is empty then directly read
+							//printf("read_interrupt: ");
+							//QPrint(QID_disk[diskID_temp]);
+							mmio.Mode = Z502DiskRead;
+							mmio.Field1 = diskpcb->diskID; // Pick same disk location
+							mmio.Field2 = diskpcb->sector;
+							mmio.Field3 = (long)diskpcb->DiskData;
+							MEM_WRITE(Z502Disk, &mmio);
+						
 						}
 					}
+					READ_MODIFY(lock_disk, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+						&LockResult_disk[0]);
 				}
-			}
+			//}
 
 		}
 			//catch next interrput
@@ -418,7 +445,8 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				newPCB->diskID = 0;
 				newPCB->sector = 0;
 				newPCB->WriteOrRead = 0;
-				strcpy(newPCB->DiskData, "0");
+				//strcpy(newPCB->DiskData, "0");
+				newPCB->DiskData = 0;
 				CurrentProcessNumber++;
 				{
 					mmio.Mode = Z502ReturnValue;

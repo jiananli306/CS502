@@ -1,5 +1,5 @@
 //define all the component we need
-
+#include "global.h"
 
 INT32 PID;
 INT32 CurrentProcessNumber;
@@ -22,30 +22,27 @@ INT32 CurrentProcessNumber;
 #define			suspendQueue_lock			(MEMORY_INTERLOCK_BASE + 3)
 #define			suspendQueue_lock			(MEMORY_INTERLOCK_BASE + 4)
 
-#define			readDisk_0_lock			(MEMORY_INTERLOCK_BASE + 5)
-#define			writeDisk_0_lock			(MEMORY_INTERLOCK_BASE + 6)
-#define			readDisk_1_lock			(MEMORY_INTERLOCK_BASE + 7)
-#define			writeDisk_1_lock			(MEMORY_INTERLOCK_BASE + 8)
-#define			readDisk_2_lock			(MEMORY_INTERLOCK_BASE + 9)
-#define			writeDisk_2_lock			(MEMORY_INTERLOCK_BASE + 10)
-#define			readDisk_3_lock			(MEMORY_INTERLOCK_BASE + 11)
-#define			writeDisk_3_lock			(MEMORY_INTERLOCK_BASE + 12)
-#define			readDisk_4_lock			(MEMORY_INTERLOCK_BASE + 13)
-#define			writeDisk_4_lock			(MEMORY_INTERLOCK_BASE + 14)
-#define			readDisk_5_lock			(MEMORY_INTERLOCK_BASE + 15)
-#define			writeDisk_5_lock			(MEMORY_INTERLOCK_BASE + 16)
-#define			readDisk_6_lock			(MEMORY_INTERLOCK_BASE + 17)
-#define			writeDisk_6_lock			(MEMORY_INTERLOCK_BASE + 18)
-#define			readDisk_7_lock			(MEMORY_INTERLOCK_BASE + 19)
-#define			writeDisk_7_lock			(MEMORY_INTERLOCK_BASE + 20)
+#define			Disk_0_lock			(MEMORY_INTERLOCK_BASE + 5)
+#define			Disk_1_lock			(MEMORY_INTERLOCK_BASE + 6)
+#define			Disk_2_lock			(MEMORY_INTERLOCK_BASE + 7)
+#define			Disk_3_lock			(MEMORY_INTERLOCK_BASE + 8)
+#define			Disk_4_lock			(MEMORY_INTERLOCK_BASE + 9)
+#define			Disk_5_lock			(MEMORY_INTERLOCK_BASE + 10)
+#define			Disk_6_lock			(MEMORY_INTERLOCK_BASE + 11)
+#define			Disk_7_lock			(MEMORY_INTERLOCK_BASE + 12)
+
 //char Success[] = "      Action Failed\0        Action Succeeded";
 INT32 LockResult_timer;
 INT32 LockResult_ready;
 INT32 LockResult_suspend;
-INT32 LockResult_disk_write[8];
-INT32 LockResult_disk_read[8];
-INT32 rc[8];
+INT32 LockResult_disk[8];
 #define          SPART          22
+
+
+typedef union {
+	char char_data[PGSIZE];
+	UINT32 int_data[PGSIZE / sizeof(int)];
+} DISK_DATA;
 
 //PCB could refer to linux task_struct 
 typedef struct ProcessControlBlock {
@@ -70,7 +67,7 @@ typedef struct ProcessControlBlock {
 	INT32 diskID;
 	BOOL  WriteOrRead; //0 as Write, 1 as Read
 	INT32 sector;
-	char  DiskData[16];
+	DISK_DATA  *DiskData;
 
 
 }PCB;

@@ -130,6 +130,7 @@ void osCreatProcess(int argc, char* argv[]) {
 		else if (strcmp(argv[1], "test11") == 0) { mmio.Field2 = (long)test11; pcb->address = mmio.Field2; strcpy(pcb->processName, "test11"); }
 		else if (strcmp(argv[1], "test12") == 0) { mmio.Field2 = (long)test12; pcb->address = mmio.Field2; strcpy(pcb->processName, "test12"); }
 		else if (strcmp(argv[1], "test13") == 0) { mmio.Field2 = (long)test13; pcb->address = mmio.Field2; strcpy(pcb->processName, "test13"); }
+		else if (strcmp(argv[1], "test14") == 0) { mmio.Field2 = (long)test14; pcb->address = mmio.Field2; strcpy(pcb->processName, "test14"); }
 		//else if (strcmp(argv[1], "testX") == 0) { mmio.Field2 = (long)testX; pcb->address = mmio.Field2; strncpy(pcb->processName, "testX", sizeof("testX")); }
 
 	}
@@ -152,8 +153,8 @@ void osCreatProcess(int argc, char* argv[]) {
 	pcb->diskID = 0;
 	pcb->sector = 0;
 	pcb->WriteOrRead = 0;
-	strcpy(pcb->DiskData, "0");
-
+	//strcpy(pcb->DiskData, "0");
+	pcb->DiskData = 0;
 	//pcb->timeCreated = 0;
 	// 
 	///put the pcb into ready queue
@@ -492,15 +493,13 @@ void changePriority(INT32 PID,INT32 priority, INT32 QID) {
 
 
 void pDisk_write(INT32 disk, INT32 sector, long dataWrite) {
-	char lock_write[20];
-	char lock_read[20];
+	char lock_disk[20];
 	MEMORY_MAPPED_IO mmio;
-	sprintf(lock_write, "writeDisk_%ld_lock", disk);
-	sprintf(lock_read, "readDisk_%ld_lock", disk);
+	sprintf(lock_disk, "Disk_%ld_lock", disk);
 	//printf(lock_write);
 
-	READ_MODIFY(lock_write, DO_LOCK, SUSPEND_UNTIL_LOCKED,
-		&LockResult_disk_write[disk]);
+	READ_MODIFY(lock_disk, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_disk[0]);
 
 	
 
@@ -508,8 +507,11 @@ void pDisk_write(INT32 disk, INT32 sector, long dataWrite) {
 		currentPCB->diskID = disk;
 		currentPCB->sector = sector;
 		currentPCB->WriteOrRead = 0;
-		strcpy(currentPCB->DiskData, dataWrite);
-		QInsert(QID_disk[disk], (currentPCB->priority), currentPCB);
+		//strcpy(currentPCB->DiskData, dataWrite);
+		currentPCB->DiskData = dataWrite;
+		//QInsert(QID_disk[disk], (currentPCB->priority), currentPCB);
+		//QPrint(QID_disk[disk]);
+		QInsertOnTail(QID_disk[disk], currentPCB);
 
 		//if disk queue is empty then directly write
 		mmio.Mode = Z502DiskWrite;
@@ -518,20 +520,24 @@ void pDisk_write(INT32 disk, INT32 sector, long dataWrite) {
 		mmio.Field3 = (long)dataWrite;
 		MEM_WRITE(Z502Disk, &mmio);
 	}else {
+		//printf("write_start: ");
 		//else enqueue the quest to disk queue
 		currentPCB->diskID = disk;
 		currentPCB->sector = sector;
 		currentPCB->WriteOrRead = 0;
-		strcpy(currentPCB->DiskData, dataWrite);
-		QInsert(QID_disk[disk], (currentPCB->priority), currentPCB);
-
+		//strcpy(currentPCB->DiskData, dataWrite);
+		currentPCB->DiskData = dataWrite;
+		//QInsert(QID_disk[disk], (currentPCB->priority), currentPCB);
+		//QPrint(QID_disk[disk]);
+		QInsertOnTail(QID_disk[disk], currentPCB);
+		//QPrint(QID_disk[disk]);
 	}
 	
 
 	
 
-	READ_MODIFY(lock_write, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
-		&LockResult_disk_write[disk]);
+	READ_MODIFY(lock_disk, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_disk[0]);
 
 	//mmio.Mode = Z502Action;
 	//mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
@@ -539,31 +545,25 @@ void pDisk_write(INT32 disk, INT32 sector, long dataWrite) {
 	dispatcher();
 }
 void pDisk_read(INT32 disk, INT32 sector, long dataRead) {
-	char lock_read[20];
-	char lock_write[20];
+	char lock_disk[20];
 	
 	MEMORY_MAPPED_IO mmio;
-	sprintf(lock_read, "readDisk_%ld_lock", disk);
-	sprintf(lock_write, "writeDisk_%ld_lock", disk);
+	sprintf(lock_disk, "Disk_%ld_lock", disk);
 	
 
-	READ_MODIFY(lock_read, DO_LOCK, SUSPEND_UNTIL_LOCKED,
-		&LockResult_disk_read[disk]);
-	rc[disk] = rc[disk] + 1;
-	if(rc[disk] == 1){
-		READ_MODIFY(lock_write, DO_LOCK, SUSPEND_UNTIL_LOCKED,
-			&LockResult_disk_write[disk]);
-	}
-	READ_MODIFY(lock_read, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
-		&LockResult_disk_read[disk]);
-
+	
+		READ_MODIFY(lock_disk, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+			&LockResult_disk[0]);
+	
 	if (QNextItemInfo(QID_disk[disk]) == -1) {
 
 		currentPCB->diskID = disk;
 		currentPCB->sector = sector;
 		currentPCB->WriteOrRead = 1;
-		strcpy(currentPCB->DiskData, dataRead);
-		QInsert(QID_disk[disk], (currentPCB->priority), currentPCB);
+		//strcpy(currentPCB->DiskData, dataRead);
+		currentPCB->DiskData = dataRead;
+		//QInsert(QID_disk[disk], (currentPCB->priority), currentPCB);
+		QInsertOnTail(QID_disk[disk], currentPCB);
 		//if disk queue is empty then directly read
 		mmio.Mode = Z502DiskRead;
 		mmio.Field1 = disk; // Pick same disk location
@@ -573,26 +573,21 @@ void pDisk_read(INT32 disk, INT32 sector, long dataRead) {
 	}
 	else{
 		//else enqueue the quest to disk queue
-
+		//printf("read_start: ");
 		currentPCB->diskID = disk;
 		currentPCB->sector = sector;
 		currentPCB->WriteOrRead = 1;
-		strcpy(currentPCB->DiskData, dataRead);
-		QInsert(QID_disk[disk], (currentPCB->priority), currentPCB);
-
+		//strcpy(currentPCB->DiskData, dataRead);
+		currentPCB->DiskData = dataRead;
+		//QInsert(QID_disk[disk], (currentPCB->priority), currentPCB);
+		//QPrint(QID_disk[disk]);
+		QInsertOnTail(QID_disk[disk], currentPCB);
+		//QPrint(QID_disk[disk]);
 	}
 	
-
-	READ_MODIFY(lock_read, DO_LOCK, SUSPEND_UNTIL_LOCKED,
-		&LockResult_disk_read[disk]);
-	rc[disk] = rc[disk] - 1;
-	if(rc[disk] == 0){
-		READ_MODIFY(lock_write, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
-			&LockResult_disk_write[disk]);
-	}
-	READ_MODIFY(lock_read, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
-		&LockResult_disk_read[disk]);
-
+		READ_MODIFY(lock_disk, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+			&LockResult_disk[0]);
+	
 	//mmio.Mode = Z502Action;
 	//mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 	//MEM_WRITE(Z502Idle, &mmio);
