@@ -172,10 +172,10 @@ void InterruptHandler(void) {
 					if (diskpcb != -1){
 						if (diskpcb->WriteOrRead == 0) {
 							//do next disk write
-
+							pDisk_write(diskpcb->diskID, diskpcb->sector, diskpcb->DiskData);
 						}
 						else {//do next disk read
-
+							pDisk_read(diskpcb->diskID, diskpcb->sector, diskpcb->DiskData);
 						}
 					}
 				}
