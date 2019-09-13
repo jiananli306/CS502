@@ -3,6 +3,15 @@
 
 INT32 PID;
 INT32 CurrentProcessNumber;
+
+#define         DISK_INTERRUPT_DISK2            (short)7
+#define         DISK_INTERRUPT_DISK3            (short)8
+#define         DISK_INTERRUPT_DISK4            (short)9
+#define         DISK_INTERRUPT_DISK5            (short)10
+#define         DISK_INTERRUPT_DISK6            (short)11
+#define         DISK_INTERRUPT_DISK7            (short)12
+
+
 #define         MAX_Process_number                 15//intotal there will be 16 process for max
 #define         DO_LOCK                     1
 #define         DO_UNLOCK                   0
@@ -58,6 +67,10 @@ typedef struct ProcessControlBlock {
 
 	//file management
 	///1. root directory 2. working directory 3. file descriptiors 4. user id 5. group id
+	INT32 diskID;
+	BOOL  WriteOrRead; //0 as Write, 1 as Read
+	INT32 sector;
+	char  DiskData[16];
 
 
 }PCB;

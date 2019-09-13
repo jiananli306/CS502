@@ -68,12 +68,17 @@ void InterruptHandler(void) {
     INT32 DeviceID;
     INT32 Status;
 	PCB* timerpcb;
+	PCB* diskpcb;
 	INT32 current_time;
+	INT32 diskID_temp;
 	char Success[] = "      Action Failed\0        Action Succeeded";
 
 	//allocate memory for pcb
 	timerpcb = (PCB*)malloc(sizeof(PCB));
 	if (timerpcb == 0)
+		printf("We didn't complete the malloc in pcb.");
+	diskpcb = (PCB*)malloc(sizeof(PCB));
+	if (diskpcb == 0)
 		printf("We didn't complete the malloc in pcb.");
 
     MEMORY_MAPPED_IO mmio;       // Enables communication with hardware
@@ -116,7 +121,7 @@ void InterruptHandler(void) {
 					//QInsert(QID_ready, (timerpcb->priority), timerpcb);
 					if (timerpcb->suspendFlag != 1) {
 						QInsert(QID_ready, (timerpcb->priority), timerpcb);
-						
+
 					}
 					else {
 						QInsert(QID_suspend, timerpcb->priority, timerpcb);
@@ -140,17 +145,53 @@ void InterruptHandler(void) {
 				&LockResult_timer);
 			//printf("%s\n", &(Success[SPART * LockResult_timer]));
 		}
+		if (DeviceID > 4 && DeviceID < 13) {
+			diskID_temp = DeviceID - 5;
+			//get current time
+			{
+				mmio.Mode = Z502ReturnValue;
+				mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+				MEM_READ(Z502Clock, &mmio);
+				current_time = (INT32)mmio.Field1;
+				//printf("Time in interrupt %ld\n", current_time);
+			}
 
+			if (QNextItemInfo(QID_disk[diskID_temp]) != -1) {
+				diskpcb = QNextItemInfo(QID_disk[diskID_temp]);
+				if (QNextItemInfo(QID_disk[diskID_temp]) != -1) {
+					diskpcb = QRemoveHead(QID_disk[diskID_temp]);
+					diskpcb->timeCreated = current_time;
+					//QInsert(QID_ready, (timerpcb->priority), timerpcb);
+					if (timerpcb->suspendFlag != 1) {
+						QInsert(QID_ready, (diskpcb->priority), diskpcb);
+					}
+					else {
+						QInsert(QID_suspend, diskpcb->priority, diskpcb);
+					}
+					diskpcb = QNextItemInfo(QID_disk[diskID_temp]);
+					if (diskpcb != -1){
+						if (diskpcb->WriteOrRead == 0) {
+							//do next disk write
 
-		//catch next interrput
-			// Get cause of interrupt
-		mmio.Mode = Z502GetInterruptInfo;
-		mmio.Field1 = mmio.Field2 = mmio.Field3 = mmio.Field4 = 0;
-		MEM_READ(Z502InterruptDevice, &mmio);
-		DeviceID = mmio.Field1;
-		Status = mmio.Field2;
-	}
-	//dispatcher();
+						}
+						else {//do next disk read
+
+						}
+					}
+				}
+			}
+
+		}
+			//catch next interrput
+				// Get cause of interrupt
+			mmio.Mode = Z502GetInterruptInfo;
+			mmio.Field1 = mmio.Field2 = mmio.Field3 = mmio.Field4 = 0;
+			MEM_READ(Z502InterruptDevice, &mmio);
+			DeviceID = mmio.Field1;
+			Status = mmio.Field2;
+		}
+	
+		//dispatcher();
 
 
    /* if (mmio.Field4 != ERR_SUCCESS) {
@@ -220,6 +261,8 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 	INT32 Time;
 	MEMORY_MAPPED_IO mmio;
 	PCB* newPCB;
+	INT32 diskAll;
+	INT32 diskID_temp;
 	newPCB = (PCB*)malloc(sizeof(PCB));
 	if (newPCB == 0)
 		printf("We didn't complete the malloc in pcb.");
@@ -251,10 +294,10 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 		//for now it terminate the whole system which is not correct
 		case SYSNUM_TERMINATE_PROCESS:
 			if ((long)SystemCallData->Argument[0] == -2) {
-				QPrint(QID_suspend);
-				QPrint(QID_ready);
-				QPrint(QID_timer);
-				QPrint(QID_allprocess);
+				//QPrint(QID_suspend);
+				//QPrint(QID_ready);
+				//QPrint(QID_timer);
+				//QPrint(QID_allprocess);
 				*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 				//terminate whole system
 				mmio.Mode = Z502Action;
@@ -271,7 +314,13 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					//QPrint(QID_suspend);
 					dequeueByPid(PIDtemp, QID_suspend);
 					dequeueByPid(PIDtemp, QID_allprocess);
-					if (QNextItemInfo(QID_timer) == -1 && QNextItemInfo(QID_ready) == -1) {
+					diskAll = 0;
+					for (diskID_temp = 0; diskID_temp <= 7; diskID_temp++)//i = 0; i <= 7; i++
+					{
+						dequeueByPid(PIDtemp, QID_disk[diskID_temp]);
+						diskAll = (long)QNextItemInfo(QID_disk[diskID_temp]) + diskAll;
+					}
+					if (QNextItemInfo(QID_timer) == -1 && QNextItemInfo(QID_ready) == -1 && diskAll == -8) {
 						//terminate whole system
 						mmio.Mode = Z502Action;
 						mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
@@ -295,6 +344,10 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					dequeueByPid((long)SystemCallData->Argument[0], QID_timer);
 					dequeueByPid((long)SystemCallData->Argument[0], QID_suspend);
 					dequeueByPid((long)SystemCallData->Argument[0], QID_allprocess);
+					for (diskID_temp = 0; diskID_temp <= 7; diskID_temp++)//i = 0; i <= 7; i++
+					{
+						dequeueByPid((long)SystemCallData->Argument[0], QID_disk[diskID_temp]);
+					}
 					*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 				}
 				else {
@@ -361,6 +414,11 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				newPCB->priority = (long)SystemCallData->Argument[2];
 				newPCB->pageTable = PageTable;
 				newPCB->suspendFlag = 0;
+				////initial Disk part
+				newPCB->diskID = 0;
+				newPCB->sector = 0;
+				newPCB->WriteOrRead = 0;
+				strcpy(newPCB->DiskData, "0");
 				CurrentProcessNumber++;
 				{
 					mmio.Mode = Z502ReturnValue;
