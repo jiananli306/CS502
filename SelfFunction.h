@@ -44,6 +44,17 @@ typedef union {
 	UINT32 int_data[PGSIZE / sizeof(int)];
 } DISK_DATA;
 
+#define         LEGAL_MESSAGE_LENGTH           (INT16)64
+
+typedef struct {
+	long    target_pid;
+	long    source_pid;
+	long    actual_source_pid;
+	long    send_length;
+	char    msg_buffer[LEGAL_MESSAGE_LENGTH];
+} Message_DATA;
+
+
 //PCB could refer to linux task_struct 
 typedef struct ProcessControlBlock {
 	//process management
@@ -97,3 +108,4 @@ extern void resumePID(INT32 PID);
 extern void changePriority(INT32 PID,INT32 priority, INT32 QID);
 extern void pDisk_write(INT32 disk, INT32 sector, long dataWrite);
 extern void pDisk_read(INT32 disk, INT32 sector, long dataRead);
+extern void SP_print(char* Action, int targetID);

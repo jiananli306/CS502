@@ -47,10 +47,13 @@ void dispatcher() {
 	//printf("dispatcher!!!!!!\n");
 	//QPrint(QID_ready);
 	//QPrint(QID_timer);
+	//scheduler printer
+	
 	//start the next context
 	{
 		pcb = QRemoveHead(QID_ready);
 		currentPCB = pcb;
+		//SP_print("dispacher", currentPCB->PID);
 		mmio.Mode = Z502StartContext;
 		mmio.Field1 = pcb->newContext;
 		//printf("%s", pcb->processName);
@@ -487,6 +490,7 @@ void changePriority(INT32 PID,INT32 priority, INT32 QID) {
 			QInsert(QID, temppcb->priority, temppcb);
 		}
 	}
+	
 	//QPrint(QID);
 	//QPrint(QID_temp);
 }
@@ -592,4 +596,88 @@ void pDisk_read(INT32 disk, INT32 sector, long dataRead) {
 	//mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 	//MEM_WRITE(Z502Idle, &mmio);
 	dispatcher();
+}
+
+///Scheduler Printer
+void SP_print(char* Action,int targetID) {
+	int i;
+	int j;
+	SP_INPUT_DATA SPData;
+	PCB* temppcb;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	memset(&SPData, 0, sizeof(SP_INPUT_DATA));
+	strcpy(SPData.TargetAction, Action);
+	SPData.CurrentlyRunningPID = currentPCB->PID;
+	SPData.TargetPID = targetID;
+	// The NumberOfRunningProcesses as used here is for a future implementation
+	// when we are running multiple processors.  For right now, set this to 0
+	// so it won't be printed out.
+	SPData.NumberOfRunningProcesses = 0;
+	{
+		j = 0;
+		i = 0;
+		while (QWalk(QID_ready, 0) != -1) {
+			//get the n th process
+			j++;
+			temppcb = QRemoveHead(QID_ready);
+			SPData.ReadyProcessPIDs[i] = temppcb->PID;
+			i++;
+			QInsert(QID_temp, temppcb->priority, temppcb);
+		}
+		while (QWalk(QID_temp, 0) != -1) {
+			temppcb = QRemoveHead(QID_temp);
+			QInsert(QID_ready, temppcb->priority, temppcb);
+		}
+		SPData.NumberOfReadyProcesses = j;
+	}// Processes ready to run
+
+
+	//for (i = 0; i <= SPData.NumberOfReadyProcesses; i++) {
+	//	SPData.ReadyProcessPIDs[i] = i;
+	//}
+
+
+	SPData.NumberOfProcSuspendedProcesses = 0;
+	//for (i = 0; i <= SPData.NumberOfProcSuspendedProcesses; i++) {
+	//	SPData.ProcSuspendedProcessPIDs[i] = i + 3;
+	//}
+
+	SPData.NumberOfMessageSuspendedProcesses = 0;
+	//for (i = 0; i <= SPData.NumberOfMessageSuspendedProcesses; i++) {
+	//	SPData.MessageSuspendedProcessPIDs[i] = i + 16;
+	//}
+
+	{
+		j = 0;
+		i = 0;
+		while (QWalk(QID_timer, 0) != -1) {
+			//get the n th process
+			j++;
+			temppcb = QRemoveHead(QID_timer);
+			SPData.TimerSuspendedProcessPIDs[i] = temppcb->PID;
+			i++;
+			QInsert(QID_temp, temppcb->timeCreated, temppcb);
+		}
+		while (QWalk(QID_temp, 0) != -1) {
+			temppcb = QRemoveHead(QID_temp);
+			QInsert(QID_timer, temppcb->timeCreated, temppcb);
+		}
+		SPData.NumberOfTimerSuspendedProcesses = j;
+	}// Processes ready to run
+
+	//SPData.NumberOfTimerSuspendedProcesses = 6;
+	//for (i = 0; i <= SPData.NumberOfTimerSuspendedProcesses; i++) {
+	//	SPData.TimerSuspendedProcessPIDs[i] = i + 8;
+	//}
+	SPData.NumberOfDiskSuspendedProcesses = 0;
+	//for (i = 0; i <= SPData.NumberOfDiskSuspendedProcesses; i++) {
+	//	SPData.DiskSuspendedProcessPIDs[i] = i + 15;
+	//}
+
+
+
+	SPData.NumberOfTerminatedProcesses = 0;   // Not used at this time
+
+	CALL(SPPrintLine(&SPData));
 }

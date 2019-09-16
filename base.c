@@ -532,6 +532,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				changePriority(currentPCB->PID, (INT32)SystemCallData->Argument[1], QID_allprocess);
 				*(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
 				QInsert(QID_ready,currentPCB->priority,currentPCB);
+				//SP_print("change priority", currentPCB->PID);
 				dispatcher();
 			}else if(checkPID((INT32)SystemCallData->Argument[0]) == -1|| (INT32)SystemCallData->Argument[1] < 0) {
 				*(long*)SystemCallData->Argument[2] = ERR_BAD_PARAM;
@@ -547,21 +548,28 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					&LockResult_timer);
 				changePriority((INT32)SystemCallData->Argument[0], (INT32)SystemCallData->Argument[1],QID_suspend);
 				*(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
+				//SP_print("change priority", currentPCB->PID);
 			}
 			break;
 		case SYSNUM_SEND_MESSAGE:
 			if (checkPID((INT32)SystemCallData->Argument[0]) == -1) {
-				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;//no PID
+				*(long*)SystemCallData->Argument[3] = ERR_BAD_PARAM;//no PID
 			}else if((INT32)SystemCallData->Argument[2] > 100 || (INT32)SystemCallData->Argument[2] < 0) {
-				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;//wrong data length
+				*(long*)SystemCallData->Argument[3] = ERR_BAD_PARAM;//wrong data length
+			}
+			else {
+				*(long*)SystemCallData->Argument[3] = ERR_SUCCESS;
 			}
 			break;
 		case SYSNUM_RECEIVE_MESSAGE:
 			if (checkPID((INT32)SystemCallData->Argument[0]) == -1) {
-				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;//no PID
+				*(long*)SystemCallData->Argument[5] = ERR_BAD_PARAM;//no PID
 			}
 			else if ((INT32)SystemCallData->Argument[2] > 100 || (INT32)SystemCallData->Argument[2] < 0) {
-				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;//wrong data length
+				*(long*)SystemCallData->Argument[5] = ERR_BAD_PARAM;//wrong data length
+			}
+			else {
+				*(long*)SystemCallData->Argument[5] = ERR_SUCCESS;
 			}
 			break;
 		default:
