@@ -99,6 +99,10 @@ void osCreatProcess(int argc, char* argv[]) {
 	//create a temp queue QID_temp
 	QID_temp = QCreate("tempQueue");
 	printf("%s\n", QGetName(QID_temp));
+	//create a message_sendqueue for sending message to stay
+	message_sendqueue = QCreate("message_sendqueue");
+	printf("%s\n", QGetName(message_sendqueue));
+
 	//create 8 disk queue
 	int i = 0;
 	char diskName[20];
@@ -680,4 +684,29 @@ void SP_print(char* Action,int targetID) {
 	SPData.NumberOfTerminatedProcesses = 0;   // Not used at this time
 
 	CALL(SPPrintLine(&SPData));
+}
+
+
+////send message form a current PCB
+int sendMessage(INT32 currentProcessID,INT32 ProcessID, char* MessageBuffer, INT32 MessageSendLength) {
+	Message_send* tempmessage;
+	//allocate memory for message send
+	tempmessage = (Message_send*)malloc(sizeof(Message_send));
+
+	tempmessage->currentProcessID = currentProcessID;
+	tempmessage->TargetProcessID = ProcessID;
+	tempmessage->MessageSendLength = MessageSendLength;
+	//tempmessage->MessageBuffer = MessageBuffer;
+	strncpy(tempmessage->MessageBuffer, MessageBuffer, MessageSendLength);
+	//printf(tempmessage->MessageBuffer);
+
+	if (sendMessageCount < 10) {
+		QInsertOnTail(message_sendqueue, tempmessage);
+		sendMessageCount++;
+		return 1;
+	}
+	else {
+		return 0;
+	}
+
 }

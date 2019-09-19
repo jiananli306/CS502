@@ -558,7 +558,14 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				*(long*)SystemCallData->Argument[3] = ERR_BAD_PARAM;//wrong data length
 			}
 			else {
-				*(long*)SystemCallData->Argument[3] = ERR_SUCCESS;
+				int tempSend;
+				tempSend = sendMessage(currentPCB->PID,(INT32)SystemCallData->Argument[0], (char* )SystemCallData->Argument[1], (INT32)SystemCallData->Argument[2]);
+				if (tempSend == 1){
+					*(long*)SystemCallData->Argument[3] = ERR_SUCCESS;
+				}
+				else{
+					*(long*)SystemCallData->Argument[3] = ERR_BAD_PARAM;
+				}
 			}
 			break;
 		case SYSNUM_RECEIVE_MESSAGE:

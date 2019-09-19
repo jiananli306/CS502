@@ -51,9 +51,20 @@ typedef struct {
 	long    source_pid;
 	long    actual_source_pid;
 	long    send_length;
+	long    receive_length;
+	long    actual_send_length;
 	char    msg_buffer[LEGAL_MESSAGE_LENGTH];
+	char    msg_sent[LEGAL_MESSAGE_LENGTH];
 } Message_DATA;
 
+typedef struct {
+	long currentProcessID;
+	long TargetProcessID;
+	char MessageBuffer[LEGAL_MESSAGE_LENGTH];
+	long MessageSendLength;
+}Message_send;
+INT32 sendMessageCount;
+#define         MAX_Message_pending_number                 10//intotal there will be 10 message in the message send queue
 
 //PCB could refer to linux task_struct 
 typedef struct ProcessControlBlock {
@@ -93,6 +104,7 @@ INT32 QID_allprocess;//all process generated
 INT32 QID_suspend;//suspend queue
 INT32 QID_temp;//temp Q for search
 INT32 QID_disk[8];
+INT32 message_sendqueue;
 //INT32 QID_terminated;//terminated process
 extern void dispatcher();
 extern void osCreatProcess(int argc, char* argv[]);
@@ -109,3 +121,4 @@ extern void changePriority(INT32 PID,INT32 priority, INT32 QID);
 extern void pDisk_write(INT32 disk, INT32 sector, long dataWrite);
 extern void pDisk_read(INT32 disk, INT32 sector, long dataRead);
 extern void SP_print(char* Action, int targetID);
+extern int sendMessage(INT32 currentProcessID, INT32 ProcessID, char* MessageBuffer, INT32 MessageSendLength);//ProcessID, MessageBuffer, MessageSendLength
