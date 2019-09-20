@@ -122,3 +122,4 @@ extern void pDisk_write(INT32 disk, INT32 sector, long dataWrite);
 extern void pDisk_read(INT32 disk, INT32 sector, long dataRead);
 extern void SP_print(char* Action, int targetID);
 extern int sendMessage(INT32 currentProcessID, INT32 ProcessID, char* MessageBuffer, INT32 MessageSendLength);//ProcessID, MessageBuffer, MessageSendLength
+extern int receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageReceiveLength);//receiveMessage

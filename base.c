@@ -576,7 +576,16 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				*(long*)SystemCallData->Argument[5] = ERR_BAD_PARAM;//wrong data length
 			}
 			else {
-				*(long*)SystemCallData->Argument[5] = ERR_SUCCESS;
+				int tempReceive_length;
+				tempReceive_length = receiveMessage((INT32)SystemCallData->Argument[0], (char*)SystemCallData->Argument[1], (INT32)SystemCallData->Argument[2]);
+				*(long*)SystemCallData->Argument[4] = tempReceive_length;
+				if (tempReceive_length <= (INT32)SystemCallData->Argument[2]) {
+					//SourcePID, MessageBuffer, MessageReceiveLength , &MessageSendLength, &MessageSenderPid ,
+					*(long*)SystemCallData->Argument[5] = ERR_SUCCESS;
+				}
+				else {
+					*(long*)SystemCallData->Argument[5] = ERR_BAD_PARAM;//wrong data length
+				}
 			}
 			break;
 		default:

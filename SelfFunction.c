@@ -710,3 +710,73 @@ int sendMessage(INT32 currentProcessID,INT32 ProcessID, char* MessageBuffer, INT
 	}
 
 }
+
+//receive message
+int receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageReceiveLength) {
+	Message_send* tempmessage;
+	Message_send* tempmessage_out;
+	//allocate memory for message send
+	tempmessage = (Message_send*)malloc(sizeof(Message_send));
+	tempmessage_out = (Message_send*)malloc(sizeof(Message_send));
+	int counter;
+	
+	//check the process id if it is -1, recieve the broadcasting message
+	if (ProcessID == -1) {
+			counter = 0;
+			while (QWalk(message_sendqueue, 0) != -1) {
+				tempmessage = QRemoveHead(message_sendqueue);
+				if (tempmessage->TargetProcessID == ProcessID || tempmessage->TargetProcessID == -1) {
+					if (counter == 0){
+						tempmessage_out = tempmessage;
+						counter++;
+					}
+					else {
+						QInsertOnTail(QID_temp, tempmessage);
+					}
+				}else{
+					QInsertOnTail(QID_temp, tempmessage);
+				}
+			}
+			while (QWalk(QID_temp, 0) != -1) {
+				tempmessage = QRemoveHead(QID_temp);
+				QInsertOnTail(message_sendqueue, tempmessage);
+			}
+			if (counter == 0) {
+				return -1;
+			}
+			else {
+				strncpy(MessageBuffer, tempmessage_out->MessageBuffer, MessageReceiveLength);  //tempmessage->MessageBuffer, MessageBuffer, MessageSendLength tempmessage_out->MessageBuffer
+				return tempmessage_out->MessageSendLength;
+			}
+
+
+
+	}
+	else {
+		counter = 0;
+		while (QWalk(message_sendqueue, 0) != -1) {
+			tempmessage = QRemoveHead(message_sendqueue);
+			if (tempmessage->TargetProcessID == ProcessID && counter == 0) {
+				tempmessage_out = tempmessage;
+				counter++;
+			}
+			else {
+				QInsertOnTail(QID_temp, tempmessage);
+			}
+
+		}
+		while (QWalk(QID_temp, 0) != -1) {
+			tempmessage = QRemoveHead(QID_temp);
+			QInsertOnTail(message_sendqueue, tempmessage);
+		}
+		if (counter == 0) {
+			return -1;
+		}
+		else {
+			strncpy(MessageBuffer, tempmessage_out->MessageBuffer, MessageReceiveLength);  //tempmessage->MessageBuffer, MessageBuffer, MessageSendLength tempmessage_out->MessageBuffer
+			return tempmessage_out->MessageSendLength;
+		}
+	}
+
+	
+}
