@@ -148,7 +148,7 @@ void InterruptHandler(void) {
 				&LockResult_timer);
 			//printf("%s\n", &(Success[SPART * LockResult_timer]));
 		}
-		if (DeviceID > 4 && DeviceID < 13) {
+		else if (DeviceID > 4 && DeviceID < 13) {
 			diskID_temp = DeviceID - 5;
 			//get current time
 			{
@@ -158,13 +158,15 @@ void InterruptHandler(void) {
 				current_time = (INT32)mmio.Field1;
 				//printf("Time in interrupt %ld\n", current_time);
 			}
+			//(QID_disk[diskID_temp]);
 			sprintf(lock_disk, "Disk_%ld_lock", diskID_temp);
 			//printf("***********Disk id;;; %ld \n", diskID_temp);
 			//if (QNextItemInfo(QID_disk[diskID_temp]) != -1) {
+			READ_MODIFY(Disk_0_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+				&LockResult_disk[0]);
 				diskpcb = QNextItemInfo(QID_disk[diskID_temp]);
 				if (QNextItemInfo(QID_disk[diskID_temp]) != -1) {
-					READ_MODIFY(lock_disk, DO_LOCK, SUSPEND_UNTIL_LOCKED,
-						&LockResult_disk[0]);
+					
 					diskpcb = QRemoveHead(QID_disk[diskID_temp]);
 					diskpcb->timeCreated = current_time;
 					//QInsert(QID_ready, (timerpcb->priority), timerpcb);
@@ -203,12 +205,19 @@ void InterruptHandler(void) {
 						
 						}
 					}
-					READ_MODIFY(lock_disk, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
-						&LockResult_disk[0]);
+					
 				}
-			//}
+				else {
+					printf("********************error disk number: %ld\n", diskpcb);
+					printf("***************should not be here!!!!**** no disk in the queue**********\n");
+				}
+				READ_MODIFY(Disk_0_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+				&LockResult_disk[0]);
 
 		}
+		else {
+				printf("***************should not be here!!!!**************\n");
+			}
 			//catch next interrput
 				// Get cause of interrupt
 			mmio.Mode = Z502GetInterruptInfo;
@@ -290,6 +299,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 	PCB* newPCB;
 	INT32 diskAll;
 	INT32 diskID_temp;
+	char lock_disk[20];
 	newPCB = (PCB*)malloc(sizeof(PCB));
 	if (newPCB == 0)
 		printf("We didn't complete the malloc in pcb.");
@@ -342,11 +352,20 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					dequeueByPid(PIDtemp, QID_suspend);
 					dequeueByPid(PIDtemp, QID_allprocess);
 					diskAll = 0;
+					
 					for (diskID_temp = 0; diskID_temp <= 7; diskID_temp++)//i = 0; i <= 7; i++
 					{
+						sprintf(lock_disk, "Disk_%ld_lock", diskID_temp);
+						READ_MODIFY(Disk_0_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+							&LockResult_disk[0]);
+						//printf("********************%%%%%%%%%%%%%%%%%%%%%%5\n");
 						dequeueByPid(PIDtemp, QID_disk[diskID_temp]);
 						diskAll = (long)QNextItemInfo(QID_disk[diskID_temp]) + diskAll;
+						READ_MODIFY(Disk_0_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+							&LockResult_disk[0]);
+						//printf("**************************************************************");
 					}
+					
 					if (QNextItemInfo(QID_timer) == -1 && QNextItemInfo(QID_ready) == -1 && diskAll == -8) {
 						//terminate whole system
 						mmio.Mode = Z502Action;
@@ -371,10 +390,18 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					dequeueByPid((long)SystemCallData->Argument[0], QID_timer);
 					dequeueByPid((long)SystemCallData->Argument[0], QID_suspend);
 					dequeueByPid((long)SystemCallData->Argument[0], QID_allprocess);
+					
 					for (diskID_temp = 0; diskID_temp <= 7; diskID_temp++)//i = 0; i <= 7; i++
 					{
+						sprintf(lock_disk, "Disk_%ld_lock", diskID_temp);
+						READ_MODIFY(Disk_0_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+							&LockResult_disk[0]);
 						dequeueByPid((long)SystemCallData->Argument[0], QID_disk[diskID_temp]);
+						READ_MODIFY(Disk_0_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+							&LockResult_disk[0]);
+						//printf("**************************************************************");
 					}
+					
 					*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 				}
 				else {

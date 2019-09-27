@@ -506,7 +506,7 @@ void pDisk_write(INT32 disk, INT32 sector, long dataWrite) {
 	sprintf(lock_disk, "Disk_%ld_lock", disk);
 	//printf(lock_write);
 
-	READ_MODIFY(lock_disk, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+	READ_MODIFY(Disk_0_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 		&LockResult_disk[0]);
 
 	
@@ -544,7 +544,7 @@ void pDisk_write(INT32 disk, INT32 sector, long dataWrite) {
 
 	
 
-	READ_MODIFY(lock_disk, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+	READ_MODIFY(Disk_0_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
 		&LockResult_disk[0]);
 
 	//mmio.Mode = Z502Action;
@@ -560,7 +560,7 @@ void pDisk_read(INT32 disk, INT32 sector, long dataRead) {
 	
 
 	
-		READ_MODIFY(lock_disk, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+		READ_MODIFY(Disk_0_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 			&LockResult_disk[0]);
 	
 	if (QNextItemInfo(QID_disk[disk]) == -1) {
@@ -593,7 +593,7 @@ void pDisk_read(INT32 disk, INT32 sector, long dataRead) {
 		//QPrint(QID_disk[disk]);
 	}
 	
-		READ_MODIFY(lock_disk, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+		READ_MODIFY(Disk_0_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
 			&LockResult_disk[0]);
 	
 	//mmio.Mode = Z502Action;
