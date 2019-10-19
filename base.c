@@ -162,9 +162,10 @@ void InterruptHandler(void) {
 			sprintf(lock_disk, "Disk_%ld_lock", diskID_temp);
 			//printf("***********Disk id;;; %ld \n", diskID_temp);
 			//if (QNextItemInfo(QID_disk[diskID_temp]) != -1) {
-			READ_MODIFY(Disk_0_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+			READ_MODIFY(lock_disk, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 				&LockResult_disk[0]);
 				diskpcb = QNextItemInfo(QID_disk[diskID_temp]);
+				
 				if (QNextItemInfo(QID_disk[diskID_temp]) != -1) {
 					
 					diskpcb = QRemoveHead(QID_disk[diskID_temp]);
@@ -208,10 +209,14 @@ void InterruptHandler(void) {
 					
 				}
 				else {
+					SP_print("aaaaaaa", currentPCB->PID);
+					QPrint(QID_disk[diskID_temp]);
+					SP_print("bbbbbbbbbbbb", currentPCB->PID);
+					QPrint(QID_disk[diskID_temp]);
 					printf("********************error disk number: %ld\n", diskpcb);
 					printf("***************should not be here!!!!**** no disk in the queue**********\n");
 				}
-				READ_MODIFY(Disk_0_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+				READ_MODIFY(lock_disk, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
 				&LockResult_disk[0]);
 
 		}
@@ -356,12 +361,12 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					for (diskID_temp = 0; diskID_temp <= 7; diskID_temp++)//i = 0; i <= 7; i++
 					{
 						sprintf(lock_disk, "Disk_%ld_lock", diskID_temp);
-						READ_MODIFY(Disk_0_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+						READ_MODIFY(lock_disk, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 							&LockResult_disk[0]);
 						//printf("********************%%%%%%%%%%%%%%%%%%%%%%5\n");
 						dequeueByPid(PIDtemp, QID_disk[diskID_temp]);
 						diskAll = (long)QNextItemInfo(QID_disk[diskID_temp]) + diskAll;
-						READ_MODIFY(Disk_0_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+						READ_MODIFY(lock_disk, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
 							&LockResult_disk[0]);
 						//printf("**************************************************************");
 					}
@@ -394,10 +399,10 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					for (diskID_temp = 0; diskID_temp <= 7; diskID_temp++)//i = 0; i <= 7; i++
 					{
 						sprintf(lock_disk, "Disk_%ld_lock", diskID_temp);
-						READ_MODIFY(Disk_0_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+						READ_MODIFY(lock_disk, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 							&LockResult_disk[0]);
 						dequeueByPid((long)SystemCallData->Argument[0], QID_disk[diskID_temp]);
-						READ_MODIFY(Disk_0_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+						READ_MODIFY(lock_disk, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
 							&LockResult_disk[0]);
 						//printf("**************************************************************");
 					}
@@ -474,6 +479,14 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				newPCB->WriteOrRead = 0;
 				//strcpy(newPCB->DiskData, "0");
 				newPCB->DiskData = 0;
+				//////
+				newPCB->target_pid = -2;
+				newPCB->source_pid = -2;
+				newPCB->actual_source_pid = -2;
+				newPCB->send_length = -2;
+				newPCB->receive_length = -2;
+				strcpy(newPCB->msg_buffer, "0");
+				//newPCB->MessageData = 0;
 				CurrentProcessNumber++;
 				{
 					mmio.Mode = Z502ReturnValue;
@@ -579,7 +592,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			}
 			break;
 		case SYSNUM_SEND_MESSAGE:
-			if (checkPID((INT32)SystemCallData->Argument[0]) == -1) {
+			if (checkPID((INT32)SystemCallData->Argument[0]) == -1 && (INT32)SystemCallData->Argument[0]!= -1) {
 				*(long*)SystemCallData->Argument[3] = ERR_BAD_PARAM;//no PID
 			}else if((INT32)SystemCallData->Argument[2] > 100 || (INT32)SystemCallData->Argument[2] < 0) {
 				*(long*)SystemCallData->Argument[3] = ERR_BAD_PARAM;//wrong data length
@@ -596,7 +609,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			}
 			break;
 		case SYSNUM_RECEIVE_MESSAGE:
-			if (checkPID((INT32)SystemCallData->Argument[0]) == -1) {
+			if (checkPID((INT32)SystemCallData->Argument[0]) == -1 && ((INT32)SystemCallData->Argument[0]) != -1) {
 				*(long*)SystemCallData->Argument[5] = ERR_BAD_PARAM;//no PID
 			}
 			else if ((INT32)SystemCallData->Argument[2] > 100 || (INT32)SystemCallData->Argument[2] < 0) {
@@ -604,9 +617,13 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			}
 			else {
 				int tempReceive_length;
-				tempReceive_length = receiveMessage((INT32)SystemCallData->Argument[0], (char*)SystemCallData->Argument[1], (INT32)SystemCallData->Argument[2]);
-				*(long*)SystemCallData->Argument[4] = tempReceive_length;
-				if (tempReceive_length <= (INT32)SystemCallData->Argument[2]) {
+				
+				receiveMessage((INT32)SystemCallData->Argument[0], (char*)SystemCallData->Argument[1], (INT32)SystemCallData->Argument[2]);
+				//(char*)SystemCallData->Argument[1] = currentPCB->msg_buffer;
+				strncpy((char*)SystemCallData->Argument[1], currentPCB->msg_buffer, currentPCB->send_length);
+				*(long*)SystemCallData->Argument[3] = currentPCB->send_length;//PID 
+				*(long*)SystemCallData->Argument[4] = currentPCB->actual_source_pid;//length
+				if (*(long*)SystemCallData->Argument[4] <= (INT32)SystemCallData->Argument[2]) {
 					//SourcePID, MessageBuffer, MessageReceiveLength , &MessageSendLength, &MessageSenderPid ,
 					*(long*)SystemCallData->Argument[5] = ERR_SUCCESS;
 				}

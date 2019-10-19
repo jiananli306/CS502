@@ -11,6 +11,8 @@
 //extern INT32 PID;
 //extern INT32 CurrentProcessNumber;
 //waste time
+
+
 void WasteTime()
 {
 	printf("");
@@ -21,7 +23,7 @@ void WasteTime()
 }
 
 //dispatcher deal with the pcb within the ready queue.
-///if there is no pcb with in ready queue, z502 idle.
+///if there is no pcb with in ready queue, waste time.
 ///otherwise run the next pcb.
 void dispatcher() {
 	//define the pcb
@@ -53,6 +55,7 @@ void dispatcher() {
 	{
 		pcb = QRemoveHead(QID_ready);
 		currentPCB = pcb;
+		//SP_print("aaaaaaa", currentPCB->PID);
 		//SP_print("dispacher", currentPCB->PID);
 		mmio.Mode = Z502StartContext;
 		mmio.Field1 = pcb->newContext;
@@ -99,6 +102,9 @@ void osCreatProcess(int argc, char* argv[]) {
 	//create a temp queue QID_temp
 	QID_temp = QCreate("tempQueue");
 	printf("%s\n", QGetName(QID_temp));
+	//create a suspend message queue to waite recieve data
+	QID_suspendbyMessage = QCreate("suspendmessageQueue");
+	printf("%s\n", QGetName(QID_suspendbyMessage));
 	//create a message_sendqueue for sending message to stay
 	message_sendqueue = QCreate("message_sendqueue");
 	printf("%s\n", QGetName(message_sendqueue));
@@ -122,22 +128,22 @@ void osCreatProcess(int argc, char* argv[]) {
 
 	//check which test we will run
 	if (argc > 1) { 
-		if (strcmp(argv[1], "sample") == 0) { mmio.Field2 = (long)SampleCode; pcb->address = mmio.Field2; strcpy(pcb->processName, "sample");}
-		else if (strcmp(argv[1], "test0") == 0) { mmio.Field2 = (long)test0; pcb->address = mmio.Field2; strcpy(pcb->processName, "test0");}
-		else if (strcmp(argv[1], "test1") == 0) { mmio.Field2 = (long)test1; pcb->address = mmio.Field2; strcpy(pcb->processName, "test01");}
-		else if (strcmp(argv[1], "test2") == 0) { mmio.Field2 = (long)test2; pcb->address = mmio.Field2; strcpy(pcb->processName, "test02"); }
-		else if (strcmp(argv[1], "test3") == 0) { mmio.Field2 = (long)test3; pcb->address = mmio.Field2; strcpy(pcb->processName, "test03"); }
-		else if (strcmp(argv[1], "test4") == 0) { mmio.Field2 = (long)test4; pcb->address = mmio.Field2; strcpy(pcb->processName, "test04"); }
-		else if (strcmp(argv[1], "test5") == 0) { mmio.Field2 = (long)test5; pcb->address = mmio.Field2; strcpy(pcb->processName, "test05"); }
-		else if (strcmp(argv[1], "test6") == 0) { mmio.Field2 = (long)test6; pcb->address = mmio.Field2; strcpy(pcb->processName, "test06"); }
-		else if (strcmp(argv[1], "test7") == 0) { mmio.Field2 = (long)test7; pcb->address = mmio.Field2; strcpy(pcb->processName, "test07"); }
-		else if (strcmp(argv[1], "test8") == 0) { mmio.Field2 = (long)test8; pcb->address = mmio.Field2; strcpy(pcb->processName, "test08"); }
-		else if (strcmp(argv[1], "test9") == 0) { mmio.Field2 = (long)test9; pcb->address = mmio.Field2; strcpy(pcb->processName, "test09"); }
-		else if (strcmp(argv[1], "test10") == 0) { mmio.Field2 = (long)test10; pcb->address = mmio.Field2; strcpy(pcb->processName, "test10"); }
-		else if (strcmp(argv[1], "test11") == 0) { mmio.Field2 = (long)test11; pcb->address = mmio.Field2; strcpy(pcb->processName, "test11"); }
-		else if (strcmp(argv[1], "test12") == 0) { mmio.Field2 = (long)test12; pcb->address = mmio.Field2; strcpy(pcb->processName, "test12"); }
-		else if (strcmp(argv[1], "test13") == 0) { mmio.Field2 = (long)test13; pcb->address = mmio.Field2; strcpy(pcb->processName, "test13"); }
-		else if (strcmp(argv[1], "test14") == 0) { mmio.Field2 = (long)test14; pcb->address = mmio.Field2; strcpy(pcb->processName, "test14"); }
+		if (strcmp(argv[1], "sample") == 0) { mmio.Field2 = (long)SampleCode; pcb->address = mmio.Field2; strcpy(pcb->processName, "sample"); scheduleprinterFlag = 0;}
+		else if (strcmp(argv[1], "test0") == 0) { mmio.Field2 = (long)test0; pcb->address = mmio.Field2; strcpy(pcb->processName, "test0"); scheduleprinterFlag = 0;}
+		else if (strcmp(argv[1], "test1") == 0) { mmio.Field2 = (long)test1; pcb->address = mmio.Field2; strcpy(pcb->processName, "test01"); scheduleprinterFlag = 0;}
+		else if (strcmp(argv[1], "test2") == 0) { mmio.Field2 = (long)test2; pcb->address = mmio.Field2; strcpy(pcb->processName, "test02"); scheduleprinterFlag = 0;}
+		else if (strcmp(argv[1], "test3") == 0) { mmio.Field2 = (long)test3; pcb->address = mmio.Field2; strcpy(pcb->processName, "test03"); scheduleprinterFlag = 1;}
+		else if (strcmp(argv[1], "test4") == 0) { mmio.Field2 = (long)test4; pcb->address = mmio.Field2; strcpy(pcb->processName, "test04"); scheduleprinterFlag = 1;}
+		else if (strcmp(argv[1], "test5") == 0) { mmio.Field2 = (long)test5; pcb->address = mmio.Field2; strcpy(pcb->processName, "test05"); scheduleprinterFlag = 1;}
+		else if (strcmp(argv[1], "test6") == 0) { mmio.Field2 = (long)test6; pcb->address = mmio.Field2; strcpy(pcb->processName, "test06"); scheduleprinterFlag = 1;}
+		else if (strcmp(argv[1], "test7") == 0) { mmio.Field2 = (long)test7; pcb->address = mmio.Field2; strcpy(pcb->processName, "test07"); scheduleprinterFlag = 1;}
+		else if (strcmp(argv[1], "test8") == 0) { mmio.Field2 = (long)test8; pcb->address = mmio.Field2; strcpy(pcb->processName, "test08"); scheduleprinterFlag = 1;}
+		else if (strcmp(argv[1], "test9") == 0) { mmio.Field2 = (long)test9; pcb->address = mmio.Field2; strcpy(pcb->processName, "test09"); scheduleprinterFlag = 1;}
+		else if (strcmp(argv[1], "test10") == 0) { mmio.Field2 = (long)test10; pcb->address = mmio.Field2; strcpy(pcb->processName, "test10"); scheduleprinterFlag = 1;}
+		else if (strcmp(argv[1], "test11") == 0) { mmio.Field2 = (long)test11; pcb->address = mmio.Field2; strcpy(pcb->processName, "test11"); scheduleprinterFlag = 2;}
+		else if (strcmp(argv[1], "test12") == 0) { mmio.Field2 = (long)test12; pcb->address = mmio.Field2; strcpy(pcb->processName, "test12"); scheduleprinterFlag = 2;}
+		else if (strcmp(argv[1], "test13") == 0) { mmio.Field2 = (long)test13; pcb->address = mmio.Field2; strcpy(pcb->processName, "test13"); scheduleprinterFlag = 2;}
+		else if (strcmp(argv[1], "test14") == 0) { mmio.Field2 = (long)test14; pcb->address = mmio.Field2; strcpy(pcb->processName, "test14"); scheduleprinterFlag = 2;}
 		//else if (strcmp(argv[1], "testX") == 0) { mmio.Field2 = (long)testX; pcb->address = mmio.Field2; strncpy(pcb->processName, "testX", sizeof("testX")); }
 
 	}
@@ -162,6 +168,13 @@ void osCreatProcess(int argc, char* argv[]) {
 	pcb->WriteOrRead = 0;
 	//strcpy(pcb->DiskData, "0");
 	pcb->DiskData = 0;
+	pcb->target_pid = -2;
+	pcb->source_pid = -2;
+	pcb->actual_source_pid = -2;
+	pcb->send_length = -2;
+	pcb->receive_length = -2;
+	strcpy(pcb->msg_buffer, "0");
+	//pcb->MessageData = 0;
 	//pcb->timeCreated = 0;
 	// 
 	///put the pcb into ready queue
@@ -169,17 +182,6 @@ void osCreatProcess(int argc, char* argv[]) {
 	currentPCB = pcb;
 	QInsert(QID_allprocess, pcb->priority, pcb);
 
-	////testing
-	//QInsert(QID_ready, 3, pcb);
-	//QInsert(QID_ready, 4, pcb);
-	//QInsert(QID_ready, 2, pcb);
-	//ttttt1 = QRemoveHead(QID_ready);
-	//ttttt = QNextItemInfo(QID_ready);
-	//QPrint(QID_ready);
-	//printf("%s\n", QGetName(QID_ready));
-	//QPrint(QID_ready);
-	//QPrint(QID_timer);
-	//QPrint(QID_allprocess);
 
 	mmio.Mode = Z502StartContext;
 	// Field1 contains the value of the context returned in the last call
@@ -283,7 +285,7 @@ void createProcess(PCB* currentPCB1) {
 	//QPrint(QID_allprocess);
 
 }
-/////check by name so see it exit or not
+/////check by name in allprocess so see it exit or not
 int checkName(char* name) {
 	PCB* temppcb;
 	int temppcb1 = -1;
@@ -506,7 +508,7 @@ void pDisk_write(INT32 disk, INT32 sector, long dataWrite) {
 	sprintf(lock_disk, "Disk_%ld_lock", disk);
 	//printf(lock_write);
 
-	READ_MODIFY(Disk_0_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+	READ_MODIFY(lock_disk, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 		&LockResult_disk[0]);
 
 	
@@ -544,7 +546,7 @@ void pDisk_write(INT32 disk, INT32 sector, long dataWrite) {
 
 	
 
-	READ_MODIFY(Disk_0_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+	READ_MODIFY(lock_disk, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
 		&LockResult_disk[0]);
 
 	//mmio.Mode = Z502Action;
@@ -560,7 +562,7 @@ void pDisk_read(INT32 disk, INT32 sector, long dataRead) {
 	
 
 	
-		READ_MODIFY(Disk_0_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+		READ_MODIFY(lock_disk, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 			&LockResult_disk[0]);
 	
 	if (QNextItemInfo(QID_disk[disk]) == -1) {
@@ -593,7 +595,7 @@ void pDisk_read(INT32 disk, INT32 sector, long dataRead) {
 		//QPrint(QID_disk[disk]);
 	}
 	
-		READ_MODIFY(Disk_0_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+		READ_MODIFY(lock_disk, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
 			&LockResult_disk[0]);
 	
 	//mmio.Mode = Z502Action;
@@ -614,6 +616,10 @@ void SP_print(char* Action,int targetID) {
 	strcpy(SPData.TargetAction, Action);
 	SPData.CurrentlyRunningPID = currentPCB->PID;
 	SPData.TargetPID = targetID;
+
+
+
+
 	// The NumberOfRunningProcesses as used here is for a future implementation
 	// when we are running multiple processors.  For right now, set this to 0
 	// so it won't be printed out.
@@ -637,20 +643,57 @@ void SP_print(char* Action,int targetID) {
 	}// Processes ready to run
 
 
-	//for (i = 0; i <= SPData.NumberOfReadyProcesses; i++) {
-	//	SPData.ReadyProcessPIDs[i] = i;
-	//}
 
-
-	SPData.NumberOfProcSuspendedProcesses = 0;
+	{
+		j = 0;
+		i = 0;
+		while (QWalk(QID_suspend, 0) != -1) {
+			//get the n th process
+			j++;
+			temppcb = QRemoveHead(QID_suspend);
+			SPData.ProcSuspendedProcessPIDs[i] = temppcb->PID;
+			i++;
+			QInsert(QID_temp, temppcb->priority, temppcb);
+		}
+		while (QWalk(QID_temp, 0) != -1) {
+			temppcb = QRemoveHead(QID_temp);
+			QInsert(QID_suspend, temppcb->priority, temppcb);
+		}
+		SPData.NumberOfProcSuspendedProcesses = j;
+	}// Processes suspend Queue
+	//SPData.NumberOfProcSuspendedProcesses = 0;
 	//for (i = 0; i <= SPData.NumberOfProcSuspendedProcesses; i++) {
 	//	SPData.ProcSuspendedProcessPIDs[i] = i + 3;
 	//}
 
-	SPData.NumberOfMessageSuspendedProcesses = 0;
+
+
+
+	{
+		j = 0;
+		i = 0;
+		while (QWalk(QID_suspendbyMessage, 0) != -1) {
+			//get the n th process
+			j++;
+			temppcb = QRemoveHead(QID_suspendbyMessage);
+			SPData.MessageSuspendedProcessPIDs[i] = temppcb->PID;
+			i++;
+			QInsert(QID_temp, temppcb->priority, temppcb);
+		}
+		while (QWalk(QID_temp, 0) != -1) {
+			temppcb = QRemoveHead(QID_temp);
+			QInsert(QID_suspendbyMessage, temppcb->priority, temppcb);
+		}
+		SPData.NumberOfMessageSuspendedProcesses = j;
+	}// Processes suspend message Queue
+	//SPData.NumberOfMessageSuspendedProcesses = 0;
 	//for (i = 0; i <= SPData.NumberOfMessageSuspendedProcesses; i++) {
 	//	SPData.MessageSuspendedProcessPIDs[i] = i + 16;
 	//}
+
+
+	READ_MODIFY(TimerQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_timer);
 
 	{
 		j = 0;
@@ -674,7 +717,29 @@ void SP_print(char* Action,int targetID) {
 	//for (i = 0; i <= SPData.NumberOfTimerSuspendedProcesses; i++) {
 	//	SPData.TimerSuspendedProcessPIDs[i] = i + 8;
 	//}
-	SPData.NumberOfDiskSuspendedProcesses = 0;
+	READ_MODIFY(TimerQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+		&LockResult_timer);
+
+
+	j = 0;
+	i = 0;
+	for (int k = 0; k <= 7; k++) {
+		
+		while (QWalk(QID_disk[k], 0) != -1) {
+			//get the n th process
+			j++;
+			temppcb = QRemoveHead(QID_disk[k]);
+			SPData.DiskSuspendedProcessPIDs[i] = temppcb->PID;
+			i++;
+			QInsert(QID_temp, temppcb->priority, temppcb);
+		}
+		while (QWalk(QID_temp, 0) != -1) {
+			temppcb = QRemoveHead(QID_temp);
+			QInsert(QID_disk[k], temppcb->priority, temppcb);
+		}
+		SPData.NumberOfDiskSuspendedProcesses = j;
+	}// Processes ready to run
+	//SPData.NumberOfDiskSuspendedProcesses = 0;
 	//for (i = 0; i <= SPData.NumberOfDiskSuspendedProcesses; i++) {
 	//	SPData.DiskSuspendedProcessPIDs[i] = i + 15;
 	//}
@@ -687,9 +752,38 @@ void SP_print(char* Action,int targetID) {
 }
 
 
+//resume a pcd from message queue
+int resumePIDMessgage(INT32 PID, Message_send *message) {
+	PCB* temppcb;
+	int flag = 0;
+	//allocate memory for pcb
+	temppcb = (PCB*)malloc(sizeof(PCB));
+	while (QWalk(QID_suspendbyMessage, 0) != -1) {
+		//get the n th process
+		temppcb = QRemoveHead(QID_suspendbyMessage);
+
+		if ((PID == temppcb->source_pid || temppcb->source_pid == -1) && flag == 0) {
+			flag++;
+			temppcb->actual_source_pid = message->currentProcessID;
+			temppcb->send_length = message->MessageSendLength;
+			strncpy(temppcb->msg_buffer, message->MessageBuffer, message->MessageSendLength);
+			QInsert(QID_ready, temppcb->priority, temppcb);
+		}
+		else {
+			QInsert(QID_temp, temppcb->priority, temppcb);
+		}
+	}
+	while (QWalk(QID_temp, 0) != -1) {
+		temppcb = QRemoveHead(QID_temp);
+		QInsert(QID_suspendbyMessage, temppcb->priority, temppcb);
+	}
+	return flag;
+}
+
 ////send message form a current PCB
 int sendMessage(INT32 currentProcessID,INT32 ProcessID, char* MessageBuffer, INT32 MessageSendLength) {
 	Message_send* tempmessage;
+	int flag = 0;
 	//allocate memory for message send
 	tempmessage = (Message_send*)malloc(sizeof(Message_send));
 
@@ -699,22 +793,32 @@ int sendMessage(INT32 currentProcessID,INT32 ProcessID, char* MessageBuffer, INT
 	//tempmessage->MessageBuffer = MessageBuffer;
 	strncpy(tempmessage->MessageBuffer, MessageBuffer, MessageSendLength);
 	//printf(tempmessage->MessageBuffer);
-
-	if (sendMessageCount < 10) {
+	if (QNextItemInfo(QID_suspendbyMessage) != -1) {//if there is some message pending
+		// find the id exist or not
+		flag = resumePIDMessgage(ProcessID, tempmessage);
+	}
+	if (flag == 0  && sendMessageCount < 10) {
 		QInsertOnTail(message_sendqueue, tempmessage);
 		sendMessageCount++;
 		return 1;
 	}
 	else {
-		return 0;
+		if (flag == 1){
+			return 1;
+		}
+		else {
+			return 0;
+		}
+		
 	}
 
 }
 
 //receive message
-int receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageReceiveLength) {
+void receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageReceiveLength) {
 	Message_send* tempmessage;
 	Message_send* tempmessage_out;
+	
 	//allocate memory for message send
 	tempmessage = (Message_send*)malloc(sizeof(Message_send));
 	tempmessage_out = (Message_send*)malloc(sizeof(Message_send));
@@ -724,8 +828,9 @@ int receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageReceiveLen
 	if (ProcessID == -1) {
 			counter = 0;
 			while (QWalk(message_sendqueue, 0) != -1) {
+				//QPrint(message_sendqueue);
 				tempmessage = QRemoveHead(message_sendqueue);
-				if (tempmessage->TargetProcessID == ProcessID || tempmessage->TargetProcessID == -1) {
+				if (tempmessage->TargetProcessID == currentPCB->PID || tempmessage->TargetProcessID == -1) {
 					if (counter == 0){
 						tempmessage_out = tempmessage;
 						counter++;
@@ -741,12 +846,19 @@ int receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageReceiveLen
 				tempmessage = QRemoveHead(QID_temp);
 				QInsertOnTail(message_sendqueue, tempmessage);
 			}
-			if (counter == 0) {
-				return -1;
+			if (counter == 0) {//send to message suspend queue
+				currentPCB->target_pid = currentPCB->PID;
+				currentPCB->source_pid = ProcessID;
+				currentPCB->receive_length = MessageReceiveLength;
+				QInsertOnTail(QID_suspendbyMessage, currentPCB);
+				strncpy(MessageBuffer, currentPCB->msg_buffer, MessageReceiveLength);
+				
+				dispatcher();
 			}
 			else {
-				strncpy(MessageBuffer, tempmessage_out->MessageBuffer, MessageReceiveLength);  //tempmessage->MessageBuffer, MessageBuffer, MessageSendLength tempmessage_out->MessageBuffer
-				return tempmessage_out->MessageSendLength;
+				strncpy(currentPCB->msg_buffer, tempmessage_out->MessageBuffer, MessageReceiveLength);  //tempmessage->MessageBuffer, MessageBuffer, MessageSendLength tempmessage_out->MessageBuffer
+				currentPCB->actual_source_pid = tempmessage_out->currentProcessID;
+				currentPCB->send_length = tempmessage_out->MessageSendLength;
 			}
 
 
@@ -769,12 +881,19 @@ int receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageReceiveLen
 			tempmessage = QRemoveHead(QID_temp);
 			QInsertOnTail(message_sendqueue, tempmessage);
 		}
-		if (counter == 0) {
-			return -1;
+		if (counter == 0) {//send to message suspend queue
+			currentPCB->target_pid = currentPCB->PID;
+			currentPCB->source_pid = ProcessID;
+			currentPCB->receive_length = MessageReceiveLength;
+			QInsertOnTail(QID_suspendbyMessage, currentPCB);
+			//dispatcher();
+			strncpy(MessageBuffer, currentPCB->msg_buffer, MessageReceiveLength);
+			dispatcher();
 		}
 		else {
-			strncpy(MessageBuffer, tempmessage_out->MessageBuffer, MessageReceiveLength);  //tempmessage->MessageBuffer, MessageBuffer, MessageSendLength tempmessage_out->MessageBuffer
-			return tempmessage_out->MessageSendLength;
+			strncpy(currentPCB->msg_buffer, tempmessage_out->MessageBuffer, MessageReceiveLength);  //tempmessage->MessageBuffer, MessageBuffer, MessageSendLength tempmessage_out->MessageBuffer
+			currentPCB->actual_source_pid = tempmessage_out->currentProcessID;
+			currentPCB->send_length = tempmessage_out->MessageSendLength;
 		}
 	}
 

@@ -3,6 +3,8 @@
 
 INT32 PID;
 INT32 CurrentProcessNumber;
+INT32 scheduleprinterFlag; //to enable scheduleprinter 0 == none; 1 == FULL; 2 == limited;
+INT32 scheduleprinterCounter; // for partial N <= 50 print
 
 #define         DISK_INTERRUPT_DISK2            (short)7
 #define         DISK_INTERRUPT_DISK3            (short)8
@@ -20,7 +22,7 @@ INT32 CurrentProcessNumber;
 #define			TimerQueue_lock				(MEMORY_INTERLOCK_BASE + 1)
 #define			ReadyQueue_lock				(MEMORY_INTERLOCK_BASE + 2)
 #define			suspendQueue_lock			(MEMORY_INTERLOCK_BASE + 3)
-#define			suspendQueue_lock			(MEMORY_INTERLOCK_BASE + 4)
+#define			suspendbyMessage_lock		(MEMORY_INTERLOCK_BASE + 4)
 
 #define			Disk_0_lock			(MEMORY_INTERLOCK_BASE + 5)
 #define			Disk_1_lock			(MEMORY_INTERLOCK_BASE + 6)
@@ -31,12 +33,15 @@ INT32 CurrentProcessNumber;
 #define			Disk_6_lock			(MEMORY_INTERLOCK_BASE + 11)
 #define			Disk_7_lock			(MEMORY_INTERLOCK_BASE + 12)
 
+#define			tempQueue_lock		(MEMORY_INTERLOCK_BASE + 13)
+
 //char Success[] = "      Action Failed\0        Action Succeeded";
 INT32 LockResult_timer;
 INT32 LockResult_ready;
 INT32 LockResult_suspend;
+INT32 LockResult_suspendbymessage;
+INT32 LockResult_temp;
 INT32 LockResult_disk[8];
-#define          SPART          22
 
 
 typedef union {
@@ -52,9 +57,7 @@ typedef struct {
 	long    actual_source_pid;
 	long    send_length;
 	long    receive_length;
-	long    actual_send_length;
 	char    msg_buffer[LEGAL_MESSAGE_LENGTH];
-	char    msg_sent[LEGAL_MESSAGE_LENGTH];
 } Message_DATA;
 
 typedef struct {
@@ -90,7 +93,14 @@ typedef struct ProcessControlBlock {
 	BOOL  WriteOrRead; //0 as Write, 1 as Read
 	INT32 sector;
 	DISK_DATA  *DiskData;
-
+	//message
+	//Message_DATA *MessageData;
+	long    target_pid;
+	long    source_pid;
+	long    actual_source_pid;
+	long    send_length;
+	long    receive_length;
+	char    msg_buffer[LEGAL_MESSAGE_LENGTH];
 
 }PCB;
 
@@ -102,9 +112,10 @@ INT32 QID_ready;//ready queue
 INT32 QID_timer;//timer queue
 INT32 QID_allprocess;//all process generated
 INT32 QID_suspend;//suspend queue
+INT32 QID_suspendbyMessage;//recieve message but is not there
 INT32 QID_temp;//temp Q for search
 INT32 QID_disk[8];
-INT32 message_sendqueue;
+INT32 message_sendqueue;//send message and wait for recieve queue
 //INT32 QID_terminated;//terminated process
 extern void dispatcher();
 extern void osCreatProcess(int argc, char* argv[]);
@@ -121,5 +132,6 @@ extern void changePriority(INT32 PID,INT32 priority, INT32 QID);
 extern void pDisk_write(INT32 disk, INT32 sector, long dataWrite);
 extern void pDisk_read(INT32 disk, INT32 sector, long dataRead);
 extern void SP_print(char* Action, int targetID);
+extern int resumePIDMessgage(INT32 PID, Message_send* message);
 extern int sendMessage(INT32 currentProcessID, INT32 ProcessID, char* MessageBuffer, INT32 MessageSendLength);//ProcessID, MessageBuffer, MessageSendLength
-extern int receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageReceiveLength);//receiveMessage
+extern void receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageReceiveLength);//receiveMessage

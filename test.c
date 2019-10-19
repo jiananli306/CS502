@@ -869,6 +869,7 @@ void test10(void) {
 
         td->source_pid = -1;
         td->receive_length = LEGAL_MESSAGE_LENGTH;
+		
         RECEIVE_MESSAGE(td->source_pid, td->msg_buffer, td->receive_length,
                 &(td->actual_send_length), &(td->actual_source_pid),
                 &ErrorReturned);
@@ -1635,8 +1636,8 @@ void testD(void) {
         // Pick some disk to write to
 	// DO NOT change this algorithm.  Test 9 depends on using this
 	// same DiskID and knows the ProcessID from creating this testD
-		DiskID = 0;//(OurProcessID /2) % MAX_NUMBER_OF_DISKS;
-		printf("*************DISKID: %ld \n",DiskID);
+		DiskID = (OurProcessID /2) % MAX_NUMBER_OF_DISKS;
+		//printf("*************DISKID: %ld \n",DiskID);
 		//printf("******DiskID: %ld \n",DiskID);
         // Sector is chosen so that multiple processes each running testD
         //   will not write to the same sectors.
