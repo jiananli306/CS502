@@ -720,11 +720,15 @@ void SP_print(char* Action,int targetID) {
 	READ_MODIFY(TimerQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
 		&LockResult_timer);
 
-
+	char lock_disk[20];
 	j = 0;
 	i = 0;
 	for (int k = 0; k <= 7; k++) {
 		
+		sprintf(lock_disk, "Disk_%ld_lock", k);
+		READ_MODIFY(lock_disk, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+			&LockResult_disk);
+
 		while (QWalk(QID_disk[k], 0) != -1) {
 			//get the n th process
 			j++;
@@ -738,6 +742,9 @@ void SP_print(char* Action,int targetID) {
 			QInsert(QID_disk[k], temppcb->priority, temppcb);
 		}
 		SPData.NumberOfDiskSuspendedProcesses = j;
+
+		READ_MODIFY(lock_disk, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+			&LockResult_disk);
 	}// Processes ready to run
 	//SPData.NumberOfDiskSuspendedProcesses = 0;
 	//for (i = 0; i <= SPData.NumberOfDiskSuspendedProcesses; i++) {
@@ -747,8 +754,11 @@ void SP_print(char* Action,int targetID) {
 
 
 	SPData.NumberOfTerminatedProcesses = 0;   // Not used at this time
-
-	CALL(SPPrintLine(&SPData));
+	if (scheduleprinterFlag == 1 || (scheduleprinterFlag == 2 && scheduleprinterCounter <= 50)) {
+		scheduleprinterCounter++;
+		CALL(SPPrintLine(&SPData));
+	}
+	
 }
 
 

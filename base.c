@@ -209,10 +209,10 @@ void InterruptHandler(void) {
 					
 				}
 				else {
-					SP_print("aaaaaaa", currentPCB->PID);
-					QPrint(QID_disk[diskID_temp]);
-					SP_print("bbbbbbbbbbbb", currentPCB->PID);
-					QPrint(QID_disk[diskID_temp]);
+					//SP_print("aaaaaaa", currentPCB->PID);
+					//QPrint(QID_disk[diskID_temp]);
+					//SP_print("bbbbbbbbbbbb", currentPCB->PID);
+					//QPrint(QID_disk[diskID_temp]);
 					printf("********************error disk number: %ld\n", diskpcb);
 					printf("***************should not be here!!!!**** no disk in the queue**********\n");
 				}
@@ -333,7 +333,6 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			*(long*)SystemCallData->Argument[0] = mmio.Field1;
 			break;
 		//terminate system call 
-		//for now it terminate the whole system which is not correct
 		case SYSNUM_TERMINATE_PROCESS:
 			if ((long)SystemCallData->Argument[0] == -2) {
 				//QPrint(QID_suspend);
@@ -352,7 +351,11 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				if (PIDtemp >= 0)
 				{
 					dequeueByPid(PIDtemp, QID_ready);
+					READ_MODIFY(TimerQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+						&LockResult_timer);
 					dequeueByPid(PIDtemp, QID_timer);
+					READ_MODIFY(TimerQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+						&LockResult_timer);
 					//QPrint(QID_suspend);
 					dequeueByPid(PIDtemp, QID_suspend);
 					dequeueByPid(PIDtemp, QID_allprocess);
@@ -381,6 +384,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					//QPrint(QID_timer);
 					//QPrint(QID_ready);
 					*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
+					SP_print("terminate", currentPCB->PID);
 					dispatcher();
 				}
 				else {
@@ -392,7 +396,11 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				if (PIDtemp >= 0)
 				{
 					dequeueByPid((long)SystemCallData->Argument[0], QID_ready);
+					READ_MODIFY(TimerQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+						&LockResult_timer);
 					dequeueByPid((long)SystemCallData->Argument[0], QID_timer);
+					READ_MODIFY(TimerQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+						&LockResult_timer);
 					dequeueByPid((long)SystemCallData->Argument[0], QID_suspend);
 					dequeueByPid((long)SystemCallData->Argument[0], QID_allprocess);
 					
@@ -406,7 +414,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 							&LockResult_disk[0]);
 						//printf("**************************************************************");
 					}
-					
+					SP_print("terminate", currentPCB->PID);
 					*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 				}
 				else {
@@ -516,10 +524,12 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				}
 				else {//if process in ready queue, put into suspend queue
 					//QPrint(QID_ready);
+					SP_print("suspendbegin", currentPCB->PID);
 					suspendByPid((INT32)SystemCallData->Argument[0], QID_ready);
 					//QPrint(QID_ready);
 					//if process in timer queue, set the flag to 1
 					suspendByPid_timer((INT32)SystemCallData->Argument[0]);
+					SP_print("suspendend", currentPCB->PID);
 					*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 				}
 			}
@@ -531,7 +541,9 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
 			}
 			else{//dequeue from suspend queue and put into ready queue
+				SP_print("resumebegin", currentPCB->PID);
 				resumePID((INT32)SystemCallData->Argument[0]);
+				SP_print("resumeend", currentPCB->PID);
 				*(long*)SystemCallData->Argument[1] = ERR_SUCCESS;
 			}
 			break;
@@ -543,6 +555,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					//strncpy(disk_buffer_write, (long)SystemCallData->Argument[2], 15);
 					//printf(disk_buffer_write);
 					pDisk_read((long)SystemCallData->Argument[0], (long)SystemCallData->Argument[1], (long)(char* )SystemCallData->Argument[2]);
+					//SP_print("disk read", currentPCB->PID);
 				}
 			}
 			break;
@@ -550,6 +563,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			if ((long)SystemCallData->Argument[0] >= 0 && (long)SystemCallData->Argument[0] <= 7) {
 				if ((long)SystemCallData->Argument[1] >= 0 && (long)SystemCallData->Argument[1] <= 2047) {
 					pDisk_write((long)SystemCallData->Argument[0], (long)SystemCallData->Argument[1], (long)(char*)SystemCallData->Argument[2]);
+					//SP_print("disk write", currentPCB->PID);
 				}
 			}
 			break;
@@ -571,13 +585,15 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				currentPCB->priority = (INT32)SystemCallData->Argument[1];
 				changePriority(currentPCB->PID, (INT32)SystemCallData->Argument[1], QID_allprocess);
 				*(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
+				SP_print("prioritybegin", currentPCB->PID);
 				QInsert(QID_ready,currentPCB->priority,currentPCB);
-				//SP_print("change priority", currentPCB->PID);
+				SP_print("priorityend", currentPCB->PID);
 				dispatcher();
 			}else if(checkPID((INT32)SystemCallData->Argument[0]) == -1|| (INT32)SystemCallData->Argument[1] < 0) {
 				*(long*)SystemCallData->Argument[2] = ERR_BAD_PARAM;
 			}
 			else {
+				SP_print("prioritybegin", currentPCB->PID);
 				//change the priority from timer, ready and suspend queue
 				changePriority((INT32)SystemCallData->Argument[0], (INT32)SystemCallData->Argument[1], QID_allprocess);
 				changePriority((INT32)SystemCallData->Argument[0], (INT32)SystemCallData->Argument[1],QID_ready);
@@ -588,7 +604,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 					&LockResult_timer);
 				changePriority((INT32)SystemCallData->Argument[0], (INT32)SystemCallData->Argument[1],QID_suspend);
 				*(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
-				//SP_print("change priority", currentPCB->PID);
+				SP_print("priorityend", currentPCB->PID);
 			}
 			break;
 		case SYSNUM_SEND_MESSAGE:
@@ -601,6 +617,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				int tempSend;
 				tempSend = sendMessage(currentPCB->PID,(INT32)SystemCallData->Argument[0], (char* )SystemCallData->Argument[1], (INT32)SystemCallData->Argument[2]);
 				if (tempSend == 1){
+					SP_print("sendmessage", currentPCB->PID);
 					*(long*)SystemCallData->Argument[3] = ERR_SUCCESS;
 				}
 				else{
@@ -625,6 +642,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				*(long*)SystemCallData->Argument[4] = currentPCB->actual_source_pid;//length
 				if (*(long*)SystemCallData->Argument[4] <= (INT32)SystemCallData->Argument[2]) {
 					//SourcePID, MessageBuffer, MessageReceiveLength , &MessageSendLength, &MessageSenderPid ,
+					SP_print("recievemessage", currentPCB->PID);
 					*(long*)SystemCallData->Argument[5] = ERR_SUCCESS;
 				}
 				else {
