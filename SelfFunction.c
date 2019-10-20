@@ -53,7 +53,11 @@ void dispatcher() {
 	
 	//start the next context
 	{
+		READ_MODIFY(ReadyQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+			&LockResult_ready);
 		pcb = QRemoveHead(QID_ready);
+		READ_MODIFY(ReadyQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+			&LockResult_ready);
 		currentPCB = pcb;
 		//SP_print("aaaaaaa", currentPCB->PID);
 		//SP_print("dispacher", currentPCB->PID);
@@ -240,7 +244,11 @@ void startTimer(int during) {
 			timerpcb->timeCreated = current_time;
 			//QInsert(QID_ready, (timerpcb->priority), timerpcb);
 			if (timerpcb->suspendFlag != 1) {
+				READ_MODIFY(ReadyQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+					&LockResult_ready);
 				QInsert(QID_ready, (timerpcb->priority), timerpcb);
+				READ_MODIFY(ReadyQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+					&LockResult_ready);
 			}
 			else {
 				QInsert(QID_suspend, timerpcb->priority, timerpcb);
@@ -625,6 +633,8 @@ void SP_print(char* Action,int targetID) {
 	// so it won't be printed out.
 	SPData.NumberOfRunningProcesses = 0;
 	{
+		READ_MODIFY(ReadyQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+			&LockResult_ready);
 		j = 0;
 		i = 0;
 		while (QWalk(QID_ready, 0) != -1) {
@@ -640,6 +650,8 @@ void SP_print(char* Action,int targetID) {
 			QInsert(QID_ready, temppcb->priority, temppcb);
 		}
 		SPData.NumberOfReadyProcesses = j;
+		READ_MODIFY(ReadyQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+			&LockResult_ready);
 	}// Processes ready to run
 
 

@@ -123,7 +123,11 @@ void InterruptHandler(void) {
 					timerpcb->timeCreated = current_time;
 					//QInsert(QID_ready, (timerpcb->priority), timerpcb);
 					if (timerpcb->suspendFlag != 1) {
+						READ_MODIFY(ReadyQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+							&LockResult_ready);
 						QInsert(QID_ready, (timerpcb->priority), timerpcb);
+						READ_MODIFY(ReadyQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+							&LockResult_ready);
 
 					}
 					else {
@@ -172,7 +176,11 @@ void InterruptHandler(void) {
 					diskpcb->timeCreated = current_time;
 					//QInsert(QID_ready, (timerpcb->priority), timerpcb);
 					if (timerpcb->suspendFlag != 1) {
+						READ_MODIFY(ReadyQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+							&LockResult_ready);
 						QInsert(QID_ready, (diskpcb->priority), diskpcb);
+						READ_MODIFY(ReadyQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+							&LockResult_ready);
 					}
 					else {
 						QInsert(QID_suspend, diskpcb->priority, diskpcb);
@@ -350,7 +358,11 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				PIDtemp = checkName(currentPCB->processName);
 				if (PIDtemp >= 0)
 				{
+					READ_MODIFY(ReadyQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+						&LockResult_ready);
 					dequeueByPid(PIDtemp, QID_ready);
+					READ_MODIFY(ReadyQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+						&LockResult_ready);
 					READ_MODIFY(TimerQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 						&LockResult_timer);
 					dequeueByPid(PIDtemp, QID_timer);
@@ -395,7 +407,11 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				PIDtemp = checkPID((long)SystemCallData->Argument[0]);
 				if (PIDtemp >= 0)
 				{
+					READ_MODIFY(ReadyQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+						&LockResult_ready);
 					dequeueByPid((long)SystemCallData->Argument[0], QID_ready);
+					READ_MODIFY(ReadyQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+						&LockResult_ready);
 					READ_MODIFY(TimerQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 						&LockResult_timer);
 					dequeueByPid((long)SystemCallData->Argument[0], QID_timer);
@@ -525,7 +541,11 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				else {//if process in ready queue, put into suspend queue
 					//QPrint(QID_ready);
 					SP_print("suspendbegin", currentPCB->PID);
+					READ_MODIFY(ReadyQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+						&LockResult_ready);
 					suspendByPid((INT32)SystemCallData->Argument[0], QID_ready);
+					READ_MODIFY(ReadyQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+						&LockResult_ready);
 					//QPrint(QID_ready);
 					//if process in timer queue, set the flag to 1
 					suspendByPid_timer((INT32)SystemCallData->Argument[0]);
@@ -596,7 +616,11 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				SP_print("prioritybegin", currentPCB->PID);
 				//change the priority from timer, ready and suspend queue
 				changePriority((INT32)SystemCallData->Argument[0], (INT32)SystemCallData->Argument[1], QID_allprocess);
+				READ_MODIFY(ReadyQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
+					&LockResult_ready);
 				changePriority((INT32)SystemCallData->Argument[0], (INT32)SystemCallData->Argument[1],QID_ready);
+				READ_MODIFY(ReadyQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
+					&LockResult_ready);
 				READ_MODIFY(TimerQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,
 					&LockResult_timer);
 				changePriority((INT32)SystemCallData->Argument[0], (INT32)SystemCallData->Argument[1],QID_timer);
