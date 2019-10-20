@@ -24,7 +24,7 @@
  .                       single threaded.
  4.50    February 2018   Create a function "aprintf" that is used for all
  .                       printing.  That means even with multiple threads,
- .			 the output will come out cleanly. 
+ .           the output will come out cleanly. 
  4.60    March 2019      Lots of little cleanup.
  ****************************************************************************/
 
@@ -70,10 +70,10 @@ void  SPLineSetup(char *, char *, INT16, INT16 *);
  used.
 ****************************************************************************/
 int   GetNumberOfSchedulePrints(){
-	return NumberOfSPPrintLineCalls;
+    return NumberOfSPPrintLineCalls;
 }
 int   GetNumberOfMemoryPrints(){
-	return NumberOfMPPrintLineCalls;
+    return NumberOfMPPrintLineCalls;
 }
 /****************************************************************************
  aprintf
@@ -94,12 +94,12 @@ void aprintf(const char *format, ...)   {
     // might use in an OS.  This is because the statePrinter is being executed
     // at the OS level, not within the hardware.
     READ_MODIFY(MEMORY_INTERLOCK_BASE + SP_USER_LOCK, DO_LOCK, SUSPEND_UNTIL_LOCKED,
-				&LockResult);
+                &LockResult);
  
     vprintf(format, args);
 
     READ_MODIFY(MEMORY_INTERLOCK_BASE + SP_USER_LOCK, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
-			&LockResult);
+            &LockResult);
     va_end(args);
 }   // End of aprint
 
@@ -137,9 +137,9 @@ short SPPrintLine(SP_INPUT_DATA *Input) {
 
     // If user defines the target PID, place it here
     if (Input->TargetPID >= 0)
-    	sprintf(temp, "%5d  ", Input->TargetPID);
+        sprintf(temp, "%5d  ", Input->TargetPID);
     else
-    	sprintf(temp, "%s", "       ");
+        sprintf(temp, "%s", "       ");
     (void) strcat(OutputLine, temp);
     
     sprintf(temp, " %8s", Input->TargetAction); /* Action       */
@@ -149,20 +149,20 @@ short SPPrintLine(SP_INPUT_DATA *Input) {
     (void) strcat(OutputLine, temp);
 
     SPLineSetup(OutputLine, "RUNNING:", Input->NumberOfRunningProcesses,
-    		Input->RunningProcessPIDs);
+            Input->RunningProcessPIDs);
     SPLineSetup(OutputLine, "READY  :", Input->NumberOfReadyProcesses,
-    		Input->ReadyProcessPIDs);
+            Input->ReadyProcessPIDs);
     SPLineSetup(OutputLine, "SUS-PRC:", Input->NumberOfProcSuspendedProcesses,
-    		Input->ProcSuspendedProcessPIDs);
+            Input->ProcSuspendedProcessPIDs);
     SPLineSetup(OutputLine, "SUS-TMR:", Input->NumberOfTimerSuspendedProcesses,
-    		Input->TimerSuspendedProcessPIDs);
+            Input->TimerSuspendedProcessPIDs);
     SPLineSetup(OutputLine, "SUS-MSG:",
-    		Input->NumberOfMessageSuspendedProcesses,
-    		Input->MessageSuspendedProcessPIDs);
+            Input->NumberOfMessageSuspendedProcesses,
+            Input->MessageSuspendedProcessPIDs);
     SPLineSetup(OutputLine, "SUS-DSK:", Input->NumberOfDiskSuspendedProcesses,
-    		Input->DiskSuspendedProcessPIDs);
+            Input->DiskSuspendedProcessPIDs);
     SPLineSetup(OutputLine, "TERM'S :", Input->NumberOfTerminatedProcesses,
-    		Input->TerminatedProcessPIDs);
+            Input->TerminatedProcessPIDs);
     
     NumberOfSPPrintLineCalls++;
     SPDoOutput(OutputLine);    // We've accumulated the whole line - print it.

@@ -12,8 +12,8 @@
       Queue.  You are allowed a maximum of MAX_QUEUES = 50 queues.
       Input: QNameDescriptor - a string containing the name you would
                  like to give the Q.  It's recommended you limit
-		         this string to about 8 characters because you will
-		         want to print it.  The max length is Q_MAX_NAME_LENGTH = 20
+             this string to about 8 characters because you will
+             want to print it.  The max length is Q_MAX_NAME_LENGTH = 20
       Output: QID - The ID that describes this Q and is used in all
                  future references to this Q.  The Q Manager will report
                  an error by returning a value of -1.  You must check!
@@ -23,7 +23,7 @@
       There is no limit to the number of items you can place on a queue.
       Input: QID - The ID that describes the target Q.
       Input: QueueOrder - The order in which the item will be enqueued.
-                   Allowed values are from 0 to UINT_MAX = 	4294967295
+                   Allowed values are from 0 to UINT_MAX =  4294967295
                    Items are enqueued with the smallest value at the head.
                    If two or more items have the same QueueOrder, the
                         newest item will be enqueued AFTER the existing
@@ -135,7 +135,7 @@ Struct = 001D2180, Order = 4294967295, QdStruct = 40EA6C, ... QNext = FFFFFFFF
 
 //  These are the structures we use here to implement the Q's
 typedef struct {
-	void *queue;                         // Pointer to items on the queue
+  void *queue;                         // Pointer to items on the queue
     int QID;                             // Which QID have we told the user this is
     char QName[Q_MAX_NAME_LENGTH];       // The name the user gave us for this Q
     int HeadStructID;
@@ -163,21 +163,21 @@ void QPanic(char *Text);
   int  QCreate(char *QNameDescriptor);
       Input: QNameDescriptor - a string containing the name you would
                  like to give the Q.  It's recommended you limit
-		 this string to about 8 characters because you will
-		 want to print it.
+     this string to about 8 characters because you will
+     want to print it.
       Output: QID - The ID that describes this Q and is used in all
                  future references to this Q.
-		 If an error occurs, this value is -1.
+     If an error occurs, this value is -1.
 ***************************************************************************/
 int  QCreate(char *QNameDescriptor)  {
     int ThisQ = NumberOfAllocatedQueues;
     // Check if too many Qs have been created.
     if (NumberOfAllocatedQueues >= MAX_QUEUES ) {
-	    return -1;
+      return -1;
     }
     // Check if name is too long
     if ( strlen( QNameDescriptor ) > Q_MAX_NAME_LENGTH )   {
-	    return -1;
+      return -1;
     }
     Queues[ThisQ].queue = (void *)-1;
     Queues[ThisQ].QID = NumberOfAllocatedQueues;
@@ -193,7 +193,7 @@ int  QCreate(char *QNameDescriptor)  {
       Enqueue an item on the designated Q.
       Input: QID - The ID that describes the target Q.
       Input: QueueOrder - The order in which the item will be enqueued.
-                   Allowed values are from 0 to UINT_MAX = 	4294967295
+                   Allowed values are from 0 to UINT_MAX =  4294967295
                    Items are enqueued with the smallest value at the head.
                    If two or more items have the same QueueOrder, the
                         newest item will be enqueued AFTER the existing
@@ -213,8 +213,8 @@ int  QInsert(int QID, unsigned int QueueOrder, void *EnqueueingStructure) {
 
     // Go to the special code that will place this item on the tail of the Q.
     if (QueueOrder == UINT_MAX)  {
-    	QInsertOnTail( QID, EnqueueingStructure );
-    	return 0;
+      QInsertOnTail( QID, EnqueueingStructure );
+      return 0;
     }
     QItem = (Q_ITEM *) malloc(sizeof(Q_ITEM));
     if (QItem == 0)
@@ -227,25 +227,25 @@ int  QInsert(int QID, unsigned int QueueOrder, void *EnqueueingStructure) {
 
     // Is there nothing on the Q?
     if ( Queues[QID].queue == (Q_ITEM *)-1) {
-    	Queues[QID].queue = QItem;
+      Queues[QID].queue = QItem;
 
     }  else {
-    	last_ptr = (Q_ITEM *)(&Queues[QID]);
-    	temp_ptr = (Q_ITEM *)(Queues[QID].queue); // First item on Q
-    	while (1) {
-    		// Is our new item "before" the item we're looking at
-    		if (QueueOrder < temp_ptr->QueueOrder  ) { // Yes - enqueue
-    			QItem->queue = last_ptr->queue;
-    			last_ptr->queue = (void *) QItem;
-    			break;
-    		}
-    		if (temp_ptr->queue == (void *)-1) {   // End of Q or empty
-    			temp_ptr->queue = (INT32 *) QItem;
-    			break;
-    		}
-    		last_ptr = temp_ptr;
-    		temp_ptr = (Q_ITEM *) temp_ptr->queue;
-    	} // End of while
+      last_ptr = (Q_ITEM *)(&Queues[QID]);
+      temp_ptr = (Q_ITEM *)(Queues[QID].queue); // First item on Q
+      while (1) {
+        // Is our new item "before" the item we're looking at
+        if (QueueOrder < temp_ptr->QueueOrder  ) { // Yes - enqueue
+          QItem->queue = last_ptr->queue;
+          last_ptr->queue = (void *) QItem;
+          break;
+        }
+        if (temp_ptr->queue == (void *)-1) {   // End of Q or empty
+          temp_ptr->queue = (INT32 *) QItem;
+          break;
+        }
+        last_ptr = temp_ptr;
+        temp_ptr = (Q_ITEM *) temp_ptr->queue;
+      } // End of while
     }  // End of else
 
     QProclaim("Exiting QInsert:  QID = %d, QOrder = %d\n", QID, QueueOrder);
@@ -282,19 +282,19 @@ int  QInsertOnTail(int QID, void *EnqueueingStructure) {
 
     // Is there nothing on the Q?
     if ( Queues[QID].queue == (Q_ITEM *)-1) {
-    	Queues[QID].queue = QItem;
+      Queues[QID].queue = QItem;
     }
     else {
-    	// Walk to the end
-    	last_ptr = (Q_ITEM *)(&Queues[QID]);
-    	temp_ptr = (Q_ITEM *)(Queues[QID].queue); // First item on Q
-    	while (1) {
-    		if ( (long)temp_ptr == -1 )
-    			break;
-    		last_ptr = temp_ptr;
-    		temp_ptr = (Q_ITEM *) temp_ptr->queue;
-    	}
-    	last_ptr->queue = QItem;
+      // Walk to the end
+      last_ptr = (Q_ITEM *)(&Queues[QID]);
+      temp_ptr = (Q_ITEM *)(Queues[QID].queue); // First item on Q
+      while (1) {
+        if ( (long)temp_ptr == -1 )
+          break;
+        last_ptr = temp_ptr;
+        temp_ptr = (Q_ITEM *) temp_ptr->queue;
+      }
+      last_ptr->queue = QItem;
     }   // End of else
     return 0;
 }       // End of QInsertOnTail
@@ -341,7 +341,7 @@ void *QRemoveItem(int QID, void *EnqueueingStructure);
      Input: EnqueueingStructure - The address you are searching for.
      Output: The address of the first structure found that
              matches the EnqueueingStructure address and
-	       has been dequeued.
+         has been dequeued.
              If no matching item is found on the Q, the return value = -1.
 ***************************************************************************/
 void *QRemoveItem(int QID, void *EnqueueingStructure) {
@@ -356,23 +356,23 @@ void *QRemoveItem(int QID, void *EnqueueingStructure) {
     if (Queues[QID].queue == (void *)-1) {
         return ((void *)-1 );               // Q is empty
     }
-	last_ptr = (Q_ITEM *)(&Queues[QID]);
-	temp_ptr = (Q_ITEM *)(Queues[QID].queue); // First item on Q
-	while (1) {
-		// Is this the item we're looking at
-		if (EnqueueingStructure == temp_ptr->QdStructure  ) { // Yes - dequeue
-			last_ptr->queue = temp_ptr->queue;
-			ReturnPointer = (void *) temp_ptr->QdStructure;
-			break;
-		}
-		// Have we determined the item is not on Q
-		if (temp_ptr->queue == (void *)-1) {   // End of Q or empty
-			ReturnPointer = (void *)-1;
-		    return (ReturnPointer );
-		}
-		last_ptr = temp_ptr;
-		temp_ptr = (Q_ITEM *) temp_ptr->queue;
-	} // End of while
+  last_ptr = (Q_ITEM *)(&Queues[QID]);
+  temp_ptr = (Q_ITEM *)(Queues[QID].queue); // First item on Q
+  while (1) {
+    // Is this the item we're looking at
+    if (EnqueueingStructure == temp_ptr->QdStructure  ) { // Yes - dequeue
+      last_ptr->queue = temp_ptr->queue;
+      ReturnPointer = (void *) temp_ptr->QdStructure;
+      break;
+    }
+    // Have we determined the item is not on Q
+    if (temp_ptr->queue == (void *)-1) {   // End of Q or empty
+      ReturnPointer = (void *)-1;
+        return (ReturnPointer );
+    }
+    last_ptr = temp_ptr;
+    temp_ptr = (Q_ITEM *) temp_ptr->queue;
+  } // End of while
 
     if (temp_ptr->ItemStructID != Q_STRUCTURE_ID) {
         QPanic("Bad structure ID in QRemoveItem");
@@ -393,24 +393,24 @@ void *QNextItemInfo(int QID);
              If there is nothing on the Q, the return value = -1.
 ***************************************************************************/
 void *QNextItemInfo(int QID)  {
-	   Q_ITEM *QItem;
+     Q_ITEM *QItem;
 
-	    QProclaim("Entering QNextItemInfo:  QID = %d\n", QID);
-	    // Check the inputs are legal - if not legal, we QPanic
-	    QCheckValidity( QID, 42 );
+      QProclaim("Entering QNextItemInfo:  QID = %d\n", QID);
+      // Check the inputs are legal - if not legal, we QPanic
+      QCheckValidity( QID, 42 );
 
-	    // Check that the header points to something
-	    if (Queues[QID].queue == (void *)-1) {
-	        return ((void *)-1 );               // Q is empty
-	    }
-	    QItem = (Q_ITEM *) Queues[QID].queue;   // This is the head item
+      // Check that the header points to something
+      if (Queues[QID].queue == (void *)-1) {
+          return ((void *)-1 );               // Q is empty
+      }
+      QItem = (Q_ITEM *) Queues[QID].queue;   // This is the head item
 
-	    if (QItem->ItemStructID != Q_STRUCTURE_ID) {
-	        QPanic("Bad structure ID in QNextItemInfo");
-	    }
+      if (QItem->ItemStructID != Q_STRUCTURE_ID) {
+          QPanic("Bad structure ID in QNextItemInfo");
+      }
 
-	    QProclaim("Exiting QNextItemInfo", QID);
-	    return (QItem->QdStructure );
+      QProclaim("Exiting QNextItemInfo", QID);
+      return (QItem->QdStructure );
 }      // End of QNextItemInfo
 
 /**************************************************************************
@@ -434,20 +434,20 @@ void *QItemExists(int QID, void *EnqueueingStructure){
     if (Queues[QID].queue == (void *)-1) {
         return ((void *)-1 );               // Q is empty
     }
-	temp_ptr = (Q_ITEM *)(Queues[QID].queue); // First item on Q
-	while (1) {
-		// Is this the item we're looking at
-		if (EnqueueingStructure == temp_ptr->QdStructure  ) { // Yes
-			ReturnPointer = (void *) temp_ptr->QdStructure;
-			break;
-		}
-		// Have we determined the item is not on Q
-		if (temp_ptr->queue == (void *)-1) {   // End of Q or empty
-			ReturnPointer = (void *)-1;
-		    return (ReturnPointer );
-		}
-		temp_ptr = (Q_ITEM *) temp_ptr->queue;   // Next item
-	} // End of while
+  temp_ptr = (Q_ITEM *)(Queues[QID].queue); // First item on Q
+  while (1) {
+    // Is this the item we're looking at
+    if (EnqueueingStructure == temp_ptr->QdStructure  ) { // Yes
+      ReturnPointer = (void *) temp_ptr->QdStructure;
+      break;
+    }
+    // Have we determined the item is not on Q
+    if (temp_ptr->queue == (void *)-1) {   // End of Q or empty
+      ReturnPointer = (void *)-1;
+        return (ReturnPointer );
+    }
+    temp_ptr = (Q_ITEM *) temp_ptr->queue;   // Next item
+  } // End of while
 
     if (temp_ptr->ItemStructID != Q_STRUCTURE_ID) {
         QPanic("Bad structure ID in QItemExists");
@@ -464,7 +464,7 @@ void *QItemExists(int QID, void *EnqueueingStructure){
                when you created it.
 ***************************************************************************/
 char *QGetName( int QID) {
-	int  FillerNumber = 0;
+  int  FillerNumber = 0;
     // Check the QID is legal
     QCheckValidity( QID, FillerNumber );
     return (void *)(Queues[QID].QName);
@@ -484,26 +484,26 @@ void *QWalk(int QID, int QOrder);
              items on the Q, the return value = -1.
 ***************************************************************************/
 void *QWalk(int QID, int QOrder)   {
-	Q_ITEM *temp_ptr;
-	int  whichItem = 0;
-	int  FillerNumber = 0;
+  Q_ITEM *temp_ptr;
+  int  whichItem = 0;
+  int  FillerNumber = 0;
 
     // Check the QID is legal
     QCheckValidity( QID, FillerNumber );
 
-	if ( QOrder < 0 )   {
-		QProclaim("Error in QWalk - Order requested = %d\n", QOrder);
-		return (void *)-1;
-	}
-	temp_ptr = (Q_ITEM *)(Queues[QID].queue); // First item on Q
-	while( temp_ptr != (Q_ITEM *)-1 )  {
-		if (whichItem == QOrder )  {
-			return ((void *)(temp_ptr->QdStructure));
-		}
-		temp_ptr = temp_ptr->queue;
-		whichItem++;
-	}
-	return (void *)-1;
+  if ( QOrder < 0 )   {
+    QProclaim("Error in QWalk - Order requested = %d\n", QOrder);
+    return (void *)-1;
+  }
+  temp_ptr = (Q_ITEM *)(Queues[QID].queue); // First item on Q
+  while( temp_ptr != (Q_ITEM *)-1 )  {
+    if (whichItem == QOrder )  {
+      return ((void *)(temp_ptr->QdStructure));
+    }
+    temp_ptr = temp_ptr->queue;
+    whichItem++;
+  }
+  return (void *)-1;
 }
 
 /**************************************************************************
@@ -513,7 +513,7 @@ void *QWalk(int QID, int QOrder)   {
      Output: How many Queues have been allocated.
 ***************************************************************************/
 int GetNumberOfAllocatedQueues() {
-	return( NumberOfAllocatedQueues );
+  return( NumberOfAllocatedQueues );
 }
 /**************************************************************************
    QPrint()
@@ -529,14 +529,14 @@ void QPrint(int QID) {
     printf("Printing Q %d with name %s\n", QID, QGetName(QID));
     // Check that the header points to something
     if (Queues[QID].queue == (void *)-1) {
-    	printf("Q is empty\n");
+      printf("Q is empty\n");
         return;               // Q is empty
     }
     QItem = (Q_ITEM *) Queues[QID].queue;   // This is the head entry
 
     while (QItem != (Q_ITEM *)-1) {
         printf("Struct Addr = %p, QueueOrder = %10u, QdStructure = %lX, StructID = %d.  QNext = %p\n",
-        		(void *)QItem, QItem->QueueOrder, (unsigned long)QItem->QdStructure, QItem->ItemStructID, (void *)QItem->queue);
+            (void *)QItem, QItem->QueueOrder, (unsigned long)QItem->QdStructure, QItem->ItemStructID, (void *)QItem->queue);
 
         QItem = (Q_ITEM *) QItem->queue;
     }
@@ -571,11 +571,11 @@ void QCheckValidity( int QID, int QueueingOrder ) {
     }
 
     if ( Queues[QID].HeadStructID != Q_HEAD_STRUCTURE_ID ){
-    	printf("QID = %d, Head %d\n", QID, Queues[QID].HeadStructID);
-	    QPanic("In QCheckValidity - Invalid QHeader\n");
+      printf("QID = %d, Head %d\n", QID, Queues[QID].HeadStructID);
+      QPanic("In QCheckValidity - Invalid QHeader\n");
     }
     if ( QueueingOrder < -1 ){
-	    QPanic("In QCheckValidity - Invalid queueing order\n");
+      QPanic("In QCheckValidity - Invalid queueing order\n");
     }
 }    // End of QCheckValidity
 

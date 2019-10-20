@@ -120,8 +120,8 @@ void GetNextEventTime(INT32 *);
 UINT16 *GetPageTableAddress();
 int GetProcessorID();
 void GetProcessTimeUsage( unsigned long long *,
-		          unsigned long long *,
-		          unsigned long long *);
+                  unsigned long long *,
+                  unsigned long long *);
 void GetSectorStructure(INT16, INT16, char **, INT32 *);
 unsigned long GetTotalNumberOfLocks();
 void GetNextOrderedEvent(INT32 *, INT16 *, INT16 *, INT32 *);
@@ -140,7 +140,7 @@ void HardwareFault(INT16, INT16);
 void HardwareInternalPanic(INT32);
 void IdleSimulation();
 void MakeContext(long *ReturningContextPointer, long starting_address,
-		UINT16* PageTable, BOOL user_or_kernel);
+        UINT16* PageTable, BOOL user_or_kernel);
 void MemoryCommon(INT32, char *, BOOL);
 void PhysicalMemoryCommon(INT32, char *, BOOL);
 void MemoryMappedIO(INT32, MEMORY_MAPPED_IO *, BOOL);
@@ -160,7 +160,7 @@ void SoftwareTrap(SYSTEM_CALL_DATA *SystemCallData);
 void SuspendProcessExecution(Z502CONTEXT *Context);
 void SwitchContext(void **, BOOL);
 int WaitForCondition(UINT32 Condition, UINT32 Mutex, INT32 WaitTime,
-		char * Caller);
+        char * Caller);
 void Z502Init();
 
 INT32 STAT_VECTOR[SV_DIMENSION ][LARGEST_STAT_VECTOR_INDEX + 1];
@@ -199,11 +199,11 @@ INT16 Z502_CURRENT_NUMBER_OF_PROCESSORS = 1;
 INT16 Z502Initialized = FALSE;
 UINT32 CurrentSimulationTime = 0;
 unsigned long long StartUserMicrosecs, 
-	               StartSystemMicrosecs,
-		           StartWallClockMicrosecs;
+                   StartSystemMicrosecs,
+                   StartWallClockMicrosecs;
 unsigned long long EndUserMicrosecs, 
-	               EndSystemMicrosecs,
-		           EndWallClockMicrosecs;
+                   EndSystemMicrosecs,
+                   EndWallClockMicrosecs;
 unsigned long TotalNumberOfLocksObtained = 0;
 INT16 EventRingBuffer_index = 0;
 
@@ -315,7 +315,7 @@ void MemoryCommon(INT32 VirtualAddress, char *data_ptr, BOOL read_or_write) {
             Invalidity = 5;
 
         DoMemoryDebug(Invalidity, VirtualPageNumber);
-	// The address or the page table is not correct.  Go take a fault
+    // The address or the page table is not correct.  Go take a fault
         if (Invalidity > 0) {
             if ((GetCurrentContext() != NULL)
                     && ((GetCurrentContext()->StructureID)
@@ -422,39 +422,39 @@ void MemoryCommon(INT32 VirtualAddress, char *data_ptr, BOOL read_or_write) {
  *****************************************************************/
 
 void DoMemoryDebug(INT16 Invalidity, INT16 vpn) {
-	if (DO_MEMORY_DEBUG == 0)
-		return;
-	aprintf("MEMORY DEBUG: ");
-	if (Invalidity == 0) {
-		aprintf("Virtual Page Number %d was successful\n", vpn);
-	}
-	if (Invalidity == 1) {
-		aprintf("You asked for a virtual page, %d, greater than the\n", vpn);
-		aprintf("\t\tmaximum number of virtual pages, %d\n",
-		NUMBER_VIRTUAL_PAGES);
-	}
-	if (Invalidity == 2) {
-		aprintf("You asked for a virtual page, %d, less than\n", vpn);
-		aprintf("\t\tzero.  What are you thinking?\n");
-	}
-	if (Invalidity == 3) {
-		aprintf("A valid page table should have been set up when \n");
-		aprintf("\t\tthe process was created.  Somehow that didn't");
-		aprintf("\t\thappen and the hardware can't find\n");
-		aprintf("\t\taddress of the page table.\n");
-	}
-	if (Invalidity == 4) {
-		aprintf("You have taken an alignment fault.  This means that the\n");
-		aprintf("\t\taddress you are trying to access is not on a \n");
-		aprintf("\t\tmodulus 4 boundary.  Such an address is illegal.\n");
-	}
-	if (Invalidity == 5) {
-		aprintf("You have not initialized the slot in the page table\n");
-		aprintf("\t\tcorresponding to virtual page %d\n", vpn);
-		aprintf("\t\tYou must aim this virtual page at a physical frame\n");
-		aprintf("\t\tand mark this page table slot as valid.\n");
-	}
-	if ( Invalidity > 5 )
+    if (DO_MEMORY_DEBUG == 0)
+        return;
+    aprintf("MEMORY DEBUG: ");
+    if (Invalidity == 0) {
+        aprintf("Virtual Page Number %d was successful\n", vpn);
+    }
+    if (Invalidity == 1) {
+        aprintf("You asked for a virtual page, %d, greater than the\n", vpn);
+        aprintf("\t\tmaximum number of virtual pages, %d\n",
+        NUMBER_VIRTUAL_PAGES);
+    }
+    if (Invalidity == 2) {
+        aprintf("You asked for a virtual page, %d, less than\n", vpn);
+        aprintf("\t\tzero.  What are you thinking?\n");
+    }
+    if (Invalidity == 3) {
+        aprintf("A valid page table should have been set up when \n");
+        aprintf("\t\tthe process was created.  Somehow that didn't");
+        aprintf("\t\thappen and the hardware can't find\n");
+        aprintf("\t\taddress of the page table.\n");
+    }
+    if (Invalidity == 4) {
+        aprintf("You have taken an alignment fault.  This means that the\n");
+        aprintf("\t\taddress you are trying to access is not on a \n");
+        aprintf("\t\tmodulus 4 boundary.  Such an address is illegal.\n");
+    }
+    if (Invalidity == 5) {
+        aprintf("You have not initialized the slot in the page table\n");
+        aprintf("\t\tcorresponding to virtual page %d\n", vpn);
+        aprintf("\t\tYou must aim this virtual page at a physical frame\n");
+        aprintf("\t\tand mark this page table slot as valid.\n");
+    }
+    if ( Invalidity > 5 )
             HardwareInternalPanic(ERR_Z502_INTERNAL_BUG);
 }                        // End of DoMemoryDebug
 
@@ -467,12 +467,12 @@ void DoMemoryDebug(INT16 Invalidity, INT16 vpn) {
 
 void Z502MemoryRead(INT32 VirtualAddress, INT32 *data_ptr) {
 
-	MemoryCommon(VirtualAddress, (char *) data_ptr, (BOOL) SYSNUM_MEM_READ);
+    MemoryCommon(VirtualAddress, (char *) data_ptr, (BOOL) SYSNUM_MEM_READ);
 }                  // End  Z502MemoryRead
 
 void Z502MemoryWrite(INT32 VirtualAddress, INT32 *data_ptr) {
 
-	MemoryCommon(VirtualAddress, (char *) data_ptr, (BOOL) SYSNUM_MEM_WRITE);
+    MemoryCommon(VirtualAddress, (char *) data_ptr, (BOOL) SYSNUM_MEM_WRITE);
 }                  // End  Z502MemoryWrite
 
 /*************************************************************************
@@ -559,7 +559,7 @@ void MemoryMappedIO(INT32 address, MEMORY_MAPPED_IO *mmio, BOOL ReadOrWrite) {
         } else {
             mmio->Field4 = ERR_BAD_PARAM;
         }
-    	break;
+        break;
     }
 
     // There's only one action here.  Don't worry about the user packet
@@ -568,7 +568,7 @@ void MemoryMappedIO(INT32 address, MEMORY_MAPPED_IO *mmio, BOOL ReadOrWrite) {
             IdleSimulation();
         } else {
             mmio->Field4 = ERR_BAD_PARAM;
-    	}
+        }
         break;
     }
 
@@ -630,9 +630,9 @@ void MemoryMappedIO(INT32 address, MEMORY_MAPPED_IO *mmio, BOOL ReadOrWrite) {
             mmio->Field4 = ERR_SUCCESS;
             break;
         }
-	// Get the status of the timer
-	if (mmio->Mode == Z502Status) {
-	    if (timer_state.timer_in_use == TRUE)
+    // Get the status of the timer
+    if (mmio->Mode == Z502Status) {
+        if (timer_state.timer_in_use == TRUE)
                 mmio->Field1 = DEVICE_IN_USE;
             else
                 mmio->Field1 = DEVICE_FREE;
@@ -640,7 +640,7 @@ void MemoryMappedIO(INT32 address, MEMORY_MAPPED_IO *mmio, BOOL ReadOrWrite) {
             break;
         }
         mmio->Field4 = ERR_BAD_PARAM;
-    	aprintf("PANIC #2 - Illegal use of Memory Mapped IO\n");
+        aprintf("PANIC #2 - Illegal use of Memory Mapped IO\n");
         break;
     }    // End of case Z502Timer
 
@@ -767,7 +767,7 @@ void MemoryMappedIO(INT32 address, MEMORY_MAPPED_IO *mmio, BOOL ReadOrWrite) {
         //    call has occurred.
 
         if (mmio->Mode == Z502GetProcessorNumber) {
-    	    mmio->Field1 = Z502_CURRENT_NUMBER_OF_PROCESSORS;
+            mmio->Field1 = Z502_CURRENT_NUMBER_OF_PROCESSORS;
             mmio->Field4 = ERR_SUCCESS;
         }        // End of Z502SetProcessorNumber
         break;
@@ -796,40 +796,40 @@ void MemoryMappedIO(INT32 address, MEMORY_MAPPED_IO *mmio, BOOL ReadOrWrite) {
  *****************************************************************/
 
 void PhysicalMemoryCommon(INT32 PhysicalPageNumber, char *data_ptr,
-		BOOL read_or_write) {
-	INT16 PhysicalPageAddress;
-	INT16 index;
-	char Debug_Text[32];
+        BOOL read_or_write) {
+    INT16 PhysicalPageAddress;
+    INT16 index;
+    char Debug_Text[32];
 
-	strcpy(Debug_Text, "PhysicalMemoryCommon");
-	GetLock(HardwareLock, Debug_Text);
+    strcpy(Debug_Text, "PhysicalMemoryCommon");
+    GetLock(HardwareLock, Debug_Text);
 
-	// If a user tries to do this call from user mode, a fault occurs
-	if (GetMode("PhysicalMemoryCommon1") != KERNEL_MODE) {
-		HardwareFault(PRIVILEGED_INSTRUCTION, 0);
-		return;
-	}
-	// If the user has asked for an illegal physical page, take a fault
-	// then return with no modification to the user's buffer.
-	if (PhysicalPageNumber < 0 || PhysicalPageNumber > NUMBER_PHYSICAL_PAGES) {
-		ReleaseLock(HardwareLock, Debug_Text);
-		HardwareFault(INVALID_PHYSICAL_MEMORY, PhysicalPageNumber);
-		return;
-	}
-	PhysicalPageAddress = PGSIZE * PhysicalPageNumber;
+    // If a user tries to do this call from user mode, a fault occurs
+    if (GetMode("PhysicalMemoryCommon1") != KERNEL_MODE) {
+        HardwareFault(PRIVILEGED_INSTRUCTION, 0);
+        return;
+    }
+    // If the user has asked for an illegal physical page, take a fault
+    // then return with no modification to the user's buffer.
+    if (PhysicalPageNumber < 0 || PhysicalPageNumber > NUMBER_PHYSICAL_PAGES) {
+        ReleaseLock(HardwareLock, Debug_Text);
+        HardwareFault(INVALID_PHYSICAL_MEMORY, PhysicalPageNumber);
+        return;
+    }
+    PhysicalPageAddress = PGSIZE * PhysicalPageNumber;
 
-	if (read_or_write == SYSNUM_MEM_READ) {
-		for (index = 0; index < PGSIZE ; index++)
-			data_ptr[index] = MEMORY[PhysicalPageAddress + index];
-	}
+    if (read_or_write == SYSNUM_MEM_READ) {
+        for (index = 0; index < PGSIZE ; index++)
+            data_ptr[index] = MEMORY[PhysicalPageAddress + index];
+    }
 
-	if (read_or_write == SYSNUM_MEM_WRITE) {
-		for (index = 0; index < PGSIZE ; index++)
-			MEMORY[PhysicalPageAddress + index] = data_ptr[index];
-	}
+    if (read_or_write == SYSNUM_MEM_WRITE) {
+        for (index = 0; index < PGSIZE ; index++)
+            MEMORY[PhysicalPageAddress + index] = data_ptr[index];
+    }
 
-	ChargeTimeAndCheckEvents(COST_OF_MEMORY_ACCESS);
-	ReleaseLock(HardwareLock, Debug_Text);
+    ChargeTimeAndCheckEvents(COST_OF_MEMORY_ACCESS);
+    ReleaseLock(HardwareLock, Debug_Text);
 }                      // End of PhysicalMemoryCommon
 
 /*****************************************************************
@@ -842,15 +842,15 @@ void PhysicalMemoryCommon(INT32 PhysicalPageNumber, char *data_ptr,
  *****************************************************************/
 void Z502ReadPhysicalMemory(INT32 PhysicalPageNumber, char *PhysicalDataPointer) {
 
-	PhysicalMemoryCommon(PhysicalPageNumber, PhysicalDataPointer,
-			(BOOL) SYSNUM_MEM_READ);
+    PhysicalMemoryCommon(PhysicalPageNumber, PhysicalDataPointer,
+            (BOOL) SYSNUM_MEM_READ);
 }                  // End  Z502ReadPhysicalMemory
 
 void Z502WritePhysicalMemory(INT32 PhysicalPageNumber,
-		char *PhysicalDataPointer) {
+        char *PhysicalDataPointer) {
 
-	PhysicalMemoryCommon(PhysicalPageNumber, PhysicalDataPointer,
-			(BOOL) SYSNUM_MEM_WRITE);
+    PhysicalMemoryCommon(PhysicalPageNumber, PhysicalDataPointer,
+            (BOOL) SYSNUM_MEM_WRITE);
 }                  // End  Z502WritePhysicalMemory
 
 /*************************************************************************
@@ -959,69 +959,69 @@ void HardwareReadDisk(INT16 disk_id, INT16 sector, char *buffer_ptr) {
 
  *****************************************************************/
 void HardwareWriteDisk(INT16 disk_id, INT16 sector, char *buffer_ptr) {
-	INT32 local_error;
-	char *sector_ptr;
-	INT32 access_time;
-	INT16 error_found;
+    INT32 local_error;
+    char *sector_ptr;
+    INT32 access_time;
+    INT16 error_found;
 
-	error_found = 0;
-	// We need to be in kernel mode or be in interrupt handler
-	if (GetMode("HardwareWriteDisk1") != KERNEL_MODE && InterruptTid != GetMyTid()) {
-		HardwareFault(PRIVILEGED_INSTRUCTION, 0);
-		return;
-	}
+    error_found = 0;
+    // We need to be in kernel mode or be in interrupt handler
+    if (GetMode("HardwareWriteDisk1") != KERNEL_MODE && InterruptTid != GetMyTid()) {
+        HardwareFault(PRIVILEGED_INSTRUCTION, 0);
+        return;
+    }
 
-	if (disk_id < 0 || disk_id >= MAX_NUMBER_OF_DISKS) {
-		disk_id = 1; /* To aim at legal vector  */
-		error_found = ERR_BAD_PARAM;
-	}
-	if (sector < 0 || sector >= NUMBER_LOGICAL_SECTORS)
-		error_found = ERR_BAD_PARAM;
+    if (disk_id < 0 || disk_id >= MAX_NUMBER_OF_DISKS) {
+        disk_id = 1; /* To aim at legal vector  */
+        error_found = ERR_BAD_PARAM;
+    }
+    if (sector < 0 || sector >= NUMBER_LOGICAL_SECTORS)
+        error_found = ERR_BAD_PARAM;
 
-	if (DiskState[disk_id].DiskInUse == TRUE)
-		error_found = ERR_DISK_IN_USE;
+    if (DiskState[disk_id].DiskInUse == TRUE)
+        error_found = ERR_DISK_IN_USE;
 
-	if (error_found != 0) {
-		if (DO_DEVICE_DEBUG) {
-			aprintf("---- BEGIN DO_DEVICE DEBUG - IN write_disk --- \n");
-			aprintf("ERROR:  in your disk request.  The error\n");
-			aprintf("     code is %d that you can look up in global.h\n",
-					error_found);
-			aprintf("    The disk will cause an interrupt to tell \n");
-			aprintf("     you about that error.\n");
-			aprintf("---- END DO_DEVICE DEBUG - --------------------\n");
-		}
-		AddEventToInterruptQueue(CurrentSimulationTime,
-				(INT16) (DISK_INTERRUPT + disk_id), error_found,
-				&DiskState[disk_id].EventPtr);
-	} else {
-		GetSectorStructure(disk_id, sector, &sector_ptr, &local_error);
-		if (local_error != 0) /* No structure for this sector exists */
-			CreateSectorStruct(disk_id, sector, &sector_ptr);
+    if (error_found != 0) {
+        if (DO_DEVICE_DEBUG) {
+            aprintf("---- BEGIN DO_DEVICE DEBUG - IN write_disk --- \n");
+            aprintf("ERROR:  in your disk request.  The error\n");
+            aprintf("     code is %d that you can look up in global.h\n",
+                    error_found);
+            aprintf("    The disk will cause an interrupt to tell \n");
+            aprintf("     you about that error.\n");
+            aprintf("---- END DO_DEVICE DEBUG - --------------------\n");
+        }
+        AddEventToInterruptQueue(CurrentSimulationTime,
+                (INT16) (DISK_INTERRUPT + disk_id), error_found,
+                &DiskState[disk_id].EventPtr);
+    } else {
+        GetSectorStructure(disk_id, sector, &sector_ptr, &local_error);
+        if (local_error != 0) /* No structure for this sector exists */
+            CreateSectorStruct(disk_id, sector, &sector_ptr);
 
-		//memcpy(sector_ptr, buffer_ptr, PGSIZE); // Bugfix 07/2014
-		DiskState[disk_id].Destination = sector_ptr;
-		DiskState[disk_id].Source = buffer_ptr;
+        //memcpy(sector_ptr, buffer_ptr, PGSIZE); // Bugfix 07/2014
+        DiskState[disk_id].Destination = sector_ptr;
+        DiskState[disk_id].Source = buffer_ptr;
 
-		access_time = (INT32) CurrentSimulationTime + 100
-				+ abs(DiskState[disk_id].LastSector - sector) / 20;
-		HardwareStats.DiskWrites[disk_id]++;
-		HardwareStats.DiskBusyTime[disk_id] += access_time
-				- CurrentSimulationTime;
-		if (DO_DEVICE_DEBUG) {
-			aprintf("\nDEVICE_DEBUG: Time = %d:  ", CurrentSimulationTime);
-			aprintf("Disk %d WRITE will cause interrupt at time = %d\n", disk_id,
-					access_time);
-		}
-		AddEventToInterruptQueue(access_time,
-				(INT16) (DISK_INTERRUPT + disk_id), (INT16) ERR_SUCCESS,
-				&DiskState[disk_id].EventPtr);
-		DiskState[disk_id].LastSector = sector;
-	}
-	// No matter if the disk request succeeds or fails, the disk is set as busy
-	DiskState[disk_id].DiskInUse = TRUE;
-	// aprintf("2. Setting %d TRUE\n", disk_id );
-	ChargeTimeAndCheckEvents(COST_OF_DISK_ACCESS);
+        access_time = (INT32) CurrentSimulationTime + 100
+                + abs(DiskState[disk_id].LastSector - sector) / 20;
+        HardwareStats.DiskWrites[disk_id]++;
+        HardwareStats.DiskBusyTime[disk_id] += access_time
+                - CurrentSimulationTime;
+        if (DO_DEVICE_DEBUG) {
+            aprintf("\nDEVICE_DEBUG: Time = %d:  ", CurrentSimulationTime);
+            aprintf("Disk %d WRITE will cause interrupt at time = %d\n", disk_id,
+                    access_time);
+        }
+        AddEventToInterruptQueue(access_time,
+                (INT16) (DISK_INTERRUPT + disk_id), (INT16) ERR_SUCCESS,
+                &DiskState[disk_id].EventPtr);
+        DiskState[disk_id].LastSector = sector;
+    }
+    // No matter if the disk request succeeds or fails, the disk is set as busy
+    DiskState[disk_id].DiskInUse = TRUE;
+    // aprintf("2. Setting %d TRUE\n", disk_id );
+    ChargeTimeAndCheckEvents(COST_OF_DISK_ACCESS);
 
 }                           // End of HardwareWriteDisk
 
@@ -1036,40 +1036,40 @@ void HardwareWriteDisk(INT16 disk_id, INT16 sector, char *buffer_ptr) {
  This code was written for Rev 4.30 in February 2016
  *****************************************************************/
 void HardwareCheckDisk(int DiskID) {
-	FILE *Output;
-	int Index, Index2;
-	int Result;
-	INT32 local_error;
-	char *BufferPointer;
-	unsigned char LocalBuffer[PGSIZE ];
-	char OutputString[120];
-	char TempString[16];
+    FILE *Output;
+    int Index, Index2;
+    int Result;
+    INT32 local_error;
+    char *BufferPointer;
+    unsigned char LocalBuffer[PGSIZE ];
+    char OutputString[120];
+    char TempString[16];
 
-	Output = fopen("CheckDiskData", "w");
-	for (Index = 0; Index < NUMBER_LOGICAL_SECTORS ; Index++) {
-		//	HardwareReadDisk(DiskID, Index, &BufferPointer);
-		GetSectorStructure(DiskID, Index, &BufferPointer, &local_error);
-		if (local_error == 0) {      // it's a good sector
-			memcpy(LocalBuffer, BufferPointer, PGSIZE);
-			// Determine if the Sector contains all zeros.  If so, don't print.
-			Result = 0;
-			for (Index2 = 0; Index2 < PGSIZE ; Index2++) {
-				Result += LocalBuffer[Index2];
-			}
-			if (Result > 0) {
-				sprintf(TempString, "%04X ", Index);
-				TempString[5] = '\0';
-				memcpy(OutputString, TempString, 6);
-				for (Index2 = 0; Index2 < PGSIZE ; Index2++) {
-					sprintf(TempString, "%02X ", LocalBuffer[Index2]);
-					strncat(OutputString, TempString, 3);
-				}
-				aprintf("%s\n", OutputString);
-				fprintf(Output, "%s\n", OutputString);
-			}
-		}
-	}
-	fclose(Output);
+    Output = fopen("CheckDiskData", "w");
+    for (Index = 0; Index < NUMBER_LOGICAL_SECTORS ; Index++) {
+        //  HardwareReadDisk(DiskID, Index, &BufferPointer);
+        GetSectorStructure(DiskID, Index, &BufferPointer, &local_error);
+        if (local_error == 0) {      // it's a good sector
+            memcpy(LocalBuffer, BufferPointer, PGSIZE);
+            // Determine if the Sector contains all zeros.  If so, don't print.
+            Result = 0;
+            for (Index2 = 0; Index2 < PGSIZE ; Index2++) {
+                Result += LocalBuffer[Index2];
+            }
+            if (Result > 0) {
+                sprintf(TempString, "%04X ", Index);
+                TempString[5] = '\0';
+                memcpy(OutputString, TempString, 6);
+                for (Index2 = 0; Index2 < PGSIZE ; Index2++) {
+                    sprintf(TempString, "%02X ", LocalBuffer[Index2]);
+                    strncat(OutputString, TempString, 3);
+                }
+                aprintf("%s\n", OutputString);
+                fprintf(Output, "%s\n", OutputString);
+            }
+        }
+    }
+    fclose(Output);
 }              // End HardwareCheckDisk
 /*****************************************************************
 
@@ -1086,69 +1086,69 @@ void HardwareCheckDisk(int DiskID) {
  *****************************************************************/
 
 void HardwareTimer(INT32 time_to_delay) {
-	INT32 error;
-	UINT32 CurrentTimerExpirationTime = 9999999;
+    INT32 error;
+    UINT32 CurrentTimerExpirationTime = 9999999;
 
-	// We need to be in kernel mode or be in interrupt handler
-	if (GetMode("HardwareTimer1") != KERNEL_MODE && InterruptTid != GetMyTid()) {
-		HardwareFault(PRIVILEGED_INSTRUCTION, 0);
-		return;
-	}
+    // We need to be in kernel mode or be in interrupt handler
+    if (GetMode("HardwareTimer1") != KERNEL_MODE && InterruptTid != GetMyTid()) {
+        HardwareFault(PRIVILEGED_INSTRUCTION, 0);
+        return;
+    }
 
-	// Bugfix 4.0 - if the time is 0 on Linux, the interrupt may occur
-	// too soon.  We really need a lock here and on HardwareInterrupt
-	if (time_to_delay == 0)
-		time_to_delay = 1;
+    // Bugfix 4.0 - if the time is 0 on Linux, the interrupt may occur
+    // too soon.  We really need a lock here and on HardwareInterrupt
+    if (time_to_delay == 0)
+        time_to_delay = 1;
 
-	if (DO_DEVICE_DEBUG) {           // Print lots of info
-		aprintf("\nDEVICE_DEBUG: HardwareTimer:  ");
-		if (timer_state.timer_in_use == TRUE) {
-			aprintf("The timer is ALREADY in use - ");
-			aprintf("destroying previous request\n");
-		} else
-			aprintf("The timer is not currently running\n");
-		if (time_to_delay < 0)
-			aprintf(
-					"DEVICE_DEBUG: TROUBLE - want to delay for negative time!!\n");
-		if (timer_state.timer_in_use == TRUE)
-			CurrentTimerExpirationTime = timer_state.event_ptr->time_of_event;
-		if (CurrentTimerExpirationTime
-				< CurrentSimulationTime + time_to_delay) {
-			aprintf(
-					"DEVICE_DEBUG: TROUBLE - you are replacing the current timer ");
-			aprintf("value of %d with a time of %d\n",
-					CurrentTimerExpirationTime,
-					CurrentSimulationTime + time_to_delay);
-			aprintf(
-					"DEVICE_DEBUG: which is even further in the future.  This is not wise\n");
-		}
-		aprintf(
-				"DEVICE_DEBUG:    Time Now = %d, Delay time = %d, Interrupt will occur at = %d\n",
-				CurrentSimulationTime, time_to_delay,
-				CurrentSimulationTime + time_to_delay);
-	}     // End of if DO_DEVICE_DEBUG
+    if (DO_DEVICE_DEBUG) {           // Print lots of info
+        aprintf("\nDEVICE_DEBUG: HardwareTimer:  ");
+        if (timer_state.timer_in_use == TRUE) {
+            aprintf("The timer is ALREADY in use - ");
+            aprintf("destroying previous request\n");
+        } else
+            aprintf("The timer is not currently running\n");
+        if (time_to_delay < 0)
+            aprintf(
+                    "DEVICE_DEBUG: TROUBLE - want to delay for negative time!!\n");
+        if (timer_state.timer_in_use == TRUE)
+            CurrentTimerExpirationTime = timer_state.event_ptr->time_of_event;
+        if (CurrentTimerExpirationTime
+                < CurrentSimulationTime + time_to_delay) {
+            aprintf(
+                    "DEVICE_DEBUG: TROUBLE - you are replacing the current timer ");
+            aprintf("value of %d with a time of %d\n",
+                    CurrentTimerExpirationTime,
+                    CurrentSimulationTime + time_to_delay);
+            aprintf(
+                    "DEVICE_DEBUG: which is even further in the future.  This is not wise\n");
+        }
+        aprintf(
+                "DEVICE_DEBUG:    Time Now = %d, Delay time = %d, Interrupt will occur at = %d\n",
+                CurrentSimulationTime, time_to_delay,
+                CurrentSimulationTime + time_to_delay);
+    }     // End of if DO_DEVICE_DEBUG
 
-	if (timer_state.timer_in_use == TRUE) {
-		DequeueItemFromEventQueue(timer_state.event_ptr, &error);
-		if (error != 0) {
-			aprintf("Internal error - we tried to retrieve a timer\n");
-			aprintf("event, but failed in HardwareTimer.\n");
-			HardwareInternalPanic(ERR_Z502_INTERNAL_BUG);
-		}
-		timer_state.timer_in_use = FALSE;
-	}
+    if (timer_state.timer_in_use == TRUE) {
+        DequeueItemFromEventQueue(timer_state.event_ptr, &error);
+        if (error != 0) {
+            aprintf("Internal error - we tried to retrieve a timer\n");
+            aprintf("event, but failed in HardwareTimer.\n");
+            HardwareInternalPanic(ERR_Z502_INTERNAL_BUG);
+        }
+        timer_state.timer_in_use = FALSE;
+    }
 
-	if (time_to_delay < 0) {   // Illegal time
-		AddEventToInterruptQueue(CurrentSimulationTime, TIMER_INTERRUPT,
-				(INT16) ERR_BAD_PARAM, &timer_state.event_ptr);
+    if (time_to_delay < 0) {   // Illegal time
+        AddEventToInterruptQueue(CurrentSimulationTime, TIMER_INTERRUPT,
+                (INT16) ERR_BAD_PARAM, &timer_state.event_ptr);
 
-		return;
-	}
+        return;
+    }
 
-	AddEventToInterruptQueue(CurrentSimulationTime + time_to_delay,
-	TIMER_INTERRUPT, (INT16) ERR_SUCCESS, &timer_state.event_ptr);
-	timer_state.timer_in_use = TRUE;
-	ChargeTimeAndCheckEvents(COST_OF_TIMER);
+    AddEventToInterruptQueue(CurrentSimulationTime + time_to_delay,
+    TIMER_INTERRUPT, (INT16) ERR_SUCCESS, &timer_state.event_ptr);
+    timer_state.timer_in_use = TRUE;
+    ChargeTimeAndCheckEvents(COST_OF_TIMER);
 
 }                                       // End of HardwareTimer
 
@@ -1165,15 +1165,15 @@ void HardwareTimer(INT32 time_to_delay) {
  *****************************************************************/
 
 void HardwareClock(INT32 *current_time_returned) {
-	// We need to be in kernel mode or be in interrupt handler
-	if (GetMode("HardwareClock1") != KERNEL_MODE && InterruptTid != GetMyTid()) {
-		*current_time_returned = -1; /* return bogus value      */
-		HardwareFault(PRIVILEGED_INSTRUCTION, 0);
-		return;
-	}
+    // We need to be in kernel mode or be in interrupt handler
+    if (GetMode("HardwareClock1") != KERNEL_MODE && InterruptTid != GetMyTid()) {
+        *current_time_returned = -1; /* return bogus value      */
+        HardwareFault(PRIVILEGED_INSTRUCTION, 0);
+        return;
+    }
 
-	ChargeTimeAndCheckEvents(COST_OF_CLOCK);
-	*current_time_returned = (INT32) CurrentSimulationTime;
+    ChargeTimeAndCheckEvents(COST_OF_CLOCK);
+    *current_time_returned = (INT32) CurrentSimulationTime;
 
 }           // End of HardwareClock
 
@@ -1188,16 +1188,16 @@ void HardwareClock(INT32 *current_time_returned) {
  *****************************************************************/
 
 void HaltSimulation(void) {
-	// We need to be in kernel mode or be in interrupt handler
-	if (GetMode("HaltSimulation1") != KERNEL_MODE && InterruptTid != GetMyTid()) {
-		HardwareFault(PRIVILEGED_INSTRUCTION, 0);
-		return;
-	}
-	PrintHardwareStats();
+    // We need to be in kernel mode or be in interrupt handler
+    if (GetMode("HaltSimulation1") != KERNEL_MODE && InterruptTid != GetMyTid()) {
+        HardwareFault(PRIVILEGED_INSTRUCTION, 0);
+        return;
+    }
+    PrintHardwareStats();
 
-	aprintf("The Z502 halts execution and Ends at Time %d\n",
-			CurrentSimulationTime);
-	GoToExit(0);
+    aprintf("The Z502 halts execution and Ends at Time %d\n",
+            CurrentSimulationTime);
+    GoToExit(0);
 }                     // End of Z502Halt
 
 /*****************************************************************
@@ -1213,47 +1213,47 @@ void HaltSimulation(void) {
  *****************************************************************/
 
 void IdleSimulation(void) {
-	INT32 time_of_next_event;
-	static INT32 NumberOfIdlesWithNothingOnEventQueue = 0;
+    INT32 time_of_next_event;
+    static INT32 NumberOfIdlesWithNothingOnEventQueue = 0;
 
-	GetLock(HardwareLock, "Z502Simulation");
+    GetLock(HardwareLock, "Z502Simulation");
 
-	// We need to be in kernel mode or be in interrupt handler
-	if (GetMode("IdleSimulation1") != KERNEL_MODE && InterruptTid != GetMyTid()) {
-		HardwareFault(PRIVILEGED_INSTRUCTION, 0);
-		return;
-	}
+    // We need to be in kernel mode or be in interrupt handler
+    if (GetMode("IdleSimulation1") != KERNEL_MODE && InterruptTid != GetMyTid()) {
+        HardwareFault(PRIVILEGED_INSTRUCTION, 0);
+        return;
+    }
 
-	GetNextEventTime(&time_of_next_event);
-	if (DO_DEVICE_DEBUG) {
-		aprintf("\nDEVICE_DEBUG: Z502Simulation: Time is = %d: ",
-				CurrentSimulationTime);
-		if (time_of_next_event < 0)
-			aprintf("There's no event enqueued - timer not started\n");
-		else
-			aprintf("Starting Timer for future time = %d\n", time_of_next_event);
-	}
-	if (time_of_next_event < 0)
-		NumberOfIdlesWithNothingOnEventQueue++;
-	else
-		NumberOfIdlesWithNothingOnEventQueue = 0;
-	if (NumberOfIdlesWithNothingOnEventQueue > 20) {
-		aprintf("ERROR in Z502Idle.  IDLE will wait forever since\n");
-		aprintf("there is no event that will cause an interrupt.\n");
-		aprintf("This occurs because when you decided to call 'Z502Idle'\n");
-		aprintf("there was an event waiting - but the event was triggered\n");
-		aprintf("too soon. Avoid this error by:\n");
-		aprintf("1. using   'ZCALL' instead of CALL for all routines between\n");
-		aprintf("   the event-check and Z502Idle\n");
-		aprintf("2. limiting the work or routines (like printouts) between\n");
-		aprintf("   the event-check and Z502Idle\n");
-		HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
-	}
-	if ((time_of_next_event > 0)
-			&& (CurrentSimulationTime < (UINT32) time_of_next_event))
-		CurrentSimulationTime = time_of_next_event;
-	ReleaseLock(HardwareLock, "Z502Simulation");
-	SignalCondition(InterruptCondition, "Z502Simulation");
+    GetNextEventTime(&time_of_next_event);
+    if (DO_DEVICE_DEBUG) {
+        aprintf("\nDEVICE_DEBUG: Z502Simulation: Time is = %d: ",
+                CurrentSimulationTime);
+        if (time_of_next_event < 0)
+            aprintf("There's no event enqueued - timer not started\n");
+        else
+            aprintf("Starting Timer for future time = %d\n", time_of_next_event);
+    }
+    if (time_of_next_event < 0)
+        NumberOfIdlesWithNothingOnEventQueue++;
+    else
+        NumberOfIdlesWithNothingOnEventQueue = 0;
+    if (NumberOfIdlesWithNothingOnEventQueue > 20) {
+        aprintf("ERROR in Z502Idle.  IDLE will wait forever since\n");
+        aprintf("there is no event that will cause an interrupt.\n");
+        aprintf("This occurs because when you decided to call 'Z502Idle'\n");
+        aprintf("there was an event waiting - but the event was triggered\n");
+        aprintf("too soon. Avoid this error by:\n");
+        aprintf("1. using   'ZCALL' instead of CALL for all routines between\n");
+        aprintf("   the event-check and Z502Idle\n");
+        aprintf("2. limiting the work or routines (like printouts) between\n");
+        aprintf("   the event-check and Z502Idle\n");
+        HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
+    }
+    if ((time_of_next_event > 0)
+            && (CurrentSimulationTime < (UINT32) time_of_next_event))
+        CurrentSimulationTime = time_of_next_event;
+    ReleaseLock(HardwareLock, "Z502Simulation");
+    SignalCondition(InterruptCondition, "Z502Simulation");
 }                    // End of Z502Idle
 
 /*****************************************************************
@@ -1274,49 +1274,49 @@ void IdleSimulation(void) {
  *****************************************************************/
 
 void MakeContext(long *ReturningContextPointer, long starting_address,
-		UINT16* PageTable, BOOL user_or_kernel) {
-	Z502CONTEXT *our_ptr;
-	int Temporary;
+        UINT16* PageTable, BOOL user_or_kernel) {
+    Z502CONTEXT *our_ptr;
+    int Temporary;
 
-	if (Z502Initialized == FALSE) {
-		Z502Init();
-	}
+    if (Z502Initialized == FALSE) {
+        Z502Init();
+    }
 
-	GetLock(HardwareLock, "Z502MakeContext");
-	// We need to be in kernel mode or be in interrupt handler
-	if (GetMode("MakeContext1") != KERNEL_MODE && InterruptTid != GetMyTid()) {
-		HardwareFault(PRIVILEGED_INSTRUCTION, 0);
-		return;
-	}
+    GetLock(HardwareLock, "Z502MakeContext");
+    // We need to be in kernel mode or be in interrupt handler
+    if (GetMode("MakeContext1") != KERNEL_MODE && InterruptTid != GetMyTid()) {
+        HardwareFault(PRIVILEGED_INSTRUCTION, 0);
+        return;
+    }
 
-	our_ptr = (Z502CONTEXT *) calloc(1, sizeof(Z502CONTEXT));
-	if (our_ptr == NULL) {
-		aprintf("We didn't complete the calloc in MAKE_CONTEXT.\n");
-		HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
-	}
+    our_ptr = (Z502CONTEXT *) calloc(1, sizeof(Z502CONTEXT));
+    if (our_ptr == NULL) {
+        aprintf("We didn't complete the calloc in MAKE_CONTEXT.\n");
+        HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
+    }
 
-	// Our goal here is to save the OS developer some pain later on.
-	// We assume that the page table handed to us is valid, and that it
-	// has a length of VIRTUAL_MEM_PAGES.  Check that we can touch this
-	// much memory.  If not, then we will crash here rather than later.
-	Temporary = PageTable[0];
-	PageTable[NUMBER_VIRTUAL_PAGES - 1] = Temporary;
-	// Well, if we get here, then the OS correctly allocated memory.
+    // Our goal here is to save the OS developer some pain later on.
+    // We assume that the page table handed to us is valid, and that it
+    // has a length of VIRTUAL_MEM_PAGES.  Check that we can touch this
+    // much memory.  If not, then we will crash here rather than later.
+    Temporary = PageTable[0];
+    PageTable[NUMBER_VIRTUAL_PAGES - 1] = Temporary;
+    // Well, if we get here, then the OS correctly allocated memory.
 
-	our_ptr->StructureID = CONTEXT_STRUCTURE_ID;
-	our_ptr->CodeEntry = (void *) starting_address;
-	our_ptr->PageTablePointer = (void *) PageTable;
-	our_ptr->ContextStartCount = 0;
-	// our_ptr->program_mode = user_or_kernel;    BUGFIX  4.10 - July 2014
-	our_ptr->ProgramMode = KERNEL_MODE;  // Always start process in Kernel Mode
-	our_ptr->FaultInProgress = FALSE;
-	*ReturningContextPointer = (long) our_ptr;
+    our_ptr->StructureID = CONTEXT_STRUCTURE_ID;
+    our_ptr->CodeEntry = (void *) starting_address;
+    our_ptr->PageTablePointer = (void *) PageTable;
+    our_ptr->ContextStartCount = 0;
+    // our_ptr->program_mode = user_or_kernel;    BUGFIX  4.10 - July 2014
+    our_ptr->ProgramMode = KERNEL_MODE;  // Always start process in Kernel Mode
+    our_ptr->FaultInProgress = FALSE;
+    *ReturningContextPointer = (long) our_ptr;
 
-	// Attach the Context to a thread
-	AssociateContextWithProcess(our_ptr);
+    // Attach the Context to a thread
+    AssociateContextWithProcess(our_ptr);
 
-	ChargeTimeAndCheckEvents(COST_OF_MAKE_CONTEXT);
-	ReleaseLock(HardwareLock, "Z502MakeContext");
+    ChargeTimeAndCheckEvents(COST_OF_MAKE_CONTEXT);
+    ReleaseLock(HardwareLock, "Z502MakeContext");
 
 }                    // End of MakeContext
 
@@ -1456,7 +1456,7 @@ void SwitchContext(void **IncomingContextPointer, BOOL DoStartSuspend) {
     // target would most likely be ourselves.
     // Differentiate between these cases here.:w!
     if  ( (CallersPtr == *TargetContextPtr) 
-	    && ( DoStartSuspend != SUSPEND_CURRENT_CONTEXT_ONLY ) )  {
+        && ( DoStartSuspend != SUSPEND_CURRENT_CONTEXT_ONLY ) )  {
         ReleaseLock(HardwareLock, "SwitchContext-C");
         //      aprintf("Z502Switch... - returning with no switch\n");
         return;
@@ -1537,42 +1537,42 @@ void SwitchContext(void **IncomingContextPointer, BOOL DoStartSuspend) {
 // Finds which processor is being run for the process that makes this call
 // This is a mapping between our local ID and the processor number
 int GetProcessorID() {
-	//if (MULTIPROCESSOR_IMPLEMENTED) {
-	int i;
-	int myTid = GetMyTid();
-	int ourLocalID = -1;
+    //if (MULTIPROCESSOR_IMPLEMENTED) {
+    int i;
+    int myTid = GetMyTid();
+    int ourLocalID = -1;
 
-	// Find my TID in the table & make sure all is OK
-	for (i = 0; i < MAX_THREAD_TABLE_SIZE; i++) {
-		if (ThreadTable[i].ThreadID == myTid) {
-			ourLocalID = i;
-			break;
-		}
-	}
-	if (ourLocalID == -1) {
-		aprintf("Error in GetProcessorID\n");
-		aprintf("This should never happen!");
-		HardwareInternalPanic(ERR_Z502_INTERNAL_BUG);
-	}
-	return ourLocalID; 
+    // Find my TID in the table & make sure all is OK
+    for (i = 0; i < MAX_THREAD_TABLE_SIZE; i++) {
+        if (ThreadTable[i].ThreadID == myTid) {
+            ourLocalID = i;
+            break;
+        }
+    }
+    if (ourLocalID == -1) {
+        aprintf("Error in GetProcessorID\n");
+        aprintf("This should never happen!");
+        HardwareInternalPanic(ERR_Z502_INTERNAL_BUG);
+    }
+    return ourLocalID; 
 }  // End of GetProcessorID
 
 // Return the address of the context of the process that's
 //   currently running on the processor of the caller
 Z502CONTEXT *GetCurrentContext() {
-	return ThreadTable[GetProcessorID()].Context;
+    return ThreadTable[GetProcessorID()].Context;
 }     // End of GetCurrentContext
 
 // Set the context of the process that's currently being
 //     run on this processor
 void SetCurrentContext(Z502CONTEXT *Address) {
-	ThreadTable[GetProcessorID()].Context = Address;
+    ThreadTable[GetProcessorID()].Context = Address;
 }     // End of SetCurrentContext
 
 // Return the Page Table of the  process that's
 //   currently running on the processor of the caller
 UINT16 *GetPageTableAddress() {
-	return ThreadTable[GetProcessorID()].Context->PageTablePointer;
+    return ThreadTable[GetProcessorID()].Context->PageTablePointer;
 }    // End of  GetPageTableAddress()
 
 // Sets the Page Table of the  process that's
@@ -1611,13 +1611,13 @@ void SetMode(char *CallerLocation, INT16 mode)  {
     if ( DEBUG_MODE )  {
         if ( mode == KERNEL_MODE )
             aprintf("SetMode:  Set to KERNEL: TID = %d: Called by %s\n", 
-			GetMyTid(), CallerLocation );
+            GetMyTid(), CallerLocation );
         else
             aprintf("SetMode:  Set to USER: TID = %d: Called by %s\n", 
-			GetMyTid(), CallerLocation );
+            GetMyTid(), CallerLocation );
     }
         GetCurrentContext()->ProgramMode = mode;
-	//ThreadTable[GetProcessorID()].Mode = mode;
+    //ThreadTable[GetProcessorID()].Mode = mode;
 }    // End of  SetMode()
 
 /*****************************************************************
@@ -1669,14 +1669,14 @@ void SaveTimeOfCall(int SystemCallNumber)   {
     if ( SystemCallNumber == SYSNUM_SUSPEND_PROCESS) {
         if ( SuspendProcessFirstCall ) {
             SuspendProcessFirstCall = FALSE;
-	    SuspendProcessTimeOfFirstCall = CurrentSimulationTime;
-	}
+        SuspendProcessTimeOfFirstCall = CurrentSimulationTime;
+    }
     }
     if ( SystemCallNumber == SYSNUM_CHANGE_PRIORITY ) {
         if ( ChangePriorityFirstCall ) {
             ChangePriorityFirstCall = FALSE;
-	    ChangePriorityTimeOfFirstCall = CurrentSimulationTime;
-	}
+        ChangePriorityTimeOfFirstCall = CurrentSimulationTime;
+    }
     }
 }  // End of SaveTimeOfCall
 
@@ -1774,7 +1774,7 @@ void HardwareInterrupt(void) {
                 aprintf("%d  ", DataPointer[1]);
                 aprintf("%d  ", DataPointer[2]);
                 aprintf("%d\n", DataPointer[3]);
-    	    }
+            }
             // OK - here's the fix for a bug that has plagued many students.  Rev 4.50 04/2018
             // If there's been a valid disk request, then that request will cause an interrupt.
             // But if the student has mistakenly asked the disk for a second request, she will
@@ -1969,86 +1969,86 @@ void HardwareInternalPanic(INT32 panic_type) {
  *****************************************************************/
 
 void AddEventToInterruptQueue(INT32 time_of_event, INT16 event_type,
-		INT16 event_error, EVENT **returned_event_ptr) {
-	EVENT *ep;
-	EVENT *temp_ptr;
-	EVENT *last_ptr;
-	INT16 erbi; /* Short for EventRingBuffer_index    */
+        INT16 event_error, EVENT **returned_event_ptr) {
+    EVENT *ep;
+    EVENT *temp_ptr;
+    EVENT *last_ptr;
+    INT16 erbi; /* Short for EventRingBuffer_index    */
 
-	if (time_of_event < (INT32) CurrentSimulationTime) {
-		// Bugfix - on Linux there were occurrences of the Simulation
-		// time being advanced while a timer request was in progress.
+    if (time_of_event < (INT32) CurrentSimulationTime) {
+        // Bugfix - on Linux there were occurrences of the Simulation
+        // time being advanced while a timer request was in progress.
 
-		time_of_event = (INT32) CurrentSimulationTime;
-	}
-	if (event_type < 0 || event_type > LARGEST_STAT_VECTOR_INDEX) {
-		aprintf("Illegal event_type= %d  in AddEvent.\n", event_type);
-		HardwareInternalPanic(ERR_Z502_INTERNAL_BUG);
-	}
-	ep = (EVENT *) malloc(sizeof(EVENT));
-	if (ep == NULL) {
-		aprintf("We didn't complete the malloc in AddEvent.\n");
-		aprintf("This should not occur unless the OS has used up\n");
-		aprintf("all the heap space.\n");
-		HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
-	}
-	GetLock(EventLock, "AddEvent");
+        time_of_event = (INT32) CurrentSimulationTime;
+    }
+    if (event_type < 0 || event_type > LARGEST_STAT_VECTOR_INDEX) {
+        aprintf("Illegal event_type= %d  in AddEvent.\n", event_type);
+        HardwareInternalPanic(ERR_Z502_INTERNAL_BUG);
+    }
+    ep = (EVENT *) malloc(sizeof(EVENT));
+    if (ep == NULL) {
+        aprintf("We didn't complete the malloc in AddEvent.\n");
+        aprintf("This should not occur unless the OS has used up\n");
+        aprintf("all the heap space.\n");
+        HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
+    }
+    GetLock(EventLock, "AddEvent");
 
-	ep->queue = (INT32 *) NULL;
-	ep->time_of_event = time_of_event;
-	ep->ring_buffer_location = EventRingBuffer_index;
-	ep->structure_id = EVENT_STRUCTURE_ID;
-	ep->event_type = event_type;
-	ep->event_error = event_error;
-	*returned_event_ptr = ep;
-	if (DO_DEVICE_DEBUG) {
-		aprintf(
-				"In  AddEventToInterruptQueue:  Time Of Event, = %d, Event Type = %d, Event Error = %d\n",
-				time_of_event, event_type, event_error);
-	}
-	erbi = EventRingBuffer_index;
-	EventRingBuffer[erbi].time_of_request = CurrentSimulationTime;
-	EventRingBuffer[erbi].expected_time_of_event = time_of_event;
-	EventRingBuffer[erbi].real_time_of_event = -1;
-	EventRingBuffer[erbi].event_type = event_type;
-	EventRingBuffer[erbi].event_error = event_error;
-	EventRingBuffer_index = (++erbi) % EVENT_RING_BUFFER_SIZE;
+    ep->queue = (INT32 *) NULL;
+    ep->time_of_event = time_of_event;
+    ep->ring_buffer_location = EventRingBuffer_index;
+    ep->structure_id = EVENT_STRUCTURE_ID;
+    ep->event_type = event_type;
+    ep->event_error = event_error;
+    *returned_event_ptr = ep;
+    if (DO_DEVICE_DEBUG) {
+        aprintf(
+                "In  AddEventToInterruptQueue:  Time Of Event, = %d, Event Type = %d, Event Error = %d\n",
+                time_of_event, event_type, event_error);
+    }
+    erbi = EventRingBuffer_index;
+    EventRingBuffer[erbi].time_of_request = CurrentSimulationTime;
+    EventRingBuffer[erbi].expected_time_of_event = time_of_event;
+    EventRingBuffer[erbi].real_time_of_event = -1;
+    EventRingBuffer[erbi].event_type = event_type;
+    EventRingBuffer[erbi].event_error = event_error;
+    EventRingBuffer_index = (++erbi) % EVENT_RING_BUFFER_SIZE;
 
-	temp_ptr = &EventQueue; /* The header queue  */
-	temp_ptr->time_of_event = -1;
-	last_ptr = temp_ptr;
+    temp_ptr = &EventQueue; /* The header queue  */
+    temp_ptr->time_of_event = -1;
+    last_ptr = temp_ptr;
 
-	while (1) {
-		if (temp_ptr->time_of_event > time_of_event) /* we're past */
-		{
-			ep->queue = last_ptr->queue;
-			last_ptr->queue = (INT32 *) ep;
-			break;
-		}
-		if (temp_ptr->queue == NULL) {
-			temp_ptr->queue = (INT32 *) ep;
-			break;
-		}
-		last_ptr = temp_ptr;
-		temp_ptr = (EVENT *) temp_ptr->queue;
-	} /* End of while     */
-	if (ReleaseLock(EventLock, "AddEvent") == FALSE)
-		aprintf("Took error on ReleaseLock in AddEvent\n");
-	// PrintEventQueue();
-	if ((time_of_event > 0)
-			&& (time_of_event <= (INT32) CurrentSimulationTime)) {
-		// Bugfix 09/2011 - There are situations where the hardware lock
-		// is held in MemoryCommon - but we need to release it so that
-		// we can do the signal and the interrupt thread will not be
-		// stuck when it tries to get the lock.
-		// Here we try to get the lock.  After we try, we will now
-		//   hold the lock so we can then release it.
-		GetTryLock(HardwareLock, "AddEventToIntQ");
-		if (ReleaseLock(HardwareLock, "AddEvent") == FALSE)
-			aprintf("Took error on ReleaseLock in AddEvent\n");
-		SignalCondition(InterruptCondition, "AddEvent");
-	}
-	return;
+    while (1) {
+        if (temp_ptr->time_of_event > time_of_event) /* we're past */
+        {
+            ep->queue = last_ptr->queue;
+            last_ptr->queue = (INT32 *) ep;
+            break;
+        }
+        if (temp_ptr->queue == NULL) {
+            temp_ptr->queue = (INT32 *) ep;
+            break;
+        }
+        last_ptr = temp_ptr;
+        temp_ptr = (EVENT *) temp_ptr->queue;
+    } /* End of while     */
+    if (ReleaseLock(EventLock, "AddEvent") == FALSE)
+        aprintf("Took error on ReleaseLock in AddEvent\n");
+    // PrintEventQueue();
+    if ((time_of_event > 0)
+            && (time_of_event <= (INT32) CurrentSimulationTime)) {
+        // Bugfix 09/2011 - There are situations where the hardware lock
+        // is held in MemoryCommon - but we need to release it so that
+        // we can do the signal and the interrupt thread will not be
+        // stuck when it tries to get the lock.
+        // Here we try to get the lock.  After we try, we will now
+        //   hold the lock so we can then release it.
+        GetTryLock(HardwareLock, "AddEventToIntQ");
+        if (ReleaseLock(HardwareLock, "AddEvent") == FALSE)
+            aprintf("Took error on ReleaseLock in AddEvent\n");
+        SignalCondition(InterruptCondition, "AddEvent");
+    }
+    return;
 }             // End of  AddEventToInterruptQueue
 
 /*****************************************************************
@@ -2065,40 +2065,40 @@ void AddEventToInterruptQueue(INT32 time_of_event, INT16 event_type,
  *****************************************************************/
 
 void GetNextOrderedEvent(INT32 *time_of_event, INT16 *event_type,
-		INT16 *event_error, INT32 *local_error)
+        INT16 *event_error, INT32 *local_error)
 
 {
-	EVENT *ep;
-	INT16 rbl; /* Ring Buffer Location                */
+    EVENT *ep;
+    INT16 rbl; /* Ring Buffer Location                */
 
-	GetLock(EventLock, "get_next_ordered_ev");
-	if (EventQueue.queue == NULL) {
-		*local_error = ERR_Z502_INTERNAL_BUG;
-		if (ReleaseLock(EventLock, "get_next_ordered_ev") == FALSE)
-			aprintf("Took error on ReleaseLock in GetNextOrderedEvent\n");
-		return;
-	}
-	ep = (EVENT *) EventQueue.queue;
-	EventQueue.queue = ep->queue;
-	ep->queue = NULL;
+    GetLock(EventLock, "get_next_ordered_ev");
+    if (EventQueue.queue == NULL) {
+        *local_error = ERR_Z502_INTERNAL_BUG;
+        if (ReleaseLock(EventLock, "get_next_ordered_ev") == FALSE)
+            aprintf("Took error on ReleaseLock in GetNextOrderedEvent\n");
+        return;
+    }
+    ep = (EVENT *) EventQueue.queue;
+    EventQueue.queue = ep->queue;
+    ep->queue = NULL;
 
-	if (ep->structure_id != EVENT_STRUCTURE_ID) {
-		aprintf("Bad structure id read in GetNextOrderedEvent.\n");
-		HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
-	}
-	*time_of_event = ep->time_of_event;
-	*event_type = ep->event_type;
-	*event_error = ep->event_error;
-	*local_error = ERR_SUCCESS;
-	rbl = ep->ring_buffer_location;
+    if (ep->structure_id != EVENT_STRUCTURE_ID) {
+        aprintf("Bad structure id read in GetNextOrderedEvent.\n");
+        HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
+    }
+    *time_of_event = ep->time_of_event;
+    *event_type = ep->event_type;
+    *event_error = ep->event_error;
+    *local_error = ERR_SUCCESS;
+    rbl = ep->ring_buffer_location;
 
-	if (EventRingBuffer[rbl].expected_time_of_event == *time_of_event)
-		EventRingBuffer[rbl].real_time_of_event = CurrentSimulationTime;
+    if (EventRingBuffer[rbl].expected_time_of_event == *time_of_event)
+        EventRingBuffer[rbl].real_time_of_event = CurrentSimulationTime;
 
-	if (ReleaseLock(EventLock, "GetNextOrderedEvent") == FALSE)
-		aprintf("Took error on ReleaseLock in GetNextOrderedEvent\n");
-	ep->structure_id = 0; /* make sure this isn't mistaken */
-	free(ep);
+    if (ReleaseLock(EventLock, "GetNextOrderedEvent") == FALSE)
+        aprintf("Took error on ReleaseLock in GetNextOrderedEvent\n");
+    ep->structure_id = 0; /* make sure this isn't mistaken */
+    free(ep);
 
 }                       // End of GetNextOrderedEvent
 
@@ -2110,18 +2110,18 @@ void GetNextOrderedEvent(INT32 *time_of_event, INT16 *event_type,
  *****************************************************************/
 
 void PrintEventQueue() {
-	EVENT *ep;
+    EVENT *ep;
 
-	GetLock(EventLock, "PrintEventQueue");
-	aprintf("Event Queue: ");
-	ep = (EVENT *) EventQueue.queue;
-	while (ep != NULL) {
-		aprintf("  %d", ep->time_of_event);
-		ep = (EVENT *) ep->queue;
-	}
-	aprintf("  NULL\n");
-	ReleaseLock(EventLock, "PrintEventQueue");
-	return;
+    GetLock(EventLock, "PrintEventQueue");
+    aprintf("Event Queue: ");
+    ep = (EVENT *) EventQueue.queue;
+    while (ep != NULL) {
+        aprintf("  %d", ep->time_of_event);
+        ep = (EVENT *) ep->queue;
+    }
+    aprintf("  NULL\n");
+    ReleaseLock(EventLock, "PrintEventQueue");
+    return;
 }             // End of PrintEventQueue
 
 /*****************************************************************
@@ -2139,41 +2139,41 @@ void PrintEventQueue() {
  *****************************************************************/
 
 void DequeueItemFromEventQueue(EVENT *event_ptr, INT32 *error) {
-	EVENT *last_ptr;
-	EVENT *temp_ptr;
+    EVENT *last_ptr;
+    EVENT *temp_ptr;
 
-	// It's possible that HardwareTimer will call us when it
-	// thinks there's a timer event, but in fact the
-	// HardwareInterrupt has handled the timer event.
-	// in that case, the event_ptr may be null.
-	// If so, eat the error.
-	//if ( event_ptr == NULL )   {  // It's already Dequeued
-	//    return;
-	//}
-	if (event_ptr->structure_id != EVENT_STRUCTURE_ID) {
-		aprintf("Bad structure id read in DequeueItem.\n");
-		HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
-	}
+    // It's possible that HardwareTimer will call us when it
+    // thinks there's a timer event, but in fact the
+    // HardwareInterrupt has handled the timer event.
+    // in that case, the event_ptr may be null.
+    // If so, eat the error.
+    //if ( event_ptr == NULL )   {  // It's already Dequeued
+    //    return;
+    //}
+    if (event_ptr->structure_id != EVENT_STRUCTURE_ID) {
+        aprintf("Bad structure id read in DequeueItem.\n");
+        HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
+    }
 
-	GetLock(EventLock, "DequeueItem");
-	*error = 0;
-	temp_ptr = (EVENT *) EventQueue.queue;
-	last_ptr = &EventQueue;
-	while (1) {
-		if (temp_ptr == NULL) {
-			*error = 1;
-			break;
-		}
-		if (temp_ptr == event_ptr) {
-			last_ptr->queue = temp_ptr->queue;
-			event_ptr->queue = (INT32 *) NULL;
-			break;
-		}
-		last_ptr = temp_ptr;
-		temp_ptr = (EVENT *) temp_ptr->queue;
-	} /* End while                */
-	if (ReleaseLock(EventLock, "DequeueItem") == FALSE)
-		aprintf("Took error on ReleaseLock in DequeueItem\n");
+    GetLock(EventLock, "DequeueItem");
+    *error = 0;
+    temp_ptr = (EVENT *) EventQueue.queue;
+    last_ptr = &EventQueue;
+    while (1) {
+        if (temp_ptr == NULL) {
+            *error = 1;
+            break;
+        }
+        if (temp_ptr == event_ptr) {
+            last_ptr->queue = temp_ptr->queue;
+            event_ptr->queue = (INT32 *) NULL;
+            break;
+        }
+        last_ptr = temp_ptr;
+        temp_ptr = (EVENT *) temp_ptr->queue;
+    } /* End while                */
+    if (ReleaseLock(EventLock, "DequeueItem") == FALSE)
+        aprintf("Took error on ReleaseLock in DequeueItem\n");
 
 }                     // End   DequeueItemFromEventQueue
 
@@ -2189,23 +2189,23 @@ void DequeueItemFromEventQueue(EVENT *event_ptr, INT32 *error) {
  *****************************************************************/
 
 void GetNextEventTime(INT32 *time_of_next_event) {
-	EVENT *ep;
+    EVENT *ep;
 
-	GetLock(EventLock, "GetNextEventTime");
-	*time_of_next_event = -1;
-	if (EventQueue.queue == NULL) {
-		if (ReleaseLock(EventLock, "GetNextEventTime") == FALSE)
-			aprintf("Took error on ReleaseLock in GetNextEventTime\n");
-		return;
-	}
-	ep = (EVENT *) EventQueue.queue;
-	if (ep->structure_id != EVENT_STRUCTURE_ID) {
-		aprintf("Bad structure id read in GetNextEventTime.\n");
-		HardwareInternalPanic(ERR_Z502_INTERNAL_BUG);
-	}
-	*time_of_next_event = ep->time_of_event;
-	if (ReleaseLock(EventLock, "GetNextEventTime") == FALSE)
-		aprintf("Took error on ReleaseLock in GetNextEventTime\n");
+    GetLock(EventLock, "GetNextEventTime");
+    *time_of_next_event = -1;
+    if (EventQueue.queue == NULL) {
+        if (ReleaseLock(EventLock, "GetNextEventTime") == FALSE)
+            aprintf("Took error on ReleaseLock in GetNextEventTime\n");
+        return;
+    }
+    ep = (EVENT *) EventQueue.queue;
+    if (ep->structure_id != EVENT_STRUCTURE_ID) {
+        aprintf("Bad structure id read in GetNextEventTime.\n");
+        HardwareInternalPanic(ERR_Z502_INTERNAL_BUG);
+    }
+    *time_of_next_event = ep->time_of_event;
+    if (ReleaseLock(EventLock, "GetNextEventTime") == FALSE)
+        aprintf("Took error on ReleaseLock in GetNextEventTime\n");
 
 }                   // End of GetNextEventTime
 
@@ -2239,11 +2239,11 @@ void PrintHardwareStats(void) {
     aprintf("Number of Schedule Prints = %d,  Number of Memory Prints = %d\n",
             NumberofSchedPrints, NumberofMemPrints);
     if ( SuspendProcessTimeOfFirstCall > 0 )
-	aprintf("Clock time of first SuspendProcess System Call = %d\n",
-		 SuspendProcessTimeOfFirstCall );
+    aprintf("Clock time of first SuspendProcess System Call = %d\n",
+         SuspendProcessTimeOfFirstCall );
     if ( ChangePriorityTimeOfFirstCall > 0 )
-	aprintf("Clock time of first ChangePriority System Call = %d\n",
-	         ChangePriorityTimeOfFirstCall );
+    aprintf("Clock time of first ChangePriority System Call = %d\n",
+             ChangePriorityTimeOfFirstCall );
 
     for (i = 0; i < MAX_NUMBER_OF_DISKS ; i++) {
         temp = HardwareStats.DiskReads[i] + HardwareStats.DiskWrites[i];
@@ -2282,44 +2282,44 @@ void PrintHardwareStats(void) {
  *****************************************************************/
 
 void PrintRingBuffer(void) {
-	INT16 index;
-	INT16 next_print;
+    INT16 index;
+    INT16 next_print;
 
-	if (EventRingBuffer[0].time_of_request == 0)
-		return; /* Never used - ignore       */
-	GetLock(EventLock, "PrintRingBuffer");
-	next_print = EventRingBuffer_index;
+    if (EventRingBuffer[0].time_of_request == 0)
+        return; /* Never used - ignore       */
+    GetLock(EventLock, "PrintRingBuffer");
+    next_print = EventRingBuffer_index;
 
-	aprintf("Current time is %d\n\n", CurrentSimulationTime);
-	aprintf("Record of Hardware Requests:\n\n");
-	aprintf("This is a history of the last events that were requested.  It\n");
-	aprintf("is a ring buffer so note that the times are not in order.\n\n");
-	aprintf("Column A: Time at which the OS made a request of the hardware.\n");
-	aprintf("Column B: Time at which the hardware was expected to give an\n");
-	aprintf("          interrupt.\n");
-	aprintf("Column C: The actual time at which the hardware caused an\n");
-	aprintf("          interrupt.  This should be the same or later than \n");
-	aprintf("          Column B.  If this number is -1, then the event \n");
-	aprintf("          occurred because the request was superceded by a \n");
-	aprintf("          later event.\n");
-	aprintf("Column D: Device Type.  4 = Timer, 5... are disks \n");
-	aprintf("Column E: Device Status.  0 indicates no error.  You should\n");
-	aprintf("          worry about anything that's not 0.\n\n");
-	aprintf("Column A    Column B      Column C      Column D   Column E\n\n");
+    aprintf("Current time is %d\n\n", CurrentSimulationTime);
+    aprintf("Record of Hardware Requests:\n\n");
+    aprintf("This is a history of the last events that were requested.  It\n");
+    aprintf("is a ring buffer so note that the times are not in order.\n\n");
+    aprintf("Column A: Time at which the OS made a request of the hardware.\n");
+    aprintf("Column B: Time at which the hardware was expected to give an\n");
+    aprintf("          interrupt.\n");
+    aprintf("Column C: The actual time at which the hardware caused an\n");
+    aprintf("          interrupt.  This should be the same or later than \n");
+    aprintf("          Column B.  If this number is -1, then the event \n");
+    aprintf("          occurred because the request was superceded by a \n");
+    aprintf("          later event.\n");
+    aprintf("Column D: Device Type.  4 = Timer, 5... are disks \n");
+    aprintf("Column E: Device Status.  0 indicates no error.  You should\n");
+    aprintf("          worry about anything that's not 0.\n\n");
+    aprintf("Column A    Column B      Column C      Column D   Column E\n\n");
 
-	for (index = 0; index < EVENT_RING_BUFFER_SIZE; index++) {
-		next_print++;
-		next_print = next_print % EVENT_RING_BUFFER_SIZE;
+    for (index = 0; index < EVENT_RING_BUFFER_SIZE; index++) {
+        next_print++;
+        next_print = next_print % EVENT_RING_BUFFER_SIZE;
 
-		aprintf("%7d    %7d    %8d     %8d    %8d\n",
-				EventRingBuffer[next_print].time_of_request,
-				EventRingBuffer[next_print].expected_time_of_event,
-				EventRingBuffer[next_print].real_time_of_event,
-				EventRingBuffer[next_print].event_type,
-				EventRingBuffer[next_print].event_error);
-	}
-	if (ReleaseLock(EventLock, "PrintRingBuffer") == FALSE)
-		aprintf("Took error on ReleaseLock in PrintRingBuffer\n");
+        aprintf("%7d    %7d    %8d     %8d    %8d\n",
+                EventRingBuffer[next_print].time_of_request,
+                EventRingBuffer[next_print].expected_time_of_event,
+                EventRingBuffer[next_print].real_time_of_event,
+                EventRingBuffer[next_print].event_type,
+                EventRingBuffer[next_print].event_error);
+    }
+    if (ReleaseLock(EventLock, "PrintRingBuffer") == FALSE)
+        aprintf("Took error on ReleaseLock in PrintRingBuffer\n");
 
 }                    // End of PrintRingBuffer
 
@@ -2340,28 +2340,28 @@ void PrintRingBuffer(void) {
  *****************************************************************/
 
 void GetSectorStructure(INT16 disk_id, INT16 sector, char **sector_ptr,
-		INT32 *error) {
-	SECTOR *temp_ptr;
+        INT32 *error) {
+    SECTOR *temp_ptr;
 
-	*error = 0;
-	temp_ptr = (SECTOR *) sector_queue[disk_id].queue;
-	while (1) {
-		if (temp_ptr == NULL) {
-			*error = 1;
-			break;
-		}
+    *error = 0;
+    temp_ptr = (SECTOR *) sector_queue[disk_id].queue;
+    while (1) {
+        if (temp_ptr == NULL) {
+            *error = 1;
+            break;
+        }
 
-		if (temp_ptr->structure_id != SECTOR_STRUCTURE_ID) {
-			aprintf("Bad structure id read in GetSectorStructure.\n");
-			HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
-		}
+        if (temp_ptr->structure_id != SECTOR_STRUCTURE_ID) {
+            aprintf("Bad structure id read in GetSectorStructure.\n");
+            HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
+        }
 
-		if (temp_ptr->sector == sector) {
-			*sector_ptr = (temp_ptr->sector_data);
-			break;
-		}
-		temp_ptr = (SECTOR *) temp_ptr->queue;
-	}        // End while
+        if (temp_ptr->sector == sector) {
+            *sector_ptr = (temp_ptr->sector_data);
+            break;
+        }
+        temp_ptr = (SECTOR *) temp_ptr->queue;
+    }        // End while
 }                // End GetSectorStructure
 
 /*****************************************************************
@@ -2383,22 +2383,22 @@ void GetSectorStructure(INT16 disk_id, INT16 sector, char **sector_ptr,
  *****************************************************************/
 
 void CreateSectorStruct(INT16 disk_id, INT16 sector, char **returned_sector_ptr) {
-	SECTOR *ssp;
+    SECTOR *ssp;
 
-	ssp = (SECTOR *) malloc(sizeof(SECTOR));
-	if (ssp == NULL) {
-		aprintf("We didn't complete the malloc in CreateSectorStruct.\n");
-		aprintf("A malloc returned with a NULL pointer.\n");
-		HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
-	}
-	ssp->structure_id = SECTOR_STRUCTURE_ID;
-	ssp->disk_id = disk_id;
-	ssp->sector = sector;
-	*returned_sector_ptr = (ssp->sector_data);
+    ssp = (SECTOR *) malloc(sizeof(SECTOR));
+    if (ssp == NULL) {
+        aprintf("We didn't complete the malloc in CreateSectorStruct.\n");
+        aprintf("A malloc returned with a NULL pointer.\n");
+        HardwareInternalPanic(ERR_OS502_GENERATED_BUG);
+    }
+    ssp->structure_id = SECTOR_STRUCTURE_ID;
+    ssp->disk_id = disk_id;
+    ssp->sector = sector;
+    *returned_sector_ptr = (ssp->sector_data);
 
-	/* Enqueue this new structure on the HEAD of the queue for this disk   */
-	ssp->queue = sector_queue[disk_id].queue;
-	sector_queue[disk_id].queue = (INT32 *) ssp;
+    /* Enqueue this new structure on the HEAD of the queue for this disk   */
+    ssp->queue = sector_queue[disk_id].queue;
+    sector_queue[disk_id].queue = (INT32 *) ssp;
 
 }                                    // End of CreateSectorStruct
 
@@ -2450,18 +2450,18 @@ void CreateSectorStruct(INT16 disk_id, INT16 sector, char **returned_sector_ptr)
  **************************************************************************/
 void PrintThreadTable(char *Explanation) {
     if (DEBUG_USER_THREADS) {
-    	int i = 0;
-    	aprintf("\n\n");
-    	aprintf("%s", Explanation);
-    	for (i = 0; i < MAX_THREAD_TABLE_SIZE; i++) {
-      	    if (ThreadTable[i].CurrentState > 2) {
-    		aprintf( "LocalID: %d  ThreadID:  %d   CurrentState:  %d   Context:  %lx  Condition: %d   Mutex  %d\n",
-			ThreadTable[i].OurLocalID, ThreadTable[i].ThreadID,
-			ThreadTable[i].CurrentState,
-			(unsigned long) ThreadTable[i].Context,
-			ThreadTable[i].Condition, ThreadTable[i].Mutex);
-	    }
-	}
+        int i = 0;
+        aprintf("\n\n");
+        aprintf("%s", Explanation);
+        for (i = 0; i < MAX_THREAD_TABLE_SIZE; i++) {
+            if (ThreadTable[i].CurrentState > 2) {
+            aprintf( "LocalID: %d  ThreadID:  %d   CurrentState:  %d   Context:  %lx  Condition: %d   Mutex  %d\n",
+            ThreadTable[i].OurLocalID, ThreadTable[i].ThreadID,
+            ThreadTable[i].CurrentState,
+            (unsigned long) ThreadTable[i].Context,
+            ThreadTable[i].Condition, ThreadTable[i].Mutex);
+        }
+    }
     }  //End DEBUG
 }                           // End of PrintThreadTable
 
@@ -2476,34 +2476,34 @@ void PrintThreadTable(char *Explanation) {
  **************************************************************************/
 
 void Z502CreateUserThread(void *ThreadStartAddress) {
-	int ourLocalID = -1;
-	int i;
-	// If this is our first time in the hardware, do some initializations
-	if (Z502Initialized == FALSE)
-		Z502Init();
-	GetLock(ThreadTableLock, "Z502CreateUserThread");
-	// Find out the first uninitialized thread
-	for (i = 0; i < MAX_THREAD_TABLE_SIZE; i++) {
-		if (ThreadTable[i].OurLocalID == -1) {
-			ourLocalID = i;
-			break;
-		}
-	}
-	// We are responsible for the call of this routine in main of test.c,
-	// so if we run out of structures, it's our own fault.  So call this a
-	// hardware error.
-	if (ourLocalID == -1) {
-		aprintf("Error 1 in Z502CreateUserThread\n");
-		HardwareInternalPanic(ERR_Z502_INTERNAL_BUG);
-	}
+    int ourLocalID = -1;
+    int i;
+    // If this is our first time in the hardware, do some initializations
+    if (Z502Initialized == FALSE)
+        Z502Init();
+    GetLock(ThreadTableLock, "Z502CreateUserThread");
+    // Find out the first uninitialized thread
+    for (i = 0; i < MAX_THREAD_TABLE_SIZE; i++) {
+        if (ThreadTable[i].OurLocalID == -1) {
+            ourLocalID = i;
+            break;
+        }
+    }
+    // We are responsible for the call of this routine in main of test.c,
+    // so if we run out of structures, it's our own fault.  So call this a
+    // hardware error.
+    if (ourLocalID == -1) {
+        aprintf("Error 1 in Z502CreateUserThread\n");
+        HardwareInternalPanic(ERR_Z502_INTERNAL_BUG);
+    }
 
-	ThreadTable[ourLocalID].OurLocalID = ourLocalID;
-	ThreadTable[ourLocalID].ThreadID = CreateAThread(ThreadStartAddress,
-			&ourLocalID);
-	ThreadTable[ourLocalID].Context = (Z502CONTEXT *) -1;
-	ThreadTable[ourLocalID].CurrentState = CREATED;
-	PrintThreadTable("Z502CreateUserThread\n");
-	ReleaseLock(ThreadTableLock, "Z502CreateUserThread");
+    ThreadTable[ourLocalID].OurLocalID = ourLocalID;
+    ThreadTable[ourLocalID].ThreadID = CreateAThread(ThreadStartAddress,
+            &ourLocalID);
+    ThreadTable[ourLocalID].Context = (Z502CONTEXT *) -1;
+    ThreadTable[ourLocalID].CurrentState = CREATED;
+    PrintThreadTable("Z502CreateUserThread\n");
+    ReleaseLock(ThreadTableLock, "Z502CreateUserThread");
 }                          // End of Z502CreateUserThread
 
 /**************************************************************************
@@ -2660,46 +2660,46 @@ void ResumeProcessExecution(Z502CONTEXT *Context) {
  This suspends a thread - most likely ourselves - don't know about that
  **************************************************************************/
 void SuspendProcessExecution(Z502CONTEXT *Context) {
-	int ourLocalID = -1;
-	int i;
-	UINT32 RequestedCondition;
-	INT32 RequestedMutex;
-	// If the context we're handed here is NULL (0), then it's the
-	// original thread that we were running on when the program started.
-	// Get a condition and a lock, and suspend ourselves forever
-	//GetLock( ThreadTableLock, "SuspendProcessExecution" );
-	if (Context == NULL) {
-		// And get a condition that we'll wait on and a lock
-		CreateCondition(&RequestedCondition);
-		CreateLock(&RequestedMutex, "SuspendProcessExecution1");
-		// Note that the wait time is not used by this callee
-		// To fix a very strange issue.  The first time a user enters a
-		// directory and compiles the simulation, this thread becomes
-		// unsuspended.  We COULD kill the thread, but instead we will
-		// just continue to Wait.
-		while( TRUE ) {
-		    WaitForCondition(RequestedCondition, RequestedMutex, -1,
-				"SuspendProcessExecution1");
-		}
-		// And we REALLY should never get here.
-		aprintf("SERIOUS ERROR:  The initial thread has become unsuspended\n");
-		return;
-	}
-	// Find target Context in the table & make sure all is OK
-	for (i = 0; i < MAX_THREAD_TABLE_SIZE; i++) {
-		if (ThreadTable[i].Context == Context) {
-			ourLocalID = i;
-			break;
-		}
-	}
-	if (ourLocalID == -1) {
-		aprintf("Error in SuspendProcessExecution\n");
-		HardwareInternalPanic(ERR_Z502_INTERNAL_BUG);
-	}
-	PrintThreadTable("SuspendProcessExecution\n");
-	//ReleaseLock( ThreadTableLock, "SuspendProcessExecution" );
-	WaitForCondition(ThreadTable[ourLocalID].Condition,
-			ThreadTable[ourLocalID].Mutex, 30, "SuspendProcessExecution2");
+    int ourLocalID = -1;
+    int i;
+    UINT32 RequestedCondition;
+    INT32 RequestedMutex;
+    // If the context we're handed here is NULL (0), then it's the
+    // original thread that we were running on when the program started.
+    // Get a condition and a lock, and suspend ourselves forever
+    //GetLock( ThreadTableLock, "SuspendProcessExecution" );
+    if (Context == NULL) {
+        // And get a condition that we'll wait on and a lock
+        CreateCondition(&RequestedCondition);
+        CreateLock(&RequestedMutex, "SuspendProcessExecution1");
+        // Note that the wait time is not used by this callee
+        // To fix a very strange issue.  The first time a user enters a
+        // directory and compiles the simulation, this thread becomes
+        // unsuspended.  We COULD kill the thread, but instead we will
+        // just continue to Wait.
+        while( TRUE ) {
+            WaitForCondition(RequestedCondition, RequestedMutex, -1,
+                "SuspendProcessExecution1");
+        }
+        // And we REALLY should never get here.
+        aprintf("SERIOUS ERROR:  The initial thread has become unsuspended\n");
+        return;
+    }
+    // Find target Context in the table & make sure all is OK
+    for (i = 0; i < MAX_THREAD_TABLE_SIZE; i++) {
+        if (ThreadTable[i].Context == Context) {
+            ourLocalID = i;
+            break;
+        }
+    }
+    if (ourLocalID == -1) {
+        aprintf("Error in SuspendProcessExecution\n");
+        HardwareInternalPanic(ERR_Z502_INTERNAL_BUG);
+    }
+    PrintThreadTable("SuspendProcessExecution\n");
+    //ReleaseLock( ThreadTableLock, "SuspendProcessExecution" );
+    WaitForCondition(ThreadTable[ourLocalID].Condition,
+            ThreadTable[ourLocalID].Mutex, 30, "SuspendProcessExecution2");
 }    //  SuspendProcessExecution
 /**************************************************************************
  CreateAThread
@@ -2710,44 +2710,44 @@ void SuspendProcessExecution(Z502CONTEXT *Context) {
 
 int CreateAThread(void *ThreadStartAddress, INT32 *data) {
 #ifdef  WINDOWS
-	DWORD ThreadID;
-	HANDLE ThreadHandle;
-	if ((ThreadHandle = CreateThread(NULL, 0,
-			(LPTHREAD_START_ROUTINE) ThreadStartAddress, (LPVOID) data,
-			(DWORD) 0, &ThreadID)) == NULL) {
-		aprintf("Unable to create thread in CreateAThread\n");
-		GoToExit(1);
-	}
-	return ((int) ThreadID);
+    DWORD ThreadID;
+    HANDLE ThreadHandle;
+    if ((ThreadHandle = CreateThread(NULL, 0,
+            (LPTHREAD_START_ROUTINE) ThreadStartAddress, (LPVOID) data,
+            (DWORD) 0, &ThreadID)) == NULL) {
+        aprintf("Unable to create thread in CreateAThread\n");
+        GoToExit(1);
+    }
+    return ((int) ThreadID);
 #endif
 
 #if defined LINUX || defined MAC
-	int ReturnCode;
-	// int                  SchedPolicy = SCHED_FIFO;   // not used
-	int policy;
-	struct sched_param param;
-	pthread_t Thread;
-	pthread_attr_t Attribute;
+    int ReturnCode;
+    // int                  SchedPolicy = SCHED_FIFO;   // not used
+    int policy;
+    struct sched_param param;
+    pthread_t Thread;
+    pthread_attr_t Attribute;
 
-	ReturnCode = pthread_attr_init( &Attribute );
-	if ( ReturnCode != FALSE )
-	aprintf( "Error in pthread_attr_init in CreateAThread\n" );
-	ReturnCode = pthread_attr_setdetachstate( &Attribute, PTHREAD_CREATE_JOINABLE );
-	if ( ReturnCode != FALSE )
-	aprintf( "Error in pthread_attr_setdetachstate in CreateAThread\n" );
-	ReturnCode = pthread_create( &Thread, &Attribute, ThreadStartAddress, data );
-	if ( ReturnCode == EINVAL ) /* Will return 0 if successful */
-	aprintf( "ERROR doing pthread_create - The Thread, attr or sched param is wrong\n");
-	if ( ReturnCode == EAGAIN ) /* Will return 0 if successful */
-	aprintf( "ERROR doing pthread_create - Resources not available\n");
-	if ( ReturnCode == EPERM ) /* Will return 0 if successful */
-	aprintf( "ERROR doing pthread_create - No privileges to do this sched type & prior.\n");
+    ReturnCode = pthread_attr_init( &Attribute );
+    if ( ReturnCode != FALSE )
+    aprintf( "Error in pthread_attr_init in CreateAThread\n" );
+    ReturnCode = pthread_attr_setdetachstate( &Attribute, PTHREAD_CREATE_JOINABLE );
+    if ( ReturnCode != FALSE )
+    aprintf( "Error in pthread_attr_setdetachstate in CreateAThread\n" );
+    ReturnCode = pthread_create( &Thread, &Attribute, ThreadStartAddress, data );
+    if ( ReturnCode == EINVAL ) /* Will return 0 if successful */
+    aprintf( "ERROR doing pthread_create - The Thread, attr or sched param is wrong\n");
+    if ( ReturnCode == EAGAIN ) /* Will return 0 if successful */
+    aprintf( "ERROR doing pthread_create - Resources not available\n");
+    if ( ReturnCode == EPERM ) /* Will return 0 if successful */
+    aprintf( "ERROR doing pthread_create - No privileges to do this sched type & prior.\n");
 
-	ReturnCode = pthread_attr_destroy( &Attribute );
-	if ( ReturnCode ) /* Will return 0 if successful */
-	aprintf( "Error in pthread_mutexattr_destroy in CreateAThread\n" );
-	ReturnCode = pthread_getschedparam( Thread, &policy, &param);
-	return( (int)Thread );
+    ReturnCode = pthread_attr_destroy( &Attribute );
+    if ( ReturnCode ) /* Will return 0 if successful */
+    aprintf( "Error in pthread_mutexattr_destroy in CreateAThread\n" );
+    ReturnCode = pthread_getschedparam( Thread, &policy, &param);
+    return( (int)Thread );
 #endif
 }                                // End of CreateAThread
 /**************************************************************************
@@ -2756,7 +2756,7 @@ int CreateAThread(void *ThreadStartAddress, INT32 *data) {
 
 void DestroyThread(INT32 ExitCode) {
 #ifdef   WINDOWS
-	ExitThread((DWORD) ExitCode);
+    ExitThread((DWORD) ExitCode);
 #endif
 
 #if defined LINUX || defined MAC
@@ -2787,38 +2787,38 @@ void DestroyThread(INT32 ExitCode) {
 
 void ChangeThreadPriority(INT32 PriorityDirection) {
 #ifdef   WINDOWS
-	INT32 ReturnValue;
-	HANDLE MyThreadID;
-	MyThreadID = GetCurrentThread();
-	if (PriorityDirection == MORE_FAVORABLE_PRIORITY)
-		ReturnValue = (INT32) SetThreadPriority(MyThreadID,
-		THREAD_PRIORITY_ABOVE_NORMAL);
-	if (PriorityDirection == LESS_FAVORABLE_PRIORITY)
-		ReturnValue = (INT32) SetThreadPriority(MyThreadID,
-		THREAD_PRIORITY_BELOW_NORMAL);
-	if (ReturnValue == 0) {
-		aprintf("ERROR:  SetThreadPriority failed in ChangeThreadPriority\n");
-		HandleWindowsError();
-	}
+    INT32 ReturnValue;
+    HANDLE MyThreadID;
+    MyThreadID = GetCurrentThread();
+    if (PriorityDirection == MORE_FAVORABLE_PRIORITY)
+        ReturnValue = (INT32) SetThreadPriority(MyThreadID,
+        THREAD_PRIORITY_ABOVE_NORMAL);
+    if (PriorityDirection == LESS_FAVORABLE_PRIORITY)
+        ReturnValue = (INT32) SetThreadPriority(MyThreadID,
+        THREAD_PRIORITY_BELOW_NORMAL);
+    if (ReturnValue == 0) {
+        aprintf("ERROR:  SetThreadPriority failed in ChangeThreadPriority\n");
+        HandleWindowsError();
+    }
 
 #endif
 #if defined LINUX || defined MAC
-	// 09/2011 - I have attempted to make the interrupt thread a higher priority
-	// than the base thread but have not been successful.  It's possible to change
-	// the "nice" value for the whole process, but not for individual threads.
-	//int                  policy;
-	//struct sched_param   param;
-	//int                  CurrentPriority;
-	//CurrentPriority = getpriority( PRIO_PROCESS, 0 );
-	//ReturnValue = setpriority( PRIO_PROCESS, 0, CurrentPriority - PriorityDirection );
-	//ReturnValue = setpriority( PRIO_PROCESS, 0, 15 );
-	//CurrentPriority = getpriority( PRIO_PROCESS, 0 );
-	//ReturnValue = pthread_getschedparam( GetMyTid(), &policy, &param);
+    // 09/2011 - I have attempted to make the interrupt thread a higher priority
+    // than the base thread but have not been successful.  It's possible to change
+    // the "nice" value for the whole process, but not for individual threads.
+    //int                  policy;
+    //struct sched_param   param;
+    //int                  CurrentPriority;
+    //CurrentPriority = getpriority( PRIO_PROCESS, 0 );
+    //ReturnValue = setpriority( PRIO_PROCESS, 0, CurrentPriority - PriorityDirection );
+    //ReturnValue = setpriority( PRIO_PROCESS, 0, 15 );
+    //CurrentPriority = getpriority( PRIO_PROCESS, 0 );
+    //ReturnValue = pthread_getschedparam( GetMyTid(), &policy, &param);
 
-	//if ( ReturnValue == ESRCH || ReturnValue == EINVAL || ReturnValue == EPERM )
-	//    aprintf( "ERROR in ChangeThreadPriority - Input parameters are wrong\n");
-	//if ( ReturnValue == EACCES )
-	//    aprintf( "ERROR in ChangeThreadPriority - Not privileged to do this!!\n");
+    //if ( ReturnValue == ESRCH || ReturnValue == EINVAL || ReturnValue == EPERM )
+    //    aprintf( "ERROR in ChangeThreadPriority - Input parameters are wrong\n");
+    //if ( ReturnValue == EACCES )
+    //    aprintf( "ERROR in ChangeThreadPriority - Not privileged to do this!!\n");
 
 #endif
 }                         // End of ChangeThreadPriority
@@ -2829,13 +2829,13 @@ void ChangeThreadPriority(INT32 PriorityDirection) {
  **************************************************************************/
 int GetMyTid() {
 #ifdef   WINDOWS
-	return ((int) GetCurrentThreadId());
+    return ((int) GetCurrentThreadId());
 #endif
 #ifdef   LINUX
-	return( (int)pthread_self() );
+    return( (int)pthread_self() );
 #endif
 #ifdef   MAC
-	return( (unsigned long int)pthread_self() );
+    return( (unsigned long int)pthread_self() );
 #endif
 }                                   // End of GetMyTid
 
@@ -2869,43 +2869,43 @@ int GetMyTid() {
  CreateLock
  **************************************************************************/
 void CreateLock(INT32 *RequestedMutex, char *CallingRoutine) {
-	int ErrorFound = FALSE;
+    int ErrorFound = FALSE;
 #ifdef WINDOWS
-	HANDLE MemoryMutex;
-	// Create with no security, no initial ownership, and no name
-	if ((MemoryMutex = CreateMutex(NULL, FALSE, NULL)) == NULL)
-		ErrorFound = TRUE;
-	*RequestedMutex = (UINT32) MemoryMutex;
+    HANDLE MemoryMutex;
+    // Create with no security, no initial ownership, and no name
+    if ((MemoryMutex = CreateMutex(NULL, FALSE, NULL)) == NULL)
+        ErrorFound = TRUE;
+    *RequestedMutex = (UINT32) MemoryMutex;
 #endif
 #if defined LINUX || defined MAC
 
-	pthread_mutexattr_t Attribute;
+    pthread_mutexattr_t Attribute;
 
-	ErrorFound = pthread_mutexattr_init( &Attribute );
-	if ( ErrorFound != FALSE )
-	aprintf( "Error in pthread_mutexattr_init in CreateLock\n" );
+    ErrorFound = pthread_mutexattr_init( &Attribute );
+    if ( ErrorFound != FALSE )
+    aprintf( "Error in pthread_mutexattr_init in CreateLock\n" );
 #if defined LINUX
-	ErrorFound = pthread_mutexattr_settype( &Attribute, PTHREAD_MUTEX_ERRORCHECK_NP );
+    ErrorFound = pthread_mutexattr_settype( &Attribute, PTHREAD_MUTEX_ERRORCHECK_NP );
 #endif
 #if defined MAC
-	ErrorFound = pthread_mutexattr_settype( &Attribute, PTHREAD_MUTEX_ERRORCHECK );
+    ErrorFound = pthread_mutexattr_settype( &Attribute, PTHREAD_MUTEX_ERRORCHECK );
 #endif
-	if ( ErrorFound != FALSE )
-	aprintf( "Error in pthread_mutexattr_settype in CreateLock\n" );
-	ErrorFound = pthread_mutex_init( &(LocalMutex[NextMutexToAllocate]), &Attribute );
-	if ( ErrorFound ) /* Will return 0 if successful */
-	aprintf( "Error in pthread_mutex_init in CreateLock\n" );
-	ErrorFound = pthread_mutexattr_destroy( &Attribute );
-	if ( ErrorFound ) /* Will return 0 if successful */
-	aprintf( "Error in pthread_mutexattr_destroy in CreateLock\n" );
-	*RequestedMutex = NextMutexToAllocate;
-	NextMutexToAllocate++;
+    if ( ErrorFound != FALSE )
+    aprintf( "Error in pthread_mutexattr_settype in CreateLock\n" );
+    ErrorFound = pthread_mutex_init( &(LocalMutex[NextMutexToAllocate]), &Attribute );
+    if ( ErrorFound ) /* Will return 0 if successful */
+    aprintf( "Error in pthread_mutex_init in CreateLock\n" );
+    ErrorFound = pthread_mutexattr_destroy( &Attribute );
+    if ( ErrorFound ) /* Will return 0 if successful */
+    aprintf( "Error in pthread_mutexattr_destroy in CreateLock\n" );
+    *RequestedMutex = NextMutexToAllocate;
+    NextMutexToAllocate++;
 #endif
-	if (ErrorFound == TRUE) {
-		aprintf("We were unable to create a mutex in CreateLock\n");
-		GoToExit(1);
-	}
-	PrintLockDebug(LOCK_CREATE, CallingRoutine, *RequestedMutex, LOCK_EXIT);
+    if (ErrorFound == TRUE) {
+        aprintf("We were unable to create a mutex in CreateLock\n");
+        GoToExit(1);
+    }
+    PrintLockDebug(LOCK_CREATE, CallingRoutine, *RequestedMutex, LOCK_EXIT);
 }                               // End of CreateLock
 
 /**************************************************************************
@@ -2921,46 +2921,46 @@ void CreateLock(INT32 *RequestedMutex, char *CallingRoutine) {
  **************************************************************************/
 
 int GetTryLock(UINT32 RequestedMutex, char *CallingRoutine) {
-	int ReturnValue = FALSE;
-	int LockReturn;
+    int ReturnValue = FALSE;
+    int LockReturn;
 #ifdef   WINDOWS
-	HANDLE MemoryMutex;
+    HANDLE MemoryMutex;
 #endif
 
-	PrintLockDebug(LOCK_TRY, CallingRoutine, RequestedMutex, LOCK_ENTER);
+    PrintLockDebug(LOCK_TRY, CallingRoutine, RequestedMutex, LOCK_ENTER);
 #ifdef   WINDOWS
-	MemoryMutex = (HANDLE) RequestedMutex;
-	LockReturn = (int) WaitForSingleObject(MemoryMutex, 1);
+    MemoryMutex = (HANDLE) RequestedMutex;
+    LockReturn = (int) WaitForSingleObject(MemoryMutex, 1);
 //      aprintf( "Code Returned in GetTryLock is %d\n", LockReturn );
-	if (LockReturn == WAIT_FAILED) {
-		aprintf("Internal error in GetTryLock\n");
-		HandleWindowsError();
-		GoToExit(1);
-	}
-	if (LockReturn == WAIT_TIMEOUT)   // Timeout occurred with no lock
-		ReturnValue = FALSE;
-	if (LockReturn == WAIT_OBJECT_0)   // Lock was obtained
-		ReturnValue = TRUE;
+    if (LockReturn == WAIT_FAILED) {
+        aprintf("Internal error in GetTryLock\n");
+        HandleWindowsError();
+        GoToExit(1);
+    }
+    if (LockReturn == WAIT_TIMEOUT)   // Timeout occurred with no lock
+        ReturnValue = FALSE;
+    if (LockReturn == WAIT_OBJECT_0)   // Lock was obtained
+        ReturnValue = TRUE;
 #endif
 #if defined LINUX || defined MAC
-	LockReturn = pthread_mutex_trylock( &(LocalMutex[RequestedMutex]) );
+    LockReturn = pthread_mutex_trylock( &(LocalMutex[RequestedMutex]) );
 //    aprintf( "Code Returned in GetTRyLock is %d\n", LockReturn );
 
-	if ( LockReturn == EINVAL )
-	aprintf( "PANIC in GetTryLock - mutex isn't initialized\n");
-	if ( LockReturn == EFAULT )
-	aprintf( "PANIC in GetTryLock - illegal address for mutex\n");
-	if ( LockReturn == EBUSY )//  Already locked by another thread
-	ReturnValue = FALSE;
-	if ( LockReturn == EDEADLK )//  Already locked by this thread
-	ReturnValue = TRUE;// Here we eat this error
-	if ( LockReturn == 0 )//  Not previously locked - all OK
-	ReturnValue = TRUE;
+    if ( LockReturn == EINVAL )
+    aprintf( "PANIC in GetTryLock - mutex isn't initialized\n");
+    if ( LockReturn == EFAULT )
+    aprintf( "PANIC in GetTryLock - illegal address for mutex\n");
+    if ( LockReturn == EBUSY )//  Already locked by another thread
+    ReturnValue = FALSE;
+    if ( LockReturn == EDEADLK )//  Already locked by this thread
+    ReturnValue = TRUE;// Here we eat this error
+    if ( LockReturn == 0 )//  Not previously locked - all OK
+    ReturnValue = TRUE;
 #endif
-	PrintLockDebug(LOCK_TRY, CallingRoutine, RequestedMutex, LOCK_EXIT);
-	if (ReturnValue == TRUE )
-		TotalNumberOfLocksObtained++;
-	return (ReturnValue);
+    PrintLockDebug(LOCK_TRY, CallingRoutine, RequestedMutex, LOCK_EXIT);
+    if (ReturnValue == TRUE )
+        TotalNumberOfLocksObtained++;
+    return (ReturnValue);
 }                    // End of GetTryLock
 
 /**************************************************************************
@@ -2973,21 +2973,21 @@ int GetTryLock(UINT32 RequestedMutex, char *CallingRoutine) {
  **************************************************************************/
 
 int GetLock(UINT32 RequestedMutex, char *CallingRoutine) {
-	INT32 LockReturn;
-	int ReturnValue = FALSE;
+    INT32 LockReturn;
+    int ReturnValue = FALSE;
 #ifdef   WINDOWS
-	HANDLE MemoryMutex = (HANDLE) RequestedMutex;
+    HANDLE MemoryMutex = (HANDLE) RequestedMutex;
 #endif
-	PrintLockDebug(LOCK_GET, CallingRoutine, RequestedMutex, LOCK_ENTER);
+    PrintLockDebug(LOCK_GET, CallingRoutine, RequestedMutex, LOCK_ENTER);
 #ifdef   WINDOWS
-	LockReturn = WaitForSingleObject(MemoryMutex, INFINITE);
-	if (LockReturn != 0) {
-		printf("Internal error waiting for a lock in GetLock\n");
-		HandleWindowsError();
-		GoToExit(1);
-	}
-	if (LockReturn == 0)    //  Not previously locked - all OK
-		ReturnValue = TRUE;
+    LockReturn = WaitForSingleObject(MemoryMutex, INFINITE);
+    if (LockReturn != 0) {
+        printf("Internal error waiting for a lock in GetLock\n");
+        HandleWindowsError();
+        GoToExit(1);
+    }
+    if (LockReturn == 0)    //  Not previously locked - all OK
+        ReturnValue = TRUE;
 #endif
 
 #if defined LINUX || defined MAC
@@ -2996,24 +2996,24 @@ int GetLock(UINT32 RequestedMutex, char *CallingRoutine) {
 //            aprintf("GetLock:  %d %d %d\n", RequestedMutex,
 //                    (int)LocalMutex[RequestedMutex], GetMyTid() );
 //        }
-	LockReturn = pthread_mutex_lock( &(LocalMutex[RequestedMutex]) );
-	if ( LockReturn == EINVAL )
-	printf( "PANIC in GetLock - mutex isn't initialized\n");
-	if ( LockReturn == EFAULT )
-	printf( "PANIC in GetLock - illegal address for mutex\n");
+    LockReturn = pthread_mutex_lock( &(LocalMutex[RequestedMutex]) );
+    if ( LockReturn == EINVAL )
+    printf( "PANIC in GetLock - mutex isn't initialized\n");
+    if ( LockReturn == EFAULT )
+    printf( "PANIC in GetLock - illegal address for mutex\n");
 
-	// Note that LINUX acts differently from Windows.  We will eat the
-	// error here to get compatibility.
-	if ( LockReturn == EDEADLK ) {  //  Already locked by this thread
-		LockReturn = 0;
-		// aprintf( "ERROR - Already locked by this thread\n");
-	}
-	if ( LockReturn == 0 )  //  Not previously locked - all OK
-	ReturnValue = TRUE;
+    // Note that LINUX acts differently from Windows.  We will eat the
+    // error here to get compatibility.
+    if ( LockReturn == EDEADLK ) {  //  Already locked by this thread
+        LockReturn = 0;
+        // aprintf( "ERROR - Already locked by this thread\n");
+    }
+    if ( LockReturn == 0 )  //  Not previously locked - all OK
+    ReturnValue = TRUE;
 #endif
-	PrintLockDebug(LOCK_GET, CallingRoutine, RequestedMutex, LOCK_EXIT);
-	TotalNumberOfLocksObtained++;
-	return (ReturnValue);
+    PrintLockDebug(LOCK_GET, CallingRoutine, RequestedMutex, LOCK_EXIT);
+    TotalNumberOfLocksObtained++;
+    return (ReturnValue);
 }                              // End of GetLock
 
 /**************************************************************************
@@ -3023,37 +3023,37 @@ int GetLock(UINT32 RequestedMutex, char *CallingRoutine) {
  then FALSE is returned.
  **************************************************************************/
 int ReleaseLock(UINT32 RequestedMutex, char* CallingRoutine) {
-	int ReturnValue = FALSE;
-	int LockReturn;
+    int ReturnValue = FALSE;
+    int LockReturn;
 #ifdef   WINDOWS
-	HANDLE MemoryMutex = (HANDLE) RequestedMutex;
+    HANDLE MemoryMutex = (HANDLE) RequestedMutex;
 #endif
-	PrintLockDebug(LOCK_RELEASE, CallingRoutine, RequestedMutex, LOCK_ENTER);
+    PrintLockDebug(LOCK_RELEASE, CallingRoutine, RequestedMutex, LOCK_ENTER);
 
 #ifdef   WINDOWS
-	LockReturn = ReleaseMutex(MemoryMutex);
+    LockReturn = ReleaseMutex(MemoryMutex);
 
-	if (LockReturn != 0)    // Lock was released
-		ReturnValue = TRUE;
+    if (LockReturn != 0)    // Lock was released
+        ReturnValue = TRUE;
 #endif
 #if defined LINUX || defined MAC
-	LockReturn = pthread_mutex_unlock( &(LocalMutex[RequestedMutex]) );
+    LockReturn = pthread_mutex_unlock( &(LocalMutex[RequestedMutex]) );
 //    printf( "Return Code in Release Lock = %d\n", LockReturn );
 
-	if ( LockReturn == EINVAL )
-	printf( "PANIC in ReleaseLock - mutex isn't initialized\n");
-	if ( LockReturn == EFAULT )
-	printf( "PANIC in ReleaseLock - illegal address for mutex\n");
-	if (DEBUG_LOCKS) {
-		if ( LockReturn == EPERM )    //  Not owned by this thread
-		printf( "ERROR - Lock is not currently locked by this thread.  Caller = %s\n",
-				CallingRoutine);
-	}
-	if ( LockReturn == 0 )    //  Successfully unlocked - all OK
-	ReturnValue = TRUE;
+    if ( LockReturn == EINVAL )
+    printf( "PANIC in ReleaseLock - mutex isn't initialized\n");
+    if ( LockReturn == EFAULT )
+    printf( "PANIC in ReleaseLock - illegal address for mutex\n");
+    if (DEBUG_LOCKS) {
+        if ( LockReturn == EPERM )    //  Not owned by this thread
+        printf( "ERROR - Lock is not currently locked by this thread.  Caller = %s\n",
+                CallingRoutine);
+    }
+    if ( LockReturn == 0 )    //  Successfully unlocked - all OK
+    ReturnValue = TRUE;
 #endif
-	PrintLockDebug(LOCK_RELEASE, CallingRoutine, RequestedMutex, LOCK_EXIT);
-	return (ReturnValue);
+    PrintLockDebug(LOCK_RELEASE, CallingRoutine, RequestedMutex, LOCK_EXIT);
+    return (ReturnValue);
 }            // End of ReleaseLock
 
 /**************************************************************************
@@ -3075,235 +3075,235 @@ NOTE:  This code can't use atomic printf   aprintf   because the aprintf
 #define     MAX_NUMBER_OF_LOCKERS  10
 
 typedef struct {
-	int NumberOfLocks;
-	int LockID[MAX_NUMBER_OF_LOCKS];
-	int LockCount[MAX_NUMBER_OF_LOCKS];
-	//int LockOwner[MAX_NUMBER_OF_LOCKS];
-	int LockOwners[MAX_NUMBER_OF_LOCKS][MAX_NUMBER_OF_LOCKERS];
+    int NumberOfLocks;
+    int LockID[MAX_NUMBER_OF_LOCKS];
+    int LockCount[MAX_NUMBER_OF_LOCKS];
+    //int LockOwner[MAX_NUMBER_OF_LOCKS];
+    int LockOwners[MAX_NUMBER_OF_LOCKS][MAX_NUMBER_OF_LOCKERS];
 } LOCKING_DB;
 
 INT32 PLDLock;
 LOCKING_DB LockDB;
 void Quickie(int LockID, int x) {
-	int j;
-	for (j = 0; j < MAX_NUMBER_OF_LOCKERS - 1; j++) {
-		printf("%X  ", LockDB.LockOwners[LockID][j]);
-	};
-	printf(" %d\n", x);
+    int j;
+    for (j = 0; j < MAX_NUMBER_OF_LOCKERS - 1; j++) {
+        printf("%X  ", LockDB.LockOwners[LockID][j]);
+    };
+    printf(" %d\n", x);
 }
 void PrintLockDebug(int Action, char *LockCaller, int Mutex, int Return) {
-	if (DEBUG_LOCKS) {
-		int MyTid, i, j, LockID;
-		char TaskID[120], WhichLock[120];
-		char Direction[120];
-		char Output[120];
-		char ProblemReport[120];           // Reports something not-normal
-		char LockAction[120];              // What type of lock is calling us
-		static int FirstTime = TRUE;
+    if (DEBUG_LOCKS) {
+        int MyTid, i, j, LockID;
+        char TaskID[120], WhichLock[120];
+        char Direction[120];
+        char Output[120];
+        char ProblemReport[120];           // Reports something not-normal
+        char LockAction[120];              // What type of lock is calling us
+        static int FirstTime = TRUE;
 
-		// Don't do anything if we're logging ourself
-		if (strncmp(LockCaller, "PLD", 3) == 0)
-			return;
-		// This is the initialization the first time we come in here
-		if (FirstTime) {
-			FirstTime = FALSE;
-			CreateLock(&PLDLock, "PLD");
-			for (i = 0; i < MAX_NUMBER_OF_LOCKS; i++) {
-				LockDB.LockCount[i] = 0;
-				//    LockDB.LockOwner[i] = 0;
-				LockDB.LockID[i] = 0;
-				for (j = 0; j < MAX_NUMBER_OF_LOCKERS; j++) {
-					LockDB.LockOwners[i][j] = 0;
-				}
-			}
-			LockDB.NumberOfLocks = 0;
-		}
+        // Don't do anything if we're logging ourself
+        if (strncmp(LockCaller, "PLD", 3) == 0)
+            return;
+        // This is the initialization the first time we come in here
+        if (FirstTime) {
+            FirstTime = FALSE;
+            CreateLock(&PLDLock, "PLD");
+            for (i = 0; i < MAX_NUMBER_OF_LOCKS; i++) {
+                LockDB.LockCount[i] = 0;
+                //    LockDB.LockOwner[i] = 0;
+                LockDB.LockID[i] = 0;
+                for (j = 0; j < MAX_NUMBER_OF_LOCKERS; j++) {
+                    LockDB.LockOwners[i][j] = 0;
+                }
+            }
+            LockDB.NumberOfLocks = 0;
+        }
 
-		GetLock(PLDLock, "PLD");
-		// Find the string for the type of lock we're doing.
-		if (Action == LOCK_CREATE)
-			strcpy(LockAction, "CreLock");
-		if (Action == LOCK_TRY)
-			strcpy(LockAction, "TryLock");
-		if (Action == LOCK_GET)
-			strcpy(LockAction, "GetLock");
-		if (Action == LOCK_RELEASE)
-			strcpy(LockAction, "RelLock");
+        GetLock(PLDLock, "PLD");
+        // Find the string for the type of lock we're doing.
+        if (Action == LOCK_CREATE)
+            strcpy(LockAction, "CreLock");
+        if (Action == LOCK_TRY)
+            strcpy(LockAction, "TryLock");
+        if (Action == LOCK_GET)
+            strcpy(LockAction, "GetLock");
+        if (Action == LOCK_RELEASE)
+            strcpy(LockAction, "RelLock");
 
-		// Determine if we are "Base" or "interrupt" - Actually there are many
-		// Possible base threads - and we will print out which one.
-		MyTid = GetMyTid();
-		strcpy(TaskID, "Base ");
-		if (MyTid == InterruptTid) {
-			strcpy(TaskID, "Int  ");
-		}
+        // Determine if we are "Base" or "interrupt" - Actually there are many
+        // Possible base threads - and we will print out which one.
+        MyTid = GetMyTid();
+        strcpy(TaskID, "Base ");
+        if (MyTid == InterruptTid) {
+            strcpy(TaskID, "Int  ");
+        }
 
-		// Identify which lock we're working on.  Some of the common ones are named,
-		//   But many are associated with individual threads, or with locks created
-		//   by students in which case they will be named  "Oth...".
+        // Identify which lock we're working on.  Some of the common ones are named,
+        //   But many are associated with individual threads, or with locks created
+        //   by students in which case they will be named  "Oth...".
 
-		sprintf(WhichLock, "Oth%d   ", Mutex);
-		if (Mutex == EventLock)
-			strcpy(WhichLock, "Event  ");
-		if (Mutex == InterruptLock)
-			strcpy(WhichLock, "Int    ");
-		if (Mutex == HardwareLock)
-			strcpy(WhichLock, "Hard   ");
-		if (Mutex == ThreadTableLock)
-			strcpy(WhichLock, "T-Tbl  ");
+        sprintf(WhichLock, "Oth%d   ", Mutex);
+        if (Mutex == EventLock)
+            strcpy(WhichLock, "Event  ");
+        if (Mutex == InterruptLock)
+            strcpy(WhichLock, "Int    ");
+        if (Mutex == HardwareLock)
+            strcpy(WhichLock, "Hard   ");
+        if (Mutex == ThreadTableLock)
+            strcpy(WhichLock, "T-Tbl  ");
 
-		// We maintain a record of all locks in the order in which they are first
-		//  accessed here.  The order doesn't matter, since we can identify that
-		//  lock every time we enter here.
-		LockID = -1;
-		for (i = 0; i < LockDB.NumberOfLocks; i++) {
-			if (LockDB.LockID[i] == Mutex)
-				LockID = i;
-		}
-		if (LockID == -1) {
-			LockDB.LockID[LockDB.NumberOfLocks] = Mutex;
-			LockDB.NumberOfLocks++;
-		}
+        // We maintain a record of all locks in the order in which they are first
+        //  accessed here.  The order doesn't matter, since we can identify that
+        //  lock every time we enter here.
+        LockID = -1;
+        for (i = 0; i < LockDB.NumberOfLocks; i++) {
+            if (LockDB.LockID[i] == Mutex)
+                LockID = i;
+        }
+        if (LockID == -1) {
+            LockDB.LockID[LockDB.NumberOfLocks] = Mutex;
+            LockDB.NumberOfLocks++;
+        }
 
-		strcpy(ProblemReport, "");
-		// We are ENTERING a TryLock OR Lock - record everything
-		// We have the following situations:
-		// Case 1: The Lock is not currently held
-		//         GOOD - increment the count and record the thread
-		// Case 2: The lock is currently held by the new requester
-		//         BAD - because we'll have to release it multiple times
-		// Case 3: The lock is currently held by someone else
-		//         OK - we assume the current holder will release it -
-		//         after all, this is what locks are for.
-		if (Return == LOCK_ENTER
-				&& (Action == LOCK_TRY || Action == LOCK_GET)) {
-			strcpy(Direction, " Enter");
-			LockDB.LockCount[LockID]++;
-			if (LockDB.LockCount[LockID] > MAX_NUMBER_OF_LOCKERS) {
-				LockDB.LockCount[LockID] = MAX_NUMBER_OF_LOCKERS;
-				printf("LOCK: BAD:  Exceeding number of lockers\n");
-			}
+        strcpy(ProblemReport, "");
+        // We are ENTERING a TryLock OR Lock - record everything
+        // We have the following situations:
+        // Case 1: The Lock is not currently held
+        //         GOOD - increment the count and record the thread
+        // Case 2: The lock is currently held by the new requester
+        //         BAD - because we'll have to release it multiple times
+        // Case 3: The lock is currently held by someone else
+        //         OK - we assume the current holder will release it -
+        //         after all, this is what locks are for.
+        if (Return == LOCK_ENTER
+                && (Action == LOCK_TRY || Action == LOCK_GET)) {
+            strcpy(Direction, " Enter");
+            LockDB.LockCount[LockID]++;
+            if (LockDB.LockCount[LockID] > MAX_NUMBER_OF_LOCKERS) {
+                LockDB.LockCount[LockID] = MAX_NUMBER_OF_LOCKERS;
+                printf("LOCK: BAD:  Exceeding number of lockers\n");
+            }
 
-			if (LockDB.LockCount[LockID] == 1) {    // Case 1: First lock
-				LockDB.LockOwners[LockID][LockDB.LockCount[LockID] - 1] = MyTid;
-			} else {                                   // Already locked
-				if (MyTid == LockDB.LockOwners[LockID][0]) { // Case 2: Already owned by me - BAD
-					sprintf(ProblemReport,
-							"LOCK: BAD#1: Thread %X is RELOCKING %s:  Count = %d\n",
-							MyTid, WhichLock, LockDB.LockCount[LockID]);
-				}
-				if (MyTid != LockDB.LockOwners[LockID][0]) { // Case 3: owned by someone else - OK
-					sprintf(ProblemReport,
-							"LOCK: OK: Thread %X is LOCKING %s Held by %X:  Count = %d\n",
-							MyTid, WhichLock, LockDB.LockOwners[LockID][0],
-							LockDB.LockCount[LockID]);
-					LockDB.LockOwners[LockID][LockDB.LockCount[LockID] - 1] =
-							MyTid;
-				}
-			}           // Lock count NOT 1
-		}               // End of entering LOCK
+            if (LockDB.LockCount[LockID] == 1) {    // Case 1: First lock
+                LockDB.LockOwners[LockID][LockDB.LockCount[LockID] - 1] = MyTid;
+            } else {                                   // Already locked
+                if (MyTid == LockDB.LockOwners[LockID][0]) { // Case 2: Already owned by me - BAD
+                    sprintf(ProblemReport,
+                            "LOCK: BAD#1: Thread %X is RELOCKING %s:  Count = %d\n",
+                            MyTid, WhichLock, LockDB.LockCount[LockID]);
+                }
+                if (MyTid != LockDB.LockOwners[LockID][0]) { // Case 3: owned by someone else - OK
+                    sprintf(ProblemReport,
+                            "LOCK: OK: Thread %X is LOCKING %s Held by %X:  Count = %d\n",
+                            MyTid, WhichLock, LockDB.LockOwners[LockID][0],
+                            LockDB.LockCount[LockID]);
+                    LockDB.LockOwners[LockID][LockDB.LockCount[LockID] - 1] =
+                            MyTid;
+                }
+            }           // Lock count NOT 1
+        }               // End of entering LOCK
 
-		// We are ENTERING a ReleaseLock
-		// We have the following situations:
-		// Case 1: The Lock is  currently held by the releaser
-		//         GOOD - decrement the count - if there's someone waiting,
-		//         do some bookkeeping
-		// Case 1A: The lock count is still > 0 - it's still locked.  Report it.
-		// Case 2: The lock is currently held by someone else
-		//         BAD - We shouldn't be releasing a lock we don't hold
-		// Case 3: The lock is currently not held
-		//         BAD - this should NOT happen
+        // We are ENTERING a ReleaseLock
+        // We have the following situations:
+        // Case 1: The Lock is  currently held by the releaser
+        //         GOOD - decrement the count - if there's someone waiting,
+        //         do some bookkeeping
+        // Case 1A: The lock count is still > 0 - it's still locked.  Report it.
+        // Case 2: The lock is currently held by someone else
+        //         BAD - We shouldn't be releasing a lock we don't hold
+        // Case 3: The lock is currently not held
+        //         BAD - this should NOT happen
 
-		if (Return == LOCK_ENTER && Action == LOCK_RELEASE) {
-			strcpy(Direction, " Enter");
-			Quickie(LockID, 1);
+        if (Return == LOCK_ENTER && Action == LOCK_RELEASE) {
+            strcpy(Direction, " Enter");
+            Quickie(LockID, 1);
 
-			// Case 1: A thread is releasing a lock it holds
-			if (LockDB.LockCount[LockID] > 0
-					&& (MyTid == LockDB.LockOwners[LockID][0])) {
-				LockDB.LockCount[LockID]--;
+            // Case 1: A thread is releasing a lock it holds
+            if (LockDB.LockCount[LockID] > 0
+                    && (MyTid == LockDB.LockOwners[LockID][0])) {
+                LockDB.LockCount[LockID]--;
 
-				for (j = 0; j < MAX_NUMBER_OF_LOCKERS - 1; j++) {
-					LockDB.LockOwners[LockID][j] = LockDB.LockOwners[LockID][j
-							+ 1];
-				}
-				for (j = 0; j < MAX_NUMBER_OF_LOCKERS - 1; j++) {
-					if (j >= LockDB.LockCount[LockID])
-						LockDB.LockOwners[LockID][j] = 0;
-				}
-				//Quickie(LockID, 2);
-				// If I've done multiple locks, there may be nobody else locking
-				if (LockDB.LockOwners[LockID][0] == 0)
-					LockDB.LockOwners[LockID][0] = MyTid;
+                for (j = 0; j < MAX_NUMBER_OF_LOCKERS - 1; j++) {
+                    LockDB.LockOwners[LockID][j] = LockDB.LockOwners[LockID][j
+                            + 1];
+                }
+                for (j = 0; j < MAX_NUMBER_OF_LOCKERS - 1; j++) {
+                    if (j >= LockDB.LockCount[LockID])
+                        LockDB.LockOwners[LockID][j] = 0;
+                }
+                //Quickie(LockID, 2);
+                // If I've done multiple locks, there may be nobody else locking
+                if (LockDB.LockOwners[LockID][0] == 0)
+                    LockDB.LockOwners[LockID][0] = MyTid;
 
-				if (LockDB.LockCount[LockID] > 0) {    // Case 1A:
-					if (MyTid == LockDB.LockOwners[LockID][0]) {
-						//Quickie(LockID, 3);
-						sprintf(ProblemReport,
-								"LOCK: BAD#2: Thread %X is RELEASING %s  But count is = %d\n",
-								MyTid, WhichLock, LockDB.LockCount[LockID]);
-					}
-				}
-			}    // End of Case 1
+                if (LockDB.LockCount[LockID] > 0) {    // Case 1A:
+                    if (MyTid == LockDB.LockOwners[LockID][0]) {
+                        //Quickie(LockID, 3);
+                        sprintf(ProblemReport,
+                                "LOCK: BAD#2: Thread %X is RELEASING %s  But count is = %d\n",
+                                MyTid, WhichLock, LockDB.LockCount[LockID]);
+                    }
+                }
+            }    // End of Case 1
 
-			// Case 2: Make sure a thread only releases a lock it holds
-			else if (LockDB.LockCount[LockID] > 0
-					&& (MyTid != LockDB.LockOwners[LockID][0])) {
-				Quickie(LockID, 3);
-				sprintf(ProblemReport,
-						"LOCK: BAD#3: Thread %X is RELEASING %s Held by %X:  Count = %d\n",
-						MyTid, WhichLock, LockDB.LockOwners[LockID][0],
-						LockDB.LockCount[LockID]);
-				//LockDB.LockNextOwner[i] = MyTid;
-			}
+            // Case 2: Make sure a thread only releases a lock it holds
+            else if (LockDB.LockCount[LockID] > 0
+                    && (MyTid != LockDB.LockOwners[LockID][0])) {
+                Quickie(LockID, 3);
+                sprintf(ProblemReport,
+                        "LOCK: BAD#3: Thread %X is RELEASING %s Held by %X:  Count = %d\n",
+                        MyTid, WhichLock, LockDB.LockOwners[LockID][0],
+                        LockDB.LockCount[LockID]);
+                //LockDB.LockNextOwner[i] = MyTid;
+            }
 
-			// Case 3:  Lock not held but still trying to release
-			else if (LockDB.LockCount[LockID] == 0) { // First release - this is good
-				sprintf(ProblemReport,
-						"LOCK: BAD#4: Thread %X is RELEASING %s:  Count = %d\n",
-						MyTid, WhichLock, LockDB.LockCount[LockID]);
-			} else {
-				sprintf(ProblemReport,
-						"LOCK: BAD#5: Thread %X is RELEASING %s:  With a condition we didn't account fo: Count = %d\n",
-						MyTid, WhichLock, LockDB.LockCount[LockID]);
-			}
-		}    // End of entering UNLOCK
+            // Case 3:  Lock not held but still trying to release
+            else if (LockDB.LockCount[LockID] == 0) { // First release - this is good
+                sprintf(ProblemReport,
+                        "LOCK: BAD#4: Thread %X is RELEASING %s:  Count = %d\n",
+                        MyTid, WhichLock, LockDB.LockCount[LockID]);
+            } else {
+                sprintf(ProblemReport,
+                        "LOCK: BAD#5: Thread %X is RELEASING %s:  With a condition we didn't account fo: Count = %d\n",
+                        MyTid, WhichLock, LockDB.LockCount[LockID]);
+            }
+        }    // End of entering UNLOCK
 
-		// Leaving the lock or unlock routine
-		if (Return == LOCK_EXIT) {
-			strcpy(Direction, " Exit ");
-			// With multiple requesters, there's no assurance that the release will be in FIFO order
-			// Check the exit to assure that the locker leaving the lock, and now the owner is
-			// in fact the first one listed in the database
-			if ((Action == LOCK_TRY || Action == LOCK_GET)
-					&& MyTid != LockDB.LockOwners[LockID][0]) {
-				i = 0;
-				for (j = 1; j <= LockDB.LockCount[LockID]; j++) {
-					if (MyTid == LockDB.LockOwners[LockID][j])
-						i = j;
-				}
-				if (i == 0) {
-					sprintf(ProblemReport,
-							"LOCK: BAD#6: On exit from a lock, Thread %X couldn't find itself in the lockDB for %s\n",
-							MyTid, WhichLock);
-				} else { // Switch the order so this Task is the owner in our DB
-					j = LockDB.LockOwners[LockID][i];
-					LockDB.LockOwners[LockID][i] = LockDB.LockOwners[LockID][0];
-					LockDB.LockOwners[LockID][0] = j;
-					Quickie(LockID, 6);
-				}
-			}             // It's a lock action and we're not the lock owner
-		}                 // END of Return == EXIT
-		sprintf(Output, "LOCKS: %s: %s %s  %s Time = %d TID = %X  %s\n",
-				LockAction, Direction, TaskID, WhichLock, CurrentSimulationTime,
-				MyTid, LockCaller);
-		printf("%s", Output);
+        // Leaving the lock or unlock routine
+        if (Return == LOCK_EXIT) {
+            strcpy(Direction, " Exit ");
+            // With multiple requesters, there's no assurance that the release will be in FIFO order
+            // Check the exit to assure that the locker leaving the lock, and now the owner is
+            // in fact the first one listed in the database
+            if ((Action == LOCK_TRY || Action == LOCK_GET)
+                    && MyTid != LockDB.LockOwners[LockID][0]) {
+                i = 0;
+                for (j = 1; j <= LockDB.LockCount[LockID]; j++) {
+                    if (MyTid == LockDB.LockOwners[LockID][j])
+                        i = j;
+                }
+                if (i == 0) {
+                    sprintf(ProblemReport,
+                            "LOCK: BAD#6: On exit from a lock, Thread %X couldn't find itself in the lockDB for %s\n",
+                            MyTid, WhichLock);
+                } else { // Switch the order so this Task is the owner in our DB
+                    j = LockDB.LockOwners[LockID][i];
+                    LockDB.LockOwners[LockID][i] = LockDB.LockOwners[LockID][0];
+                    LockDB.LockOwners[LockID][0] = j;
+                    Quickie(LockID, 6);
+                }
+            }             // It's a lock action and we're not the lock owner
+        }                 // END of Return == EXIT
+        sprintf(Output, "LOCKS: %s: %s %s  %s Time = %d TID = %X  %s\n",
+                LockAction, Direction, TaskID, WhichLock, CurrentSimulationTime,
+                MyTid, LockCaller);
+        printf("%s", Output);
 
 // If something has gone wrong, print out a report.
-		if (strlen(ProblemReport) > 0)
-			printf("%s", ProblemReport);
-		ReleaseLock(PLDLock, "PLD");
-	}  // End  if  DEBUG_LOCKS
+        if (strlen(ProblemReport) > 0)
+            printf("%s", ProblemReport);
+        ReleaseLock(PLDLock, "PLD");
+    }  // End  if  DEBUG_LOCKS
 }                                 // End of PrintLockDebug
 
 /**************************************************************************
@@ -3363,22 +3363,22 @@ void CreateCondition(UINT32 *RequestedCondition) {
  doesn't return from this call until the condition is signaled.
  **************************************************************************/
 int WaitForCondition(UINT32 Condition, UINT32 Mutex, INT32 WaitTime,
-		char* CallingRoutine) {
-	int ReturnValue = 0;
-	int ConditionReturn;
-	if (DEBUG_CONDITION) {
-		aprintf( "WaitForCondition - Enter - time = %d My-Cond = %d      Thread = %X  %s\n",
-			CurrentSimulationTime, Condition, GetMyTid(), CallingRoutine);
-	}   // End of DEBUG_CONDITION
+        char* CallingRoutine) {
+    int ReturnValue = 0;
+    int ConditionReturn;
+    if (DEBUG_CONDITION) {
+        aprintf( "WaitForCondition - Enter - time = %d My-Cond = %d      Thread = %X  %s\n",
+            CurrentSimulationTime, Condition, GetMyTid(), CallingRoutine);
+    }   // End of DEBUG_CONDITION
 #ifdef WINDOWS
-	ConditionReturn = (int) WaitForSingleObject(LocalEvent[Condition], INFINITE);
+    ConditionReturn = (int) WaitForSingleObject(LocalEvent[Condition], INFINITE);
 
-	if (ConditionReturn == WAIT_FAILED) {
-		aprintf("Internal error waiting for an event in WaitForCondition\n");
-		HandleWindowsError();
-		GoToExit(1);
-	}
-	ReturnValue = 0;
+    if (ConditionReturn == WAIT_FAILED) {
+        aprintf("Internal error waiting for an event in WaitForCondition\n");
+        HandleWindowsError();
+        GoToExit(1);
+    }
+    ReturnValue = 0;
 
 #endif
 #if defined LINUX || defined MAC
@@ -3389,9 +3389,9 @@ int WaitForCondition(UINT32 Condition, UINT32 Mutex, INT32 WaitTime,
             ReturnValue = TRUE;// Success
 #endif
     if (DEBUG_CONDITION) {
-    	aprintf(
-    		"WaitForCondition - Exit  - time = %d My-Cond = %d      Thread = %X  %s\n",
-    		CurrentSimulationTime, Condition, GetMyTid(), CallingRoutine);
+        aprintf(
+            "WaitForCondition - Exit  - time = %d My-Cond = %d      Thread = %X  %s\n",
+            CurrentSimulationTime, Condition, GetMyTid(), CallingRoutine);
     }   // End of DEBUG_CONDITION
 
     return (ReturnValue);
@@ -3425,23 +3425,23 @@ int SignalCondition(UINT32 Condition, char* CallingRoutine) {
 #endif
 
     if (DEBUG_CONDITION) {
-    	aprintf( "SignalCondition  - Enter - time = %d Target-Cond = %d  Thread = %X  %s\n",
-		CurrentSimulationTime, Condition, GetMyTid(), CallingRoutine);
+        aprintf( "SignalCondition  - Enter - time = %d Target-Cond = %d  Thread = %X  %s\n",
+        CurrentSimulationTime, Condition, GetMyTid(), CallingRoutine);
     }  // End of DEBUG_CONDITION
 
     if (InterruptTid == GetMyTid()) { // We don't want to signal ourselves
-	ReturnValue = TRUE;
-	return (ReturnValue);
+    ReturnValue = TRUE;
+    return (ReturnValue);
     }
 #ifdef WINDOWS
     if (!SetEvent(LocalEvent[Condition])) {
-    	aprintf("Internal error signalling  an event in SignalCondition\n");
-    	HandleWindowsError();
-    	GoToExit(1);
+        aprintf("Internal error signalling  an event in SignalCondition\n");
+        HandleWindowsError();
+        GoToExit(1);
     }
     ReturnValue = TRUE;
     if (NumberOfSignals % 3 == 0)
-    	DoSleep(1);
+        DoSleep(1);
     NumberOfSignals++;
     ReturnValue = TRUE;
 #endif
@@ -3456,8 +3456,8 @@ int SignalCondition(UINT32 Condition, char* CallingRoutine) {
 #endif
 
     if (DEBUG_CONDITION) {
-    	aprintf( "SignalCondition  - Exit  - time = %d Target-Cond = %d  Thread = %X  %s\n",
-		CurrentSimulationTime, Condition, GetMyTid(), CallingRoutine);
+        aprintf( "SignalCondition  - Exit  - time = %d Target-Cond = %d  Thread = %X  %s\n",
+        CurrentSimulationTime, Condition, GetMyTid(), CallingRoutine);
     }   // End of DEBUG_CONDITION
 
     return (ReturnValue);
@@ -3471,10 +3471,10 @@ int SignalCondition(UINT32 Condition, char* CallingRoutine) {
 void DoSleep(INT32 millisecs) {
 
 #ifdef WINDOWS
-	Sleep(millisecs);
+    Sleep(millisecs);
 #endif
 #ifndef WINDOWS
-	usleep((unsigned long) (millisecs * 1000));
+    usleep((unsigned long) (millisecs * 1000));
 #endif
 }                              // End of DoSleep
 
@@ -3484,8 +3484,8 @@ void DoSleep(INT32 millisecs) {
     and in the system.  Times returned are in MICROSECONDS
 **************************************************************************/
 void  GetProcessTimeUsage( unsigned long long *CurrentUserMicrosecs, 
-		           unsigned long long *CurrentSystemMicrosecs,
-		           unsigned long long *CurrentWallClockMicrosecs)  {
+                   unsigned long long *CurrentSystemMicrosecs,
+                   unsigned long long *CurrentWallClockMicrosecs)  {
 #ifdef WINDOWS
     static short            first_time = TRUE;
     LARGE_INTEGER           Ticks, TicksPerSecond;
@@ -3528,16 +3528,16 @@ void  GetProcessTimeUsage( unsigned long long *CurrentUserMicrosecs,
 
 #ifdef  WINDOWS
 void HandleWindowsError() {
-	LPVOID lpMsgBuf;
-	char OutputString[256];
+    LPVOID lpMsgBuf;
+    char OutputString[256];
 
-	FormatMessage(
-			FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM
-					| FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(),
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) &lpMsgBuf, 0,
-			NULL);
-	sprintf(OutputString, "%s\n", (char *) lpMsgBuf);
-	aprintf(OutputString);
+    FormatMessage(
+            FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM
+                    | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, GetLastError(),
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR) &lpMsgBuf, 0,
+            NULL);
+    sprintf(OutputString, "%s\n", (char *) lpMsgBuf);
+    aprintf(OutputString);
 }                                     // End HandleWindowsError
 #endif
 
@@ -3624,8 +3624,8 @@ void Z502Init() {
                              &StartSystemMicrosecs,
                              &StartWallClockMicrosecs);
         EventQueue.queue = NULL;
-	
-	// Initialize a number of variables
+    
+    // Initialize a number of variables
         for (i = 0; i <= LARGEST_STAT_VECTOR_INDEX; i++) {
             STAT_VECTOR[SV_ACTIVE ][i] = 0;
             STAT_VECTOR[SV_VALUE ][i] = 0;
@@ -3691,4 +3691,3 @@ void Z502Init() {
 
     }             // End of Z502Initialized = FALSE
 }                 // End of Z502Init
-

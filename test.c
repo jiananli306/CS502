@@ -199,7 +199,6 @@ void test3(void) {
 	GET_TIME_OF_DAY(&Time2);
 	aprintf("Time to do disk write = %ld\n", Time2 - Time1);
 	GET_TIME_OF_DAY(&Time1);
-	
 	PHYSICAL_DISK_READ(DiskID, Sector, (char* )(DataRead->char_data));
 	GET_TIME_OF_DAY(&Time2);
 	aprintf("Time to do disk read = %ld\n", Time2 - Time1);
@@ -432,7 +431,6 @@ void test6(void) {
 	 * get here, then we obviously weren't suspended.  Therefore
 	 * this must be an error.                                    */
 	ErrorExpected(ErrorReturned, "SUSPEND_PROCESS");
-	RESUME_PROCESS(OurProcessID, &ErrorReturned);
 
 	GET_TIME_OF_DAY(&TimeNow);
 	aprintf("TEST 6, PID %ld, Ends at Time %ld\n", OurProcessID, TimeNow);
@@ -869,7 +867,6 @@ void test10(void) {
 
         td->source_pid = -1;
         td->receive_length = LEGAL_MESSAGE_LENGTH;
-		
         RECEIVE_MESSAGE(td->source_pid, td->msg_buffer, td->receive_length,
                 &(td->actual_send_length), &(td->actual_source_pid),
                 &ErrorReturned);
@@ -1636,9 +1633,7 @@ void testD(void) {
         // Pick some disk to write to
 	// DO NOT change this algorithm.  Test 9 depends on using this
 	// same DiskID and knows the ProcessID from creating this testD
-		DiskID = (OurProcessID /2) % MAX_NUMBER_OF_DISKS;
-		//printf("*************DISKID: %ld \n",DiskID);
-		//printf("******DiskID: %ld \n",DiskID);
+        DiskID = (OurProcessID / 2) % MAX_NUMBER_OF_DISKS;
         // Sector is chosen so that multiple processes each running testD
         //   will not write to the same sectors.
         Sector = OurProcessID + (Iterations * 17) % NUMBER_LOGICAL_SECTORS; // Bugfix 4.11
@@ -1744,7 +1739,7 @@ void testX(void) {
                 (int) (EndingTime - StartingTime - RandomSleep));  // Time after interrupt
     }
     aprintf("TEST X, PID %2ld, Ends at Time %ld\n", OurProcessID, EndingTime);
-	
+
     TERMINATE_PROCESS(-1, &ErrorReturned);
     aprintf("ERROR: TestX should be terminated but isn't.\n");
 
@@ -2831,4 +2826,3 @@ int main(int argc, char *argv[]) {
 // to execute that program, and NEVER RETURN!
 	return (-1);
 }    // End of main
-
