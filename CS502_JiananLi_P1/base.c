@@ -313,9 +313,6 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 	INT32 diskAll;
 	INT32 diskID_temp;
 	char lock_disk[20];
-
-
-	//char dataWrite_temp[16];
 	newPCB = (PCB*)malloc(sizeof(PCB));
 	if (newPCB == 0)
 		printf("We didn't complete the malloc in pcb.");
@@ -677,17 +674,6 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				}
 			}
 			break;
-		case SYSNUM_FORMAT:
-			//check the parameters first
-
-			if ((long)SystemCallData->Argument[0] >= 0 && (long)SystemCallData->Argument[0] <= 7) {
-				format_disk((long)SystemCallData->Argument[0]);
-			}
-			else {
-				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
-			}
-			break;
-		
 		default:
 			printf("ERROR. Unrecognized call type");
 			printf("Call_type: %i\n",call_type);

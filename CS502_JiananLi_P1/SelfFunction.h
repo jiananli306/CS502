@@ -2,7 +2,6 @@
 #include "global.h"
 
 INT32 PID;
-INT32 FileID;
 INT32 CurrentProcessNumber;
 INT32 scheduleprinterFlag; //to enable scheduleprinter 0 == none; 1 == FULL; 2 == limited;
 INT32 scheduleprinterCounter; // for partial N <= 50 print
@@ -70,31 +69,6 @@ typedef struct {
 INT32 sendMessageCount;
 #define         MAX_Message_pending_number                 10//intotal there will be 10 message in the message send queue
 
-//define block 0
-typedef struct {
-	char	FileSystem;
-	__int8	DiskId;
-	short	DiskLength;
-	unsigned __int8	Bitmap;
-	unsigned __int8	SwapSize;
-	short	BitmapLoca;
-	short	RootDirLoca;
-	short	SwapLoca;
-	__int8	Reserve0;
-	__int8	Reserve1;
-	__int8	Reserve2;
-	__int8	Revision;
-}Block0;
-//define the header of directry/file
-typedef struct {
-	__int8	Inode;
-	char	Name[7];
-	INT32	CreateTime; //we only use 3 bytes here
-	__int8	FileDiscrip;
-	short	IndexLoca;
-	short	FileSize;
-}Header;
-
 //PCB could refer to linux task_struct 
 typedef struct ProcessControlBlock {
 	//process management
@@ -161,6 +135,3 @@ extern void SP_print(char* Action, int targetID);
 extern int resumePIDMessgage(INT32 PID, Message_send* message);
 extern int sendMessage(INT32 currentProcessID, INT32 ProcessID, char* MessageBuffer, INT32 MessageSendLength);//ProcessID, MessageBuffer, MessageSendLength
 extern void receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageReceiveLength);//receiveMessage
-extern void format_disk(long disk);//format the disk
-extern void setHeader(long disk, long HeaderLoca, char* HeaderNameHeader,int file_direc );
-extern void setSwap(long disk, long swapLocation, long swapSize);
