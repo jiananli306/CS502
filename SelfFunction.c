@@ -927,6 +927,7 @@ void receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageReceiveLe
 void format_disk(long disk)//format the disk
 {
 	int BitmapSector;
+	int file[8];
 	Block0* tempBlock;
 	DISK_DATA* tempDisk;
 	tempBlock = (Block0*)malloc(sizeof(Block0));
@@ -964,6 +965,7 @@ void format_disk(long disk)//format the disk
 	//write data
 	pDisk_write(disk, 0, tempDisk);
 	//set block 0 and bitmap itselfs bit map
+	setBitmap_0(disk, tempBlock->BitmapLoca, tempBlock->Bitmap);
 	for (BitmapSector = 0; BitmapSector <= 0x10; BitmapSector++) {
 		setBitmap(disk, tempBlock->BitmapLoca, BitmapSector);
 	}
@@ -971,9 +973,42 @@ void format_disk(long disk)//format the disk
 	//set root directory Header
 	char Name[16] = "root";
 	setHeader(disk, tempBlock->RootDirLoca, Name,1);
+	//put block 0x12 data into a disk block
+	file[0] = 0x0013;
+	file[1] = 0x0014;
+	file[2] = 0x0015;
+	file[3] = 0x0016;
+	file[4] = 0x0017;
+	file[5] = 0x0018;
+	file[6] = 0x0019;
+	file[7] = 0x001A;
+	tempDisk->char_data[0] = (file[0] & 255);
+	tempDisk->char_data[1] = ((file[0] >> 8) & 255);
+	tempDisk->char_data[2] = (file[1] & 255);
+	tempDisk->char_data[3] = ((file[1] >> 8) & 255);
+	tempDisk->char_data[4] = (file[2] & 255);
+	tempDisk->char_data[5] = ((file[2] >> 8) & 255);
+	tempDisk->char_data[6] = (file[3] & 255);
+	tempDisk->char_data[7] = ((file[3] >> 8) & 255);
+	tempDisk->char_data[8] = (file[4] & 255);
+	tempDisk->char_data[9] = ((file[4] >> 8) & 255);
+	tempDisk->char_data[10] = (file[5] & 255);
+	tempDisk->char_data[11] = ((file[5] >> 8) & 255);
+	tempDisk->char_data[12] = (file[6] & 255);
+	tempDisk->char_data[13] = ((file[6] >> 8) & 255);
+	tempDisk->char_data[14] = (file[7] & 255);
+	tempDisk->char_data[15] = ((file[7] >> 8) & 255);
+	pDisk_write(disk, 0x12, tempDisk);
+	//set bitmap for root header
+	for (BitmapSector = tempBlock->RootDirLoca; BitmapSector <= (tempBlock->RootDirLoca + 9); BitmapSector++) {
+		setBitmap(disk, tempBlock->BitmapLoca, BitmapSector);
+	}
 	//set the swap area
 	setSwap(disk, tempBlock->SwapLoca, tempBlock->SwapSize);
 	//set bitmap
+	for (BitmapSector = tempBlock->SwapLoca; BitmapSector < (tempBlock->SwapLoca + (tempBlock->SwapSize*4)); BitmapSector++) {
+		setBitmap(disk, tempBlock->BitmapLoca, BitmapSector);
+	}
 
 }
 
@@ -1056,6 +1091,25 @@ void setSwap(long disk,long swapLocation,long swapSize) {
 	}
 }
 
+
+
+//set bitmap area all to 0
+//input: disk:write to which disk
+//		swapLocation: sector location start as swap area
+//		swapSize: swap size
+//		
+void setBitmap_0(long disk, long BitmapLocation, long Bitmap) {
+	int i;
+	DISK_DATA* tempDisk;
+	tempDisk = (DISK_DATA*)malloc(sizeof(DISK_DATA));
+	tempDisk->int_data[0] = 0;
+	tempDisk->int_data[1] = 0;
+	tempDisk->int_data[2] = 0;
+	tempDisk->int_data[3] = 0;
+	for (i = 0; i <= (Bitmap * 4); i++) {
+		pDisk_write(disk, BitmapLocation + i, tempDisk);
+	}
+}
 //set swap area all to 0
 //input: disk:write to which disk
 //		BitmapLocation: sector location start as swap area
@@ -1065,4 +1119,14 @@ void setBitmap(long disk, long BitmapLocation, long sectorLocation) {
 	DISK_DATA* tempDisk;
 	tempDisk = (DISK_DATA*)malloc(sizeof(DISK_DATA));
 	int bitTemp = 1;
+	int withinBlock = 0;
+	int withinBytes = 0;
+	int sector = 0;
+	sector = BitmapLocation + sectorLocation / 128;
+	withinBlock = (sectorLocation % 128) / 8;
+	withinBytes = (sectorLocation % 128) % 8;
+
+	pDisk_read(disk, sector, tempDisk->char_data);
+	tempDisk->char_data[withinBlock] = tempDisk->char_data[withinBlock] + (bitTemp << (7 - withinBytes));
+	pDisk_write(disk, sector, tempDisk);
 }

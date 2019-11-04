@@ -164,3 +164,5 @@ extern void receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageRe
 extern void format_disk(long disk);//format the disk
 extern void setHeader(long disk, long HeaderLoca, char* HeaderNameHeader,int file_direc );
 extern void setSwap(long disk, long swapLocation, long swapSize);
+extern void setBitmap(long disk, long BitmapLocation, long sectorLocation);
+extern void setBitmap_0(long disk, long BitmapLocation, long Bitmap);
