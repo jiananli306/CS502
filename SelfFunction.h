@@ -119,6 +119,7 @@ typedef struct ProcessControlBlock {
 	BOOL  WriteOrRead; //0 as Write, 1 as Read
 	INT32 sector;
 	DISK_DATA  *DiskData;
+	INT32	CurrentLocationDisk;
 	//message
 	//Message_DATA *MessageData;
 	long    target_pid;
@@ -162,7 +163,9 @@ extern int resumePIDMessgage(INT32 PID, Message_send* message);
 extern int sendMessage(INT32 currentProcessID, INT32 ProcessID, char* MessageBuffer, INT32 MessageSendLength);//ProcessID, MessageBuffer, MessageSendLength
 extern void receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageReceiveLength);//receiveMessage
 extern void format_disk(long disk);//format the disk
-extern void setHeader(long disk, long HeaderLoca, char* HeaderNameHeader,int file_direc );
+extern void setHeader(long disk, long HeaderLoca, char* HeaderNameHeader, int file_direc, int indexLevel, int parentNode);
 extern void setSwap(long disk, long swapLocation, long swapSize);
 extern void setBitmap(long disk, long BitmapLocation, long sectorLocation);
 extern void setBitmap_0(long disk, long BitmapLocation, long Bitmap);
+extern int findFirst0Bitmap(long disk);
+extern int create_dir( char* name);

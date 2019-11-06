@@ -149,6 +149,7 @@ void osCreatProcess(int argc, char* argv[]) {
 		else if (strcmp(argv[1], "test13") == 0) { mmio.Field2 = (long)test13; pcb->address = mmio.Field2; strcpy(pcb->processName, "test13"); scheduleprinterFlag = 2;}
 		else if (strcmp(argv[1], "test14") == 0) { mmio.Field2 = (long)test14; pcb->address = mmio.Field2; strcpy(pcb->processName, "test14"); scheduleprinterFlag = 2;}
 		else if (strcmp(argv[1], "test21") == 0) { mmio.Field2 = (long)test21; pcb->address = mmio.Field2; strcpy(pcb->processName, "test21"); scheduleprinterFlag = 0; }
+		else if (strcmp(argv[1], "test22") == 0) { mmio.Field2 = (long)test22; pcb->address = mmio.Field2; strcpy(pcb->processName, "test22"); scheduleprinterFlag = 0; }
 		//else if (strcmp(argv[1], "testX") == 0) { mmio.Field2 = (long)testX; pcb->address = mmio.Field2; strncpy(pcb->processName, "testX", sizeof("testX")); }
 
 	}
@@ -926,6 +927,7 @@ void receiveMessage(INT32 ProcessID, char* MessageBuffer, INT32 MessageReceiveLe
 //format the disk
 void format_disk(long disk)//format the disk
 {
+	int Bitset;
 	int BitmapSector;
 	int file[8];
 	Block0* tempBlock;
@@ -964,17 +966,12 @@ void format_disk(long disk)//format the disk
 	tempDisk->char_data[15] = tempBlock->Revision;
 	//write data
 	pDisk_write(disk, 0, tempDisk);
-	//set block 0 and bitmap itselfs bit map
-	setBitmap_0(disk, tempBlock->BitmapLoca, tempBlock->Bitmap);
-	for (BitmapSector = 0; BitmapSector <= 0x10; BitmapSector++) {
-		setBitmap(disk, tempBlock->BitmapLoca, BitmapSector);
-	}
 	
 	//set root directory Header
 	char Name[16] = "root";
-	setHeader(disk, tempBlock->RootDirLoca, Name,1);
+	setHeader(disk, tempBlock->RootDirLoca, Name,1,3,31);
 	//put block 0x12 data into a disk block
-	file[0] = 0x0013;
+	/*file[0] = 0x0013;
 	file[1] = 0x0014;
 	file[2] = 0x0015;
 	file[3] = 0x0016;
@@ -998,18 +995,23 @@ void format_disk(long disk)//format the disk
 	tempDisk->char_data[13] = ((file[6] >> 8) & 255);
 	tempDisk->char_data[14] = (file[7] & 255);
 	tempDisk->char_data[15] = ((file[7] >> 8) & 255);
-	pDisk_write(disk, 0x12, tempDisk);
+	pDisk_write(disk, 0x12, tempDisk);*/
 	//set bitmap for root header
-	for (BitmapSector = tempBlock->RootDirLoca; BitmapSector <= (tempBlock->RootDirLoca + 9); BitmapSector++) {
-		setBitmap(disk, tempBlock->BitmapLoca, BitmapSector);
-	}
+	tempDisk->int_data[0] = 0x00E0FFFF;
+	tempDisk->int_data[1] = 0x00000000;
+	tempDisk->int_data[2] = 0x00000000;
+	tempDisk->int_data[3] = 0x00000000;
+	pDisk_write(disk, 0x0001, tempDisk);
 	//set the swap area
 	setSwap(disk, tempBlock->SwapLoca, tempBlock->SwapSize);
-	//set bitmap
-	for (BitmapSector = tempBlock->SwapLoca; BitmapSector < (tempBlock->SwapLoca + (tempBlock->SwapSize*4)); BitmapSector++) {
-		setBitmap(disk, tempBlock->BitmapLoca, BitmapSector);
-	}
+	//set current PCB location to root
+	currentPCB->CurrentLocationDisk = 0x0011;
+	currentPCB->diskID = disk;
+	
 
+	//setBitmap(disk, tempBlock->BitmapLoca, 28);
+	//Bitset = findFirst0Bitmap(disk);
+	//printf("$$$$$$$$$$$$$$$$:BITMAP: %d", Bitset);
 }
 
 ///set header value
@@ -1017,20 +1019,24 @@ void format_disk(long disk)//format the disk
 //		HeaderLoca: sector to write
 //		HeaderNameHeader: header name 7 bytes
 //		file_direc: 0 as file, 1 as direc
-void setHeader(long disk,long HeaderLoca, char* HeaderNameHeader, int file_direc) {
+void setHeader(long disk,long HeaderLoca, char* HeaderNameHeader, int file_direc,int indexLevel,int parentNode) {
 	Header* tempHeader;
 	tempHeader = (Header*)malloc(sizeof(Header));
 	DISK_DATA* tempDisk;
 	tempDisk = (DISK_DATA*)malloc(sizeof(DISK_DATA));
 	INT32 current_time;
 	//find the correct index level and parent node here
-	int indexLevel = 2;
-	int parentNode = 31;
-	///find the correct index location
-	int indexLocs = 0x12;
-	//find the correct file size
+	indexLevel = indexLevel - 1;
+	int indexLocs;
+	//int parentNode = 31;
 	int fileSize = 0;
-
+	if (parentNode == 31) {
+		indexLocs = 0x0012;
+	}
+	else {
+		indexLocs = findFirst0Bitmap(disk);
+		setBitmap(disk, 0x0001, indexLocs);
+	}
 
 	//get time
 	{
@@ -1042,7 +1048,7 @@ void setHeader(long disk,long HeaderLoca, char* HeaderNameHeader, int file_direc
 	}
 	tempHeader->Inode = FileID;
 	FileID++;
-	strncpy(tempHeader->Name, HeaderNameHeader, 28);//7 bytes
+	strncpy(tempHeader->Name, HeaderNameHeader, 7);//7 bytes
 	tempHeader->CreateTime = current_time;
 	//set file Discrip
 	
@@ -1082,13 +1088,23 @@ void setSwap(long disk,long swapLocation,long swapSize) {
 	int i;
 	DISK_DATA* tempDisk;
 	tempDisk = (DISK_DATA*)malloc(sizeof(DISK_DATA));
-	tempDisk->int_data[0] = 0;
-	tempDisk->int_data[1] = 0;
-	tempDisk->int_data[2] = 0;
-	tempDisk->int_data[3] = 0;
-	for (i = 0; i <= (swapSize*4); i++) {
-		pDisk_write(disk, swapLocation+i, tempDisk);
-	}
+	//tempDisk->int_data[0] = 0;
+	//tempDisk->int_data[1] = 0;
+	//tempDisk->int_data[2] = 0;
+	//tempDisk->int_data[3] = 0;
+	//for (i = 0; i <= (swapSize*4); i++) {
+	//	pDisk_write(disk, swapLocation+i, tempDisk);
+	//}
+	//set bitmap
+	tempDisk->int_data[0] = 0xFFFFFFFF;
+	tempDisk->int_data[1] = 0xFFFFFFFF;
+	tempDisk->int_data[2] = 0xFFFFFFFF;
+	tempDisk->int_data[3] = 0xFFFFFFFF;
+	pDisk_write(disk, 0x000D, tempDisk);
+	pDisk_write(disk, 0x000E, tempDisk);
+	pDisk_write(disk, 0x000F, tempDisk);
+	pDisk_write(disk, 0x0010, tempDisk);
+	
 }
 
 
@@ -1129,4 +1145,86 @@ void setBitmap(long disk, long BitmapLocation, long sectorLocation) {
 	pDisk_read(disk, sector, tempDisk->char_data);
 	tempDisk->char_data[withinBlock] = tempDisk->char_data[withinBlock] + (bitTemp << (7 - withinBytes));
 	pDisk_write(disk, sector, tempDisk);
+}
+//find the first zero within the bitmap
+//input: disk we would like check
+//out: sector number we find first is empty
+int findFirst0Bitmap(long disk) {
+	DISK_DATA* tempDisk;
+	int i;
+	int j;
+	int n;
+	int flag;
+	int output;
+	tempDisk = (DISK_DATA*)malloc(sizeof(DISK_DATA));
+	for (j = 1; j <= 16; j++ ){
+		pDisk_read(disk, j, tempDisk->char_data);//read the bit map from disk
+		for (i = 0; i <= 15; i++) {
+			n = 0;
+			if ((tempDisk->char_data[i] & 0x0F) == 0) { n = n + 4; tempDisk->char_data[i] = tempDisk->char_data[i] >> 4; }
+			if ((tempDisk->char_data[i] & 0x03) == 0) { n = n + 2; tempDisk->char_data[i] = tempDisk->char_data[i] >> 2; }
+			if ((tempDisk->char_data[i] & 0x01) == 0) { n = n + 1; }
+			if ((tempDisk->char_data[i] & 0xFF) == 0) { n = 8; }
+			if (n != 0) {
+				return ((j-1) * 128 + i * 8 + (8-n));
+			}
+		}
+	}
+	return 0;//no empty space
+}
+
+
+//open a directory
+//
+int create_dir( char* name) {
+	DISK_DATA* tempDisk;
+	tempDisk = calloc(1,sizeof(DISK_DATA));
+	DISK_DATA* tempDisk_child;
+	tempDisk_child = calloc(1, sizeof(DISK_DATA));
+	DISK_DATA* tempDisk1;
+	tempDisk1 = (DISK_DATA*)malloc(sizeof(DISK_DATA));
+	int locatemp;
+	int disk;
+	int i;
+	int nextSpace;
+	int indexLevel;
+	int parentNode;
+	{ disk = currentPCB->diskID; }
+	pDisk_read(disk, currentPCB->CurrentLocationDisk, tempDisk1->char_data);
+	parentNode = tempDisk1->char_data[0];//tempDisk1->char_data[11]>>3 & 0x1F;
+	indexLevel = tempDisk1->char_data[11]>>1 & 0x03;
+
+	locatemp = tempDisk1->char_data[13]*256 + tempDisk1->char_data[12];
+	pDisk_read(disk, locatemp, tempDisk->char_data);
+	
+	for (i = 0; i <= 7; i = i + 2) {
+		if ((tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256) == 0){
+			if (i == 0) {//solve the weird CDCDCDCDCDCD problem
+				tempDisk->int_data[0] = 0x00000000;
+				tempDisk->int_data[1] = 0x00000000;
+				tempDisk->int_data[2] = 0x00000000;
+				tempDisk->int_data[3] = 0x00000000;
+				pDisk_write(disk, locatemp, tempDisk);
+				pDisk_read(disk, locatemp, tempDisk->char_data);
+			}
+			nextSpace = findFirst0Bitmap(disk);
+			tempDisk->char_data[i] = (nextSpace & 255);
+			tempDisk->char_data[i+1] = ((nextSpace >> 8) & 255);
+			pDisk_write(disk, locatemp, tempDisk);
+			setBitmap(disk, 0x0001, nextSpace);
+			//initial the header
+			setHeader(disk, nextSpace, name, 1, indexLevel, 0x12, parentNode);
+
+			return 1;
+		}
+		else {
+			pDisk_read(disk, (tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256), tempDisk_child->char_data);
+			if (strncmp((tempDisk_child->char_data + 1), name, 7) == 0) {
+				//return exist here
+				return 0;
+			}
+			
+		}
+	}
+	return 0;//no space
 }

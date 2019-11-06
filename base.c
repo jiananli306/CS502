@@ -306,6 +306,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
     short call_type;
     static short do_print = 10;
     short i;
+	int Dir;
 	INT32 PIDtemp;
 	INT32 Time;
 	MEMORY_MAPPED_IO mmio;
@@ -682,6 +683,24 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 
 			if ((long)SystemCallData->Argument[0] >= 0 && (long)SystemCallData->Argument[0] <= 7) {
 				format_disk((long)SystemCallData->Argument[0]);
+			}
+			else {
+				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+			}
+			break;
+		case SYSNUM_CREATE_DIR:
+			
+				Dir = create_dir( (char*)SystemCallData->Argument[0]);
+				if (Dir == 0) {
+					*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+				}
+			
+			break;
+		case SYSNUM_CREATE_FILE:
+
+			break;
+		case SYSNUM_OPEN_DIR:
+			if ((long)SystemCallData->Argument[0] >= -1 && (long)SystemCallData->Argument[0] <= 7) {
 			}
 			else {
 				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
