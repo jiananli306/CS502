@@ -169,4 +169,4 @@ extern void setBitmap(long disk, long BitmapLocation, long sectorLocation);
 extern void setBitmap_0(long disk, long BitmapLocation, long Bitmap);
 extern int findFirst0Bitmap(long disk);
 extern int create_dir( char* name,int fileOrDir);
-extern int open_dir(long disk,char* name);
+extern int open_dir(long disk,char* name, int fileOrDir);

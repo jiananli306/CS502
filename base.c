@@ -705,13 +705,21 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			break;
 		case SYSNUM_OPEN_DIR:
 			if ((long)SystemCallData->Argument[0] >= -1 && (long)SystemCallData->Argument[0] <= 7) {
-				Dir = open_dir((long)SystemCallData->Argument[0],(char*)SystemCallData->Argument[1]);
-				if (Dir == 0) {
+				Dir = open_dir((long)SystemCallData->Argument[0],(char*)SystemCallData->Argument[1],1);
+				if (Dir == -1) {
 					*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
 				}
 			}
 			else {
 				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+			}
+			break;
+		case SYSNUM_OPEN_FILE:
+			Dir = open_dir(-1, (char*)SystemCallData->Argument[0],0);
+			*(long*)SystemCallData->Argument[1] = Dir;
+
+			if (Dir == -1) {
+				*(long*)SystemCallData->Argument[2] = ERR_BAD_PARAM;
 			}
 			break;
 		

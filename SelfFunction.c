@@ -150,6 +150,9 @@ void osCreatProcess(int argc, char* argv[]) {
 		else if (strcmp(argv[1], "test14") == 0) { mmio.Field2 = (long)test14; pcb->address = mmio.Field2; strcpy(pcb->processName, "test14"); scheduleprinterFlag = 2;}
 		else if (strcmp(argv[1], "test21") == 0) { mmio.Field2 = (long)test21; pcb->address = mmio.Field2; strcpy(pcb->processName, "test21"); scheduleprinterFlag = 0; }
 		else if (strcmp(argv[1], "test22") == 0) { mmio.Field2 = (long)test22; pcb->address = mmio.Field2; strcpy(pcb->processName, "test22"); scheduleprinterFlag = 0; }
+		else if (strcmp(argv[1], "test23") == 0) { mmio.Field2 = (long)test23; pcb->address = mmio.Field2; strcpy(pcb->processName, "test23"); scheduleprinterFlag = 0; }
+		else if (strcmp(argv[1], "test24") == 0) { mmio.Field2 = (long)test24; pcb->address = mmio.Field2; strcpy(pcb->processName, "test24"); scheduleprinterFlag = 0; }
+		else if (strcmp(argv[1], "test25") == 0) { mmio.Field2 = (long)test25; pcb->address = mmio.Field2; strcpy(pcb->processName, "test25"); scheduleprinterFlag = 0; }
 		//else if (strcmp(argv[1], "testX") == 0) { mmio.Field2 = (long)testX; pcb->address = mmio.Field2; strncpy(pcb->processName, "testX", sizeof("testX")); }
 
 	}
@@ -1222,17 +1225,17 @@ int create_dir( char* name, int fileOrDir) {
 			pDisk_read(disk, (tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256), tempDisk_child->char_data);
 			if (strncmp((tempDisk_child->char_data + 1), name, 7) == 0) {
 				//return exist here
-				return 0;
+				return -1;
 			}
 			
 		}
 	}
-	return 0;//no space
+	return -1;//no space
 }
 
 
 //open_dir
-int open_dir(long disk, char* name) {
+int open_dir(long disk, char* name,int fileOrDir) {
 	int locatemp;
 	int i;
 	int nextSpace;
@@ -1244,6 +1247,8 @@ int open_dir(long disk, char* name) {
 	tempDisk1 = calloc(1, sizeof(DISK_DATA));
 	DISK_DATA* tempDisk_child;
 	tempDisk_child = calloc(1, sizeof(DISK_DATA));
+	DISK_DATA* tempDisk_next;
+	tempDisk_next = calloc(1, sizeof(DISK_DATA));
 
 	//set the disk correctly first
 	if (disk ==-1) { disk = currentPCB->diskID; }
@@ -1251,7 +1256,7 @@ int open_dir(long disk, char* name) {
 	//set the directory
 	if (strcmp("root", name) == 0) {
 		currentPCB->CurrentLocationDisk = 0x0011;
-		return 1;
+		return 0;
 	}
 	else {
 		pDisk_read(disk, currentPCB->CurrentLocationDisk, tempDisk1->char_data);
@@ -1267,7 +1272,7 @@ int open_dir(long disk, char* name) {
 				if (strncmp((tempDisk_child->char_data + 1), name, 7) == 0) {
 					//return exist here
 					currentPCB->CurrentLocationDisk = (tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256);
-					return 1;
+					return tempDisk->char_data[0];
 				}
 			}
 			else {
@@ -1277,12 +1282,14 @@ int open_dir(long disk, char* name) {
 				pDisk_write(disk, locatemp, tempDisk);
 				setBitmap(disk, 0x0001, nextSpace);
 				//initial the header
-				setHeader(disk, nextSpace, name, 1, indexLevel, parentNode);
-				return 1;
+				setHeader(disk, nextSpace, name, fileOrDir, indexLevel, parentNode);
+				pDisk_read(disk, nextSpace, tempDisk_next->char_data);
+				currentPCB->CurrentLocationDisk = nextSpace;
+				return tempDisk_next->char_data[0];
 
 			}
 		}
-		return 0;//no space
+		return -1;//no space
 	}
 
 }
