@@ -1005,8 +1005,8 @@ void format_disk(long disk)//format the disk
 	//set the swap area
 	setSwap(disk, tempBlock->SwapLoca, tempBlock->SwapSize);
 	//set current PCB location to root
-	currentPCB->CurrentLocationDisk = 0x0011;
-	currentPCB->diskID = disk;
+	//currentPCB->CurrentLocationDisk = 0x0011;
+	//currentPCB->diskID = disk;
 	
 
 	//setBitmap(disk, tempBlock->BitmapLoca, 28);
@@ -1176,7 +1176,7 @@ int findFirst0Bitmap(long disk) {
 
 //open a directory
 //
-int create_dir( char* name) {
+int create_dir( char* name, int fileOrDir) {
 	DISK_DATA* tempDisk;
 	tempDisk = calloc(1,sizeof(DISK_DATA));
 	DISK_DATA* tempDisk_child;
@@ -1190,6 +1190,7 @@ int create_dir( char* name) {
 	int indexLevel;
 	int parentNode;
 	{ disk = currentPCB->diskID; }
+	
 	pDisk_read(disk, currentPCB->CurrentLocationDisk, tempDisk1->char_data);
 	parentNode = tempDisk1->char_data[0];//tempDisk1->char_data[11]>>3 & 0x1F;
 	indexLevel = tempDisk1->char_data[11]>>1 & 0x03;
@@ -1213,7 +1214,7 @@ int create_dir( char* name) {
 			pDisk_write(disk, locatemp, tempDisk);
 			setBitmap(disk, 0x0001, nextSpace);
 			//initial the header
-			setHeader(disk, nextSpace, name, 1, indexLevel, 0x12, parentNode);
+			setHeader(disk, nextSpace, name, fileOrDir, indexLevel, parentNode);
 
 			return 1;
 		}
@@ -1227,4 +1228,61 @@ int create_dir( char* name) {
 		}
 	}
 	return 0;//no space
+}
+
+
+//open_dir
+int open_dir(long disk, char* name) {
+	int locatemp;
+	int i;
+	int nextSpace;
+	int parentNode;
+	int indexLevel;
+	DISK_DATA* tempDisk;
+	tempDisk = calloc(1, sizeof(DISK_DATA));
+	DISK_DATA* tempDisk1;
+	tempDisk1 = calloc(1, sizeof(DISK_DATA));
+	DISK_DATA* tempDisk_child;
+	tempDisk_child = calloc(1, sizeof(DISK_DATA));
+
+	//set the disk correctly first
+	if (disk ==-1) { disk = currentPCB->diskID; }
+	currentPCB->diskID = disk;
+	//set the directory
+	if (strcmp("root", name) == 0) {
+		currentPCB->CurrentLocationDisk = 0x0011;
+		return 1;
+	}
+	else {
+		pDisk_read(disk, currentPCB->CurrentLocationDisk, tempDisk1->char_data);
+		locatemp = tempDisk1->char_data[13] * 256 + tempDisk1->char_data[12];
+		parentNode = tempDisk1->char_data[0];//tempDisk1->char_data[11]>>3 & 0x1F;
+		indexLevel = tempDisk1->char_data[11] >> 1 & 0x03;
+		pDisk_read(disk, locatemp, tempDisk->char_data);
+
+		//currentPCB->CurrentLocationDisk = 0x0013;
+		for (i = 0; i <= 7; i = i + 2) {
+			if ((tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256) != 0) {
+				pDisk_read(disk, (tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256), tempDisk_child->char_data);
+				if (strncmp((tempDisk_child->char_data + 1), name, 7) == 0) {
+					//return exist here
+					currentPCB->CurrentLocationDisk = (tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256);
+					return 1;
+				}
+			}
+			else {
+				nextSpace = findFirst0Bitmap(disk);
+				tempDisk->char_data[i] = (nextSpace & 255);
+				tempDisk->char_data[i + 1] = ((nextSpace >> 8) & 255);
+				pDisk_write(disk, locatemp, tempDisk);
+				setBitmap(disk, 0x0001, nextSpace);
+				//initial the header
+				setHeader(disk, nextSpace, name, 1, indexLevel, parentNode);
+				return 1;
+
+			}
+		}
+		return 0;//no space
+	}
+
 }
