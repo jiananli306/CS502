@@ -1258,6 +1258,7 @@ void test23(void) {
 			WriteBuffer[Index2] = Index;
 		}
 		WRITE_FILE(Inode, (long )Index, &WriteBuffer, &ErrorReturned);
+		//CHECK_DISK(DiskID, &ErrorReturned);
 	}
 	CLOSE_FILE(Inode, &ErrorReturned);
 	SuccessExpected(ErrorReturned, "CLOSE_FILE");

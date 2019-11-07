@@ -170,3 +170,7 @@ extern void setBitmap_0(long disk, long BitmapLocation, long Bitmap);
 extern int findFirst0Bitmap(long disk);
 extern int create_dir( char* name,int fileOrDir);
 extern int open_dir(long disk,char* name, int fileOrDir);
+extern int close_file(long Inode);
+extern int readwrite_file(long Inode, long Index, long dataWrite,long read_write);
+extern void write_file_level0(long disk,long sector,long dataWrite);
+extern void read_file_level0(long disk, long sector,long Index, long dataWrite);

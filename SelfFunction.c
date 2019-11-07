@@ -153,6 +153,7 @@ void osCreatProcess(int argc, char* argv[]) {
 		else if (strcmp(argv[1], "test23") == 0) { mmio.Field2 = (long)test23; pcb->address = mmio.Field2; strcpy(pcb->processName, "test23"); scheduleprinterFlag = 0; }
 		else if (strcmp(argv[1], "test24") == 0) { mmio.Field2 = (long)test24; pcb->address = mmio.Field2; strcpy(pcb->processName, "test24"); scheduleprinterFlag = 0; }
 		else if (strcmp(argv[1], "test25") == 0) { mmio.Field2 = (long)test25; pcb->address = mmio.Field2; strcpy(pcb->processName, "test25"); scheduleprinterFlag = 0; }
+		else if (strcmp(argv[1], "test26") == 0) { mmio.Field2 = (long)test26; pcb->address = mmio.Field2; strcpy(pcb->processName, "test26"); scheduleprinterFlag = 0; }
 		//else if (strcmp(argv[1], "testX") == 0) { mmio.Field2 = (long)testX; pcb->address = mmio.Field2; strncpy(pcb->processName, "testX", sizeof("testX")); }
 
 	}
@@ -1194,14 +1195,14 @@ int create_dir( char* name, int fileOrDir) {
 	int parentNode;
 	{ disk = currentPCB->diskID; }
 	
-	pDisk_read(disk, currentPCB->CurrentLocationDisk, tempDisk1->char_data);
+	pDisk_read(disk, currentPCB->CurrentLocationDisk, tempDisk1->char_data);//parent disk read
 	parentNode = tempDisk1->char_data[0];//tempDisk1->char_data[11]>>3 & 0x1F;
 	indexLevel = tempDisk1->char_data[11]>>1 & 0x03;
 
-	locatemp = tempDisk1->char_data[13]*256 + tempDisk1->char_data[12];
+	locatemp = tempDisk1->char_data[13]*256 + tempDisk1->char_data[12];//parent next level pointer read
 	pDisk_read(disk, locatemp, tempDisk->char_data);
 	
-	for (i = 0; i <= 7; i = i + 2) {
+	for (i = 0; i <= 14; i = i + 2) {
 		if ((tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256) == 0){
 			if (i == 0) {//solve the weird CDCDCDCDCDCD problem
 				tempDisk->int_data[0] = 0x00000000;
@@ -1266,13 +1267,13 @@ int open_dir(long disk, char* name,int fileOrDir) {
 		pDisk_read(disk, locatemp, tempDisk->char_data);
 
 		//currentPCB->CurrentLocationDisk = 0x0013;
-		for (i = 0; i <= 7; i = i + 2) {
+		for (i = 0; i <= 14; i = i + 2) {
 			if ((tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256) != 0) {
 				pDisk_read(disk, (tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256), tempDisk_child->char_data);
 				if (strncmp((tempDisk_child->char_data + 1), name, 7) == 0) {
 					//return exist here
 					currentPCB->CurrentLocationDisk = (tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256);
-					return tempDisk->char_data[0];
+					return tempDisk_child->char_data[0];
 				}
 			}
 			else {
@@ -1291,5 +1292,156 @@ int open_dir(long disk, char* name,int fileOrDir) {
 		}
 		return -1;//no space
 	}
+
+}
+
+
+
+///close file
+int close_file(long Inode) {
+	int i;
+	int disk = currentPCB->diskID;
+	int root = 0x0011;
+	DISK_DATA* tempDisk;
+	tempDisk = calloc(1, sizeof(DISK_DATA));
+	DISK_DATA* tempDisk_next;
+	tempDisk_next = calloc(1, sizeof(DISK_DATA));
+	DISK_DATA* tempDisk_next_1;
+	tempDisk_next_1 = calloc(1, sizeof(DISK_DATA));
+	DISK_DATA* tempDisk_parent;
+	tempDisk_parent = calloc(1, sizeof(DISK_DATA));
+
+	pDisk_read(disk, currentPCB->CurrentLocationDisk, tempDisk_parent->char_data);
+	if (tempDisk_parent->char_data[0] != Inode) {
+		return -1;
+	}
+	else {
+		Inode = tempDisk_parent->char_data[11] >> 3;
+	}
+
+
+	pDisk_read(disk, 0x0011, tempDisk_next->char_data);
+	if (tempDisk_next->char_data[0] == Inode) {
+		currentPCB->CurrentLocationDisk = root;
+		return 0;
+	}
+	else {
+		pDisk_read(disk, tempDisk_next->char_data[13] * 256 + tempDisk_next->char_data[12], tempDisk->char_data);
+		for (i = 0; i <= 14; i = i + 2) {
+			if ((tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256) != 0) {
+				pDisk_read(disk, (tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256), tempDisk_next_1->char_data);
+				if (tempDisk_next_1->char_data[0] == Inode) {
+					//return exist here
+					currentPCB->CurrentLocationDisk = (tempDisk->char_data[i] + tempDisk->char_data[i + 1] * 256);
+					return tempDisk->char_data[0];
+				}
+			}
+		}
+		return -1;
+	}
+}
+
+
+///Write file
+//input : read_write: write = 1; read = 0;
+int readwrite_file(long Inode, long Index, long dataWrite,long read_write) {
+
+	int indexLevel;
+	int fileSize;
+	int returnSuccess;
+	DISK_DATA* tempDisk_file;
+	tempDisk_file = calloc(1, sizeof(DISK_DATA));
+	//check Inode first
+	pDisk_read(currentPCB->diskID, currentPCB->CurrentLocationDisk, tempDisk_file->char_data);
+	fileSize = tempDisk_file->char_data[14] + tempDisk_file->char_data[15] * 256;
+	if (tempDisk_file->char_data[0] != Inode) {
+		return -1;
+	}
+	//check the indexlevel
+	indexLevel = tempDisk_file->char_data[11] >> 1 & 0x03;
+	//index level = 0  = 1 or = 2
+	if (indexLevel == 1) {
+		if (fileSize < 9) {
+			//write data
+			if (read_write == 1) {
+				write_file_level0(currentPCB->diskID, currentPCB->CurrentLocationDisk, dataWrite);
+				//file size +1
+				fileSize++;
+				tempDisk_file->char_data[14] = (fileSize & 255);
+				tempDisk_file->char_data[15] = ((fileSize >> 8) & 255);
+				//write back the header
+				pDisk_write(currentPCB->diskID, currentPCB->CurrentLocationDisk, tempDisk_file->char_data);
+				//return success
+				return 0;
+			}
+			else {
+				//read data
+				read_file_level0(currentPCB->diskID, currentPCB->CurrentLocationDisk,Index, dataWrite);
+				return 0;
+			}
+		}
+		else {
+			return -1;//no space for the file
+		}
+		
+	}
+	else if (indexLevel == 2) {
+		// find the next level and write data
+	}
+	else if (indexLevel == 3){
+		//find the next two level and write data
+	}
+	else {
+		return -1;//indexlevel not correct
+	}
+}
+
+///write file basic function
+void write_file_level0(long disk, long sector, long dataWrite) {
+	int i;
+	int locatemp;
+	int nextSpace;
+	DISK_DATA* tempDisk_file;
+	tempDisk_file = calloc(1, sizeof(DISK_DATA));
+	DISK_DATA* tempDisk_pointer;
+	tempDisk_pointer = calloc(1, sizeof(DISK_DATA));
+
+
+	pDisk_read(disk, sector, tempDisk_file->char_data);
+	locatemp = tempDisk_file->char_data[13] * 256 + tempDisk_file->char_data[12];
+	pDisk_read(disk, locatemp, tempDisk_pointer->char_data);
+
+	for (i = 0; i <= 14; i = i + 2) {
+		if ((tempDisk_pointer->char_data[i] + tempDisk_pointer->char_data[i + 1] * 256) == 0) {
+			nextSpace = findFirst0Bitmap(disk);
+			tempDisk_pointer->char_data[i] = (nextSpace & 255);
+			tempDisk_pointer->char_data[i + 1] = ((nextSpace >> 8) & 255);
+			pDisk_write(disk, locatemp, tempDisk_pointer);
+			setBitmap(disk, 0x0001, nextSpace);
+			//write data
+			pDisk_write(disk, nextSpace, dataWrite);
+			break;
+			}
+	}
+
+}
+
+//read file
+void read_file_level0(long disk, long sector, long Index, long dataWrite) {
+	int i;
+	int locatemp;
+	int nextSpace;
+	DISK_DATA* tempDisk_file;
+	tempDisk_file = calloc(1, sizeof(DISK_DATA));
+	DISK_DATA* tempDisk_pointer;
+	tempDisk_pointer = calloc(1, sizeof(DISK_DATA));
+	pDisk_read(disk, sector, tempDisk_file->char_data);
+	locatemp = tempDisk_file->char_data[13] * 256 + tempDisk_file->char_data[12];
+	pDisk_read(disk, locatemp, tempDisk_pointer->char_data);
+
+	nextSpace = (tempDisk_pointer->char_data[Index*2] + tempDisk_pointer->char_data[Index *2+ 1] * 256);
+	pDisk_read(disk, nextSpace, dataWrite);
+
+
 
 }

@@ -722,6 +722,25 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 				*(long*)SystemCallData->Argument[2] = ERR_BAD_PARAM;
 			}
 			break;
+		case SYSNUM_CLOSE_FILE:
+			Dir = close_file((long)SystemCallData->Argument[0]);
+			if (Dir == -1) {
+				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+			}
+			break;
+		case SYSNUM_WRITE_FILE:
+			Dir = readwrite_file((long)SystemCallData->Argument[0], (long)SystemCallData->Argument[1], (long)(char*)SystemCallData->Argument[2],1);
+			if (Dir == -1) {
+				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+			}
+			break;
+		case SYSNUM_READ_FILE:
+			Dir = readwrite_file((long)SystemCallData->Argument[0], (long)SystemCallData->Argument[1], (long)(char*)SystemCallData->Argument[2],0);
+			if (Dir == -1) {
+				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+			}
+			break;
+			break;
 		
 		default:
 			printf("ERROR. Unrecognized call type");
