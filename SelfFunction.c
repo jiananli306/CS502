@@ -1445,3 +1445,52 @@ void read_file_level0(long disk, long sector, long Index, long dataWrite) {
 
 
 }
+
+//dir content
+void dir_content() {
+	int i;
+	int j;
+	int locatemp;
+	DISK_DATA* tempDisk_file;
+	tempDisk_file = calloc(1, sizeof(DISK_DATA));
+	DISK_DATA* tempDisk_pointer;
+	tempDisk_pointer = calloc(1, sizeof(DISK_DATA));
+	DISK_DATA* tempDisk_child;
+	tempDisk_child = calloc(1, sizeof(DISK_DATA));
+	//check Inode first
+	pDisk_read(currentPCB->diskID, currentPCB->CurrentLocationDisk, tempDisk_file->char_data);
+	//print dir name
+	printf("Contents of Directory ");
+	for (i = 1; i <= 8; i++) {
+		printf("%c", tempDisk_file->char_data[i]);
+	}
+	printf(": \n");
+
+	printf("Inode,Filename,D/F,Creation Time, File Size \n");
+	//print each Inode
+	locatemp = tempDisk_file->char_data[13] * 256 + tempDisk_file->char_data[12];
+	pDisk_read(currentPCB->diskID, locatemp, tempDisk_pointer->char_data);
+
+	for (i = 0; i <= 14; i = i + 2) {
+		if ((tempDisk_pointer->char_data[i] + tempDisk_pointer->char_data[i + 1] * 256) != 0) {
+			pDisk_read(currentPCB->diskID, (tempDisk_pointer->char_data[i] + tempDisk_pointer->char_data[i + 1] * 256), tempDisk_child->char_data);
+			printf("  %d   ", tempDisk_child->char_data[0]);
+			for (j = 1; j <= 8; j++) {
+				printf("%c", tempDisk_file->char_data[j]);
+			}
+			printf("  ");
+			if ((tempDisk_file->char_data[11] & 0x01) == 1) {
+				printf("D   ");
+			}
+			else {
+				printf("F   ");
+			}
+			printf("%d          ",(tempDisk_file->char_data[8]*256*256 + tempDisk_file->char_data[9] * 256 + tempDisk_file->char_data[10]));
+			printf("%d\n", (tempDisk_file->char_data[15] * 256 + tempDisk_file->char_data[14]));
+			
+		}
+	}
+
+
+
+}

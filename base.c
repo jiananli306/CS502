@@ -707,11 +707,14 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			if ((long)SystemCallData->Argument[0] >= -1 && (long)SystemCallData->Argument[0] <= 7) {
 				Dir = open_dir((long)SystemCallData->Argument[0],(char*)SystemCallData->Argument[1],1);
 				if (Dir == -1) {
-					*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+					*(long*)SystemCallData->Argument[2] = ERR_BAD_PARAM;
+				}
+				else {
+					*(long*)SystemCallData->Argument[2] = ERR_SUCCESS;
 				}
 			}
 			else {
-				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+				*(long*)SystemCallData->Argument[2] = ERR_BAD_PARAM;
 			}
 			break;
 		case SYSNUM_OPEN_FILE:
@@ -731,15 +734,23 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 		case SYSNUM_WRITE_FILE:
 			Dir = readwrite_file((long)SystemCallData->Argument[0], (long)SystemCallData->Argument[1], (long)(char*)SystemCallData->Argument[2],1);
 			if (Dir == -1) {
-				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+				*(long*)SystemCallData->Argument[3] = ERR_BAD_PARAM;
 			}
 			break;
 		case SYSNUM_READ_FILE:
 			Dir = readwrite_file((long)SystemCallData->Argument[0], (long)SystemCallData->Argument[1], (long)(char*)SystemCallData->Argument[2],0);
 			if (Dir == -1) {
-				*(long*)SystemCallData->Argument[1] = ERR_BAD_PARAM;
+				*(long*)SystemCallData->Argument[3] = ERR_BAD_PARAM;
 			}
 			break;
+		case SYSNUM_DIR_CONTENTS:
+			if (currentPCB->CurrentLocationDisk != 0) {
+				dir_content();
+				*(long*)SystemCallData->Argument[0] = ERR_SUCCESS;
+			}
+			else {
+				*(long*)SystemCallData->Argument[0] = ERR_BAD_PARAM;
+			}
 			break;
 		
 		default:
