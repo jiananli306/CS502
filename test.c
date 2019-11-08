@@ -1366,7 +1366,7 @@ void test24(void) {
 
 	OPEN_FILE("Test24", &Inode, &ErrorReturned);
 	SuccessExpected(ErrorReturned, "OPEN_FILE of file Test24");
-
+	SLEEP(10000);
 	CREATE_DIR("Dir24", &ErrorReturned);
 	SuccessExpected(ErrorReturned, "CREATE_DIR of directory Dir 24");
 

@@ -77,10 +77,10 @@ void InterruptHandler(void) {
 	
 
 	//allocate memory for pcb
-	timerpcb = (PCB*)malloc(sizeof(PCB));
+	timerpcb = calloc(1,sizeof(PCB));
 	if (timerpcb == 0)
 		printf("We didn't complete the malloc in pcb.");
-	diskpcb = (PCB*)malloc(sizeof(PCB));
+	diskpcb = calloc(1,sizeof(PCB));
 	if (diskpcb == 0)
 		printf("We didn't complete the malloc in pcb.");
 
@@ -317,7 +317,7 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 
 
 	//char dataWrite_temp[16];
-	newPCB = (PCB*)malloc(sizeof(PCB));
+	newPCB = calloc(1,sizeof(PCB));
 	if (newPCB == 0)
 		printf("We didn't complete the malloc in pcb.");
 	void* PageTable = (void*)calloc(2, NUMBER_VIRTUAL_PAGES);

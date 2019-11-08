@@ -120,6 +120,7 @@ typedef struct ProcessControlBlock {
 	INT32 sector;
 	DISK_DATA  *DiskData;
 	INT32	CurrentLocationDisk;
+	INT32   CurrentFileDisk;
 	//message
 	//Message_DATA *MessageData;
 	long    target_pid;
