@@ -718,7 +718,9 @@ void svc(SYSTEM_CALL_DATA *SystemCallData) {
 			}
 			break;
 		case SYSNUM_OPEN_FILE:
+			//READ_MODIFY(FileQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED,&LockResult_timer);
 			Dir = open_dir(-1, (char*)SystemCallData->Argument[0],0);
+			//READ_MODIFY(FileQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,&LockResult_timer);
 			*(long*)SystemCallData->Argument[1] = Dir;
 
 			if (Dir == -1) {

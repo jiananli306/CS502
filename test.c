@@ -1789,7 +1789,9 @@ void testZ(void) {
 				(int) WhichFile);
 
 		// Open the existing file
+		CHECK_DISK(DiskID, &ErrorReturned);
 		OPEN_FILE(Filename, &Inode, &ErrorReturned);
+		CHECK_DISK(DiskID, &ErrorReturned);
 		SuccessExpected(ErrorReturned, "OPEN_FILE");
 		aprintf("Completed system call OPEN_FILE\n");
 
@@ -1800,6 +1802,7 @@ void testZ(void) {
 				WriteBuffer[Index2] = Index;
 			}
 			WRITE_FILE(Inode, (long )Index, &WriteBuffer, &ErrorReturned);
+			CHECK_DISK(DiskID, &ErrorReturned);
 			SuccessExpected(ErrorReturned, "WRITE_FILE");
 		}
 		CLOSE_FILE(Inode, &ErrorReturned);

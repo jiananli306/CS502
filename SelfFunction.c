@@ -154,6 +154,12 @@ void osCreatProcess(int argc, char* argv[]) {
 		else if (strcmp(argv[1], "test24") == 0) { mmio.Field2 = (long)test24; pcb->address = mmio.Field2; strcpy(pcb->processName, "test24"); scheduleprinterFlag = 0; }
 		else if (strcmp(argv[1], "test25") == 0) { mmio.Field2 = (long)test25; pcb->address = mmio.Field2; strcpy(pcb->processName, "test25"); scheduleprinterFlag = 0; }
 		else if (strcmp(argv[1], "test26") == 0) { mmio.Field2 = (long)test26; pcb->address = mmio.Field2; strcpy(pcb->processName, "test26"); scheduleprinterFlag = 0; }
+		else if (strcmp(argv[1], "test41") == 0) { mmio.Field2 = (long)test41; pcb->address = mmio.Field2; strcpy(pcb->processName, "test41"); scheduleprinterFlag = 0; }
+		else if (strcmp(argv[1], "test42") == 0) { mmio.Field2 = (long)test42; pcb->address = mmio.Field2; strcpy(pcb->processName, "test42"); scheduleprinterFlag = 0; }
+		else if (strcmp(argv[1], "test43") == 0) { mmio.Field2 = (long)test43; pcb->address = mmio.Field2; strcpy(pcb->processName, "test43"); scheduleprinterFlag = 0; }
+		else if (strcmp(argv[1], "test44") == 0) { mmio.Field2 = (long)test44; pcb->address = mmio.Field2; strcpy(pcb->processName, "test44"); scheduleprinterFlag = 0; }
+		else if (strcmp(argv[1], "test45") == 0) { mmio.Field2 = (long)test45; pcb->address = mmio.Field2; strcpy(pcb->processName, "test45"); scheduleprinterFlag = 0; }
+		else if (strcmp(argv[1], "test46") == 0) { mmio.Field2 = (long)test46; pcb->address = mmio.Field2; strcpy(pcb->processName, "test46"); scheduleprinterFlag = 0; }
 		//else if (strcmp(argv[1], "testX") == 0) { mmio.Field2 = (long)testX; pcb->address = mmio.Field2; strncpy(pcb->processName, "testX", sizeof("testX")); }
 
 	}

@@ -35,6 +35,7 @@ INT32 scheduleprinterCounter; // for partial N <= 50 print
 #define			Disk_7_lock			(MEMORY_INTERLOCK_BASE + 12)
 
 #define			tempQueue_lock		(MEMORY_INTERLOCK_BASE + 13)
+#define			FileQueue_lock		(MEMORY_INTERLOCK_BASE + 14)
 
 //char Success[] = "      Action Failed\0        Action Succeeded";
 INT32 LockResult_timer;
