@@ -112,6 +112,19 @@ void osCreatProcess(int argc, char* argv[]) {
 	//create a message_sendqueue for sending message to stay
 	message_sendqueue = QCreate("message_sendqueue");
 	printf("%s\n", QGetName(message_sendqueue));
+	///
+
+
+	//set shadow page table
+	for (int i = 0; i < MAX_Process_number; i++)
+	{
+		for (int j = 0; j < NUMBER_VIRTUAL_PAGES; j++)
+		{
+			ShaowPageTable[i][j] = 1;
+		}
+	}
+
+
 
 	//create 8 disk queue
 	int i = 0;
@@ -1588,5 +1601,46 @@ void dir_content() {
 	}
 
 
+
+}
+///memory part start here
+
+int findFirst0Bitmap_mem() {
+	int i;
+	int n;
+	char tempFrametable[9];
+	strcpy(tempFrametable, FrameTable);
+	
+	   //printf("input check binary: %d\n", FrameTable[0]);
+		for (i = 0; i <= 7; i++) {
+			
+			n = 0;
+			if ((tempFrametable[i] & 0x0F) == 0) { n = n + 4; tempFrametable[i] = tempFrametable[i] >> 4; }
+			if ((tempFrametable[i] & 0x03) == 0) { n = n + 2; tempFrametable[i] = tempFrametable[i] >> 2; }
+			if ((tempFrametable[i] & 0x01) == 0) { n = n + 1; }
+			if ((tempFrametable[i] & 0xFF) == 0) { n = 8; }
+			if (n != 0) {
+				//printf(" check binary: %d\n", FrameTable[0]);
+				return (i * 8 + (8 - n));
+			}
+		}
+
+	return -1;//no empty space
+}
+
+
+void setBitmap_mem(long frameLocation) {
+	
+	int bitTemp = 1;
+	int withinBlock = 0;
+	int withinBytes = 0;
+	int sector = 0;
+
+	withinBlock = (frameLocation) / 8;
+	withinBytes = (frameLocation) % 8;
+	//printf("input: %d\n", frameLocation);
+	//printf("binary: %d\n", FrameTable[0]);
+	FrameTable[withinBlock] = FrameTable[withinBlock] + (bitTemp << (7 - withinBytes));
+	//printf("binary: %d\n", FrameTable[0]);
 
 }

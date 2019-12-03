@@ -134,6 +134,9 @@ typedef struct ProcessControlBlock {
 }PCB;
 
 PCB *currentPCB;
+//memory part
+int ShaowPageTable[MAX_Process_number][NUMBER_VIRTUAL_PAGES];
+char FrameTable[8];//represent 64 frame table size for bit map
 
 ///PCB queue
 ///1. ready queue 2.suspend queue 3.block queue
@@ -145,6 +148,7 @@ INT32 QID_suspendbyMessage;//recieve message but is not there
 INT32 QID_temp;//temp Q for search
 INT32 QID_disk[8];
 INT32 message_sendqueue;//send message and wait for recieve queue
+INT32 memoryqueue;
 //INT32 QID_terminated;//terminated process
 extern void dispatcher();
 extern void osCreatProcess(int argc, char* argv[]);
@@ -177,3 +181,6 @@ extern int readwrite_file(long Inode, long Index, long dataWrite,long read_write
 extern void write_file_level0(long disk,long sector,long dataWrite);
 extern void read_file_level0(long disk, long sector,long Index, long dataWrite);
 extern void dir_content();
+///memory function
+extern int findFirst0Bitmap_mem();
+extern void setBitmap_mem(long frameLocation);

@@ -268,10 +268,12 @@ void FaultHandler(void) {
     INT32 DeviceID;
     INT32 Status;
     MEMORY_MAPPED_IO mmio;       // Enables communication with hardware
+	short* currentPagetable;
+	INT32 frameLocation;
 
     static BOOL remove_this_from_your_fault_code = TRUE; 
     static INT32 how_many_fault_entries = 0; 
-
+	
     // Get cause of fault
     mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
     mmio.Mode = Z502GetInterruptInfo;
@@ -288,6 +290,59 @@ void FaultHandler(void) {
             aprintf("FaultHandler: Found device ID %d with status %d\n",
                             (int) mmio.Field1, (int) mmio.Field2);
     }
+	while (mmio.Field4 == ERR_SUCCESS) {
+		if (DeviceID == INVALID_MEMORY) {
+			//printf("INVALID_MEMORY \n");
+			if (Status >= NUMBER_VIRTUAL_PAGES|| Status < 0) //status no correct
+			{//halt the system
+				mmio.Mode = Z502Action;
+				mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+				MEM_WRITE(Z502Halt, &mmio);
+			}
+			//first fault, set up the page table
+			if ((ShaowPageTable[currentPCB->PID][Status] & PTBL_REFERENCED_BIT) >> 13 == 0) {
+				currentPagetable = currentPCB->pageTable;
+				frameLocation = findFirst0Bitmap_mem();
+				if (frameLocation == -1) {
+					mmio.Mode = Z502Action;
+					mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+					MEM_WRITE(Z502Halt, &mmio);
+				}
+				//printf("***********: frameLocation: %d \n", frameLocation);
+				currentPagetable[Status] = (short)PTBL_VALID_BIT | (frameLocation & PTBL_PHYS_PG_NO);
+				ShaowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (frameLocation & PTBL_PHYS_PG_NO);
+				setBitmap_mem(frameLocation);
+			}
+			else {
+				printf("nooooooooooooooooooooooooooooo \n");
+			}
+
+
+
+		}
+		else if (DeviceID == INVALID_PHYSICAL_MEMORY)
+		{
+			printf("INVALID_PHYSICAL_MEMORY \n");
+		}
+		else if (DeviceID == CPU_ERROR)
+		{
+			printf("CPU_ERROR \n");
+		}
+		else if (DeviceID == PRIVILEGED_INSTRUCTION)
+		{
+			printf("PRIVILEGED_INSTRUCTION \n");
+		}
+
+
+		mmio.Mode = Z502GetInterruptInfo;
+		mmio.Field1 = mmio.Field2 = mmio.Field3 = mmio.Field4 = 0;
+		MEM_READ(Z502InterruptDevice, &mmio);
+		DeviceID = mmio.Field1;
+		Status = mmio.Field2;
+	}
+
+
+
 
 } // End of FaultHandler
 
