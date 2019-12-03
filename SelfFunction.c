@@ -120,7 +120,7 @@ void osCreatProcess(int argc, char* argv[]) {
 	{
 		for (int j = 0; j < NUMBER_VIRTUAL_PAGES; j++)
 		{
-			ShaowPageTable[i][j] = 1;
+			ShadowPageTable[i][j] = 1;
 		}
 	}
 

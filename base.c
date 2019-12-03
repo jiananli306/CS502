@@ -300,21 +300,43 @@ void FaultHandler(void) {
 				MEM_WRITE(Z502Halt, &mmio);
 			}
 			//first fault, set up the page table
-			if ((ShaowPageTable[currentPCB->PID][Status] & PTBL_REFERENCED_BIT) >> 13 == 0) {
+			if ((ShadowPageTable[currentPCB->PID][Status] & PTBL_REFERENCED_BIT) >> 13 == 0) {
 				currentPagetable = currentPCB->pageTable;
 				frameLocation = findFirst0Bitmap_mem();
-				if (frameLocation == -1) {
+				if (frameLocation == -1) {//no frame available
+					//random method to choose one into swap area
+					int r = rand() % 64;
+					printf("***************number to choose: %d \n", r);
+					//put the choose one into swap area
+					//set it to the shadow pagetable
+					char memory_read[16] = {0};
+					pDisk_write(DeviceID, r, (long)memory_read);
+					pDisk_read(DeviceID, r, (long)memory_read);
+					//Z502WritePhysicalMemory(frameLocation, (char*)memory_read);
+					currentPagetable[Status] = (short)PTBL_VALID_BIT | (r & PTBL_PHYS_PG_NO);
+					ShadowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (r & PTBL_PHYS_PG_NO);
+				}else{
+				//printf("***********: frameLocation: %d \n", frameLocation);
+				currentPagetable[Status] = (short)PTBL_VALID_BIT | (frameLocation & PTBL_PHYS_PG_NO);
+				ShadowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (frameLocation & PTBL_PHYS_PG_NO);
+				setBitmap_mem(frameLocation);
+				}
+			}
+			else {// memory address used before
+				currentPagetable = currentPCB->pageTable;
+				frameLocation = findFirst0Bitmap_mem();
+				if (frameLocation == -1) {//no frame available
 					mmio.Mode = Z502Action;
 					mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 					MEM_WRITE(Z502Halt, &mmio);
 				}
 				//printf("***********: frameLocation: %d \n", frameLocation);
 				currentPagetable[Status] = (short)PTBL_VALID_BIT | (frameLocation & PTBL_PHYS_PG_NO);
-				ShaowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (frameLocation & PTBL_PHYS_PG_NO);
+				//char memory_read[16] = {0};
+				//pDisk_read(DeviceID, 100, (long)memory_read);
+				//Z502WritePhysicalMemory(frameLocation, (char*)memory_read);
+				ShadowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (frameLocation & PTBL_PHYS_PG_NO);
 				setBitmap_mem(frameLocation);
-			}
-			else {
-				printf("nooooooooooooooooooooooooooooo \n");
 			}
 
 

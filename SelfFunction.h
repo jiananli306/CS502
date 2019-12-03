@@ -135,7 +135,7 @@ typedef struct ProcessControlBlock {
 
 PCB *currentPCB;
 //memory part
-int ShaowPageTable[MAX_Process_number][NUMBER_VIRTUAL_PAGES];
+int ShadowPageTable[MAX_Process_number][NUMBER_VIRTUAL_PAGES];
 char FrameTable[8];//represent 64 frame table size for bit map
 
 ///PCB queue
