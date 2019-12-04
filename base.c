@@ -225,37 +225,37 @@ void InterruptHandler(void) {
 					printf("***************should not be here!!!!**** no disk in the queue**********\n");
 				}
 				READ_MODIFY(lock_disk, DO_UNLOCK, SUSPEND_UNTIL_LOCKED,
-				&LockResult_disk[0]);
+					&LockResult_disk[0]);
 
 		}
 		else {
-				printf("***************should not be here!!!!**************\n");
+		printf("***************should not be here!!!!**************\n");
 			}
 			//catch next interrput
 				// Get cause of interrupt
-			mmio.Mode = Z502GetInterruptInfo;
-			mmio.Field1 = mmio.Field2 = mmio.Field3 = mmio.Field4 = 0;
-			MEM_READ(Z502InterruptDevice, &mmio);
-			DeviceID = mmio.Field1;
-			Status = mmio.Field2;
+				mmio.Mode = Z502GetInterruptInfo;
+				mmio.Field1 = mmio.Field2 = mmio.Field3 = mmio.Field4 = 0;
+				MEM_READ(Z502InterruptDevice, &mmio);
+				DeviceID = mmio.Field1;
+				Status = mmio.Field2;
 		}
-	
+
 		//dispatcher();
 
 
    /* if (mmio.Field4 != ERR_SUCCESS) {
-        aprintf( "The InterruptDevice call in the InterruptHandler has failed.\n");
-        aprintf("The DeviceId and Status that were returned are not valid.\n");
-    }*/
-    // HAVE YOU CHECKED THAT THE INTERRUPTING DEVICE FINISHED WITHOUT ERROR?
+		aprintf( "The InterruptDevice call in the InterruptHandler has failed.\n");
+		aprintf("The DeviceId and Status that were returned are not valid.\n");
+	}*/
+	// HAVE YOU CHECKED THAT THE INTERRUPTING DEVICE FINISHED WITHOUT ERROR?
 	//if it is a timer interrupt
 
-    ///** REMOVE THESE SIX LINES **/
-    //how_many_interrupt_entries++; /** TEMP **/
-    //if (remove_this_from_your_interrupt_code && (how_many_interrupt_entries < 10)) {
-    //    aprintf("InterruptHandler: Found device ID %d with status %d\n",
-    //            DeviceID, Status);
-    //}
+	///** REMOVE THESE SIX LINES **/
+	//how_many_interrupt_entries++; /** TEMP **/
+	//if (remove_this_from_your_interrupt_code && (how_many_interrupt_entries < 10)) {
+	//    aprintf("InterruptHandler: Found device ID %d with status %d\n",
+	//            DeviceID, Status);
+	//}
 
 }           // End of InterruptHandler
 
@@ -265,42 +265,42 @@ void InterruptHandler(void) {
  ************************************************************************/
 
 void FaultHandler(void) {
-    INT32 DeviceID;
-    INT32 Status;
-    MEMORY_MAPPED_IO mmio;       // Enables communication with hardware
+	INT32 DeviceID;
+	INT32 Status;
+	MEMORY_MAPPED_IO mmio;       // Enables communication with hardware
 	short* currentPagetable;
 	INT32 frameLocation;
 
-    static BOOL remove_this_from_your_fault_code = TRUE; 
-    static INT32 how_many_fault_entries = 0; 
-	
-    // Get cause of fault
-    mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
-    mmio.Mode = Z502GetInterruptInfo;
-    MEM_READ(Z502InterruptDevice, &mmio);
-    DeviceID = mmio.Field1;
-    Status   = mmio.Field2;
+	static BOOL remove_this_from_your_fault_code = TRUE;
+	static INT32 how_many_fault_entries = 0;
 
-    // This causes a print of the first few faults - and then stops printing!
-    // You can adjust this as you wish.  BUT this code as written here gives
-    // an indication of what's happening but then stops printing for long tests
-    // thus limiting the output.
-    how_many_fault_entries++; 
-    if (remove_this_from_your_fault_code && (how_many_fault_entries < 10)) {
-            aprintf("FaultHandler: Found device ID %d with status %d\n",
-                            (int) mmio.Field1, (int) mmio.Field2);
-    }
+	// Get cause of fault
+	mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+	mmio.Mode = Z502GetInterruptInfo;
+	MEM_READ(Z502InterruptDevice, &mmio);
+	DeviceID = mmio.Field1;
+	Status = mmio.Field2;
+
+	// This causes a print of the first few faults - and then stops printing!
+	// You can adjust this as you wish.  BUT this code as written here gives
+	// an indication of what's happening but then stops printing for long tests
+	// thus limiting the output.
+	how_many_fault_entries++;
+	if (remove_this_from_your_fault_code && (how_many_fault_entries < 10)) {
+		aprintf("FaultHandler: Found device ID %d with status %d\n",
+			(int)mmio.Field1, (int)mmio.Field2);
+	}
 	while (mmio.Field4 == ERR_SUCCESS) {
 		if (DeviceID == INVALID_MEMORY) {
 			//printf("INVALID_MEMORY \n");
-			if (Status >= NUMBER_VIRTUAL_PAGES|| Status < 0) //status no correct
+			if (Status >= NUMBER_VIRTUAL_PAGES || Status < 0) //status no correct
 			{//halt the system
 				mmio.Mode = Z502Action;
 				mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 				MEM_WRITE(Z502Halt, &mmio);
 			}
 			//first fault, set up the page table
-			if ((ShadowPageTable[currentPCB->PID][Status] & PTBL_REFERENCED_BIT) >> 13 == 0) {
+			if ((ShadowPageTable[currentPCB->PID][Status] & PTBL_REFERENCED_BIT) == 0) {
 				currentPagetable = currentPCB->pageTable;
 				frameLocation = findFirst0Bitmap_mem();
 				if (frameLocation == -1) {//no frame available
@@ -309,20 +309,27 @@ void FaultHandler(void) {
 					printf("***************number to choose: %d \n", r);
 					//put the choose one into swap area
 					//set it to the shadow pagetable
-					char memory_read[16] = {0};
+					char memory_read[16] = { 0 };
 					pDisk_write(DeviceID, r, (long)memory_read);
 					pDisk_read(DeviceID, r, (long)memory_read);
 					//Z502WritePhysicalMemory(frameLocation, (char*)memory_read);
 					currentPagetable[Status] = (short)PTBL_VALID_BIT | (r & PTBL_PHYS_PG_NO);
 					ShadowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (r & PTBL_PHYS_PG_NO);
-				}else{
-				//printf("***********: frameLocation: %d \n", frameLocation);
-				currentPagetable[Status] = (short)PTBL_VALID_BIT | (frameLocation & PTBL_PHYS_PG_NO);
-				ShadowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (frameLocation & PTBL_PHYS_PG_NO);
-				setBitmap_mem(frameLocation);
+				}
+				else {
+					//printf("***********: frameLocation: %d \n", frameLocation);
+					currentPagetable[Status] = (short)PTBL_VALID_BIT | (frameLocation & PTBL_PHYS_PG_NO);
+					ShadowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (frameLocation & PTBL_PHYS_PG_NO);
+					setBitmap_mem(frameLocation);
 				}
 			}
 			else {// memory address used before
+				if (ShadowPageTable[currentPCB->PID][Status] | 0x7FFF == 0xFFFF){
+					aprintf("PageOffset not correct, halt the system \n");
+					mmio.Mode = Z502Action;
+					mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
+					MEM_WRITE(Z502Halt, &mmio);
+				}
 				currentPagetable = currentPCB->pageTable;
 				frameLocation = findFirst0Bitmap_mem();
 				if (frameLocation == -1) {//no frame available
