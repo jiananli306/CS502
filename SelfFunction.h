@@ -36,6 +36,7 @@ INT32 scheduleprinterCounter; // for partial N <= 50 print
 
 #define			tempQueue_lock		(MEMORY_INTERLOCK_BASE + 13)
 #define			FileQueue_lock		(MEMORY_INTERLOCK_BASE + 14)
+#define			MemoryQueue_lock	(MEMORY_INTERLOCK_BASE + 15)
 
 //char Success[] = "      Action Failed\0        Action Succeeded";
 INT32 LockResult_timer;
@@ -44,6 +45,7 @@ INT32 LockResult_suspend;
 INT32 LockResult_suspendbymessage;
 INT32 LockResult_temp;
 INT32 LockResult_disk[8];
+INT32 LockResult_memory;
 
 
 typedef union {
@@ -137,6 +139,17 @@ PCB *currentPCB;
 //memory part
 int ShadowPageTable[MAX_Process_number][NUMBER_VIRTUAL_PAGES];
 char FrameTable[8];//represent 64 frame table size for bit map
+//memory structure 
+typedef struct {
+	INT32	PhysicalMemory;
+	INT32	VirtualPageNumber; 
+	INT32	DiskID;
+	INT32	PID;
+
+}MemoryStuct;
+
+
+
 
 ///PCB queue
 ///1. ready queue 2.suspend queue 3.block queue

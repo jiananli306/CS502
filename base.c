@@ -273,6 +273,12 @@ void FaultHandler(void) {
 
 	static BOOL remove_this_from_your_fault_code = TRUE;
 	static INT32 how_many_fault_entries = 0;
+	MemoryStuct* tempmem;
+	//allocate memory
+	tempmem = calloc(1, sizeof(MemoryStuct));
+	MemoryStuct* tempmem_out;
+	//allocate memory
+	tempmem_out = calloc(1, sizeof(MemoryStuct));
 
 	// Get cause of fault
 	mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
@@ -291,7 +297,9 @@ void FaultHandler(void) {
 			(int)mmio.Field1, (int)mmio.Field2);
 	}
 	while (mmio.Field4 == ERR_SUCCESS) {
+		
 		if (DeviceID == INVALID_MEMORY) {
+			//READ_MODIFY(MemoryQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED, &LockResult_memory);
 			//printf("INVALID_MEMORY \n");
 			if (Status >= NUMBER_VIRTUAL_PAGES || Status < 0) //status no correct
 			{//halt the system
@@ -300,31 +308,55 @@ void FaultHandler(void) {
 				MEM_WRITE(Z502Halt, &mmio);
 			}
 			//first fault, set up the page table
+			//if address never use before
 			if ((ShadowPageTable[currentPCB->PID][Status] & PTBL_REFERENCED_BIT) == 0) {
 				currentPagetable = currentPCB->pageTable;
 				frameLocation = findFirst0Bitmap_mem();
+				//enqueue to the memory queue
+				tempmem->DiskID = currentPCB->PID;
+				tempmem->PID = currentPCB->PID;
+				tempmem->PhysicalMemory = frameLocation;
+				tempmem->VirtualPageNumber = Status;
+				
+				
 				if (frameLocation == -1) {//no frame available
-					//random method to choose one into swap area
-					int r = rand() % 64;
-					printf("***************number to choose: %d \n", r);
+					//FIFO method to choose one into swap area
+					int r;
+					tempmem_out = QRemoveHead(memoryqueue);
+					int rr;
+					rr = tempmem_out->VirtualPageNumber;
+					r = tempmem_out->PhysicalMemory;
 					//put the choose one into swap area
 					//set it to the shadow pagetable
 					char memory_read[16] = { 0 };
-					pDisk_write(DeviceID, r, (long)memory_read);
-					pDisk_read(DeviceID, r, (long)memory_read);
-					//Z502WritePhysicalMemory(frameLocation, (char*)memory_read);
+					Z502ReadPhysicalMemory(r, (char*)memory_read);
+					//set the swap one to invalid
+					currentPagetable[tempmem_out->VirtualPageNumber] = (short)(~PTBL_VALID_BIT) & (currentPagetable[tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO);
+					ShadowPageTable[tempmem_out->DiskID][tempmem_out->VirtualPageNumber] = (short)PTBL_REFERENCED_BIT | ((short)(~PTBL_VALID_BIT) & (currentPagetable[tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO));
+					pDisk_write(tempmem_out->DiskID, rr, (long)memory_read);
+					//pDisk_read(DeviceID, r, (long)memory_read);
+					
+					//set the new one 
+					tempmem->PhysicalMemory = r;
+					QInsertOnTail(memoryqueue, tempmem);
 					currentPagetable[Status] = (short)PTBL_VALID_BIT | (r & PTBL_PHYS_PG_NO);
 					ShadowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (r & PTBL_PHYS_PG_NO);
+					
+					//currentPCB->pageTable = currentPagetable;
 				}
 				else {
 					//printf("***********: frameLocation: %d \n", frameLocation);
+					QInsertOnTail(memoryqueue, tempmem);
 					currentPagetable[Status] = (short)PTBL_VALID_BIT | (frameLocation & PTBL_PHYS_PG_NO);
 					ShadowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (frameLocation & PTBL_PHYS_PG_NO);
 					setBitmap_mem(frameLocation);
+					//currentPCB->pageTable = currentPagetable;
 				}
 			}
 			else {// memory address used before
-				if (ShadowPageTable[currentPCB->PID][Status] | 0x7FFF == 0xFFFF){
+				//check page error
+				if (((short)(ShadowPageTable[currentPCB->PID][Status]|0x7FFF)& (short)(PTBL_VALID_BIT)) == (short)PTBL_VALID_BIT){
+					aprintf("**************** %d \n", (short)(ShadowPageTable[currentPCB->PID][Status] | 0x7FFF));
 					aprintf("PageOffset not correct, halt the system \n");
 					mmio.Mode = Z502Action;
 					mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
@@ -332,25 +364,76 @@ void FaultHandler(void) {
 				}
 				currentPagetable = currentPCB->pageTable;
 				frameLocation = findFirst0Bitmap_mem();
+				//enqueue to the memory queue
+				tempmem->DiskID = currentPCB->PID;
+				tempmem->PID = currentPCB->PID;
+				tempmem->PhysicalMemory = frameLocation;
+				tempmem->VirtualPageNumber = Status;
+				
+				
 				if (frameLocation == -1) {//no frame available
-					mmio.Mode = Z502Action;
-					mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
-					MEM_WRITE(Z502Halt, &mmio);
+					//FIFO method to choose one into swap area
+					int r;
+					tempmem_out = QRemoveHead(memoryqueue);
+					int rr;
+					rr = tempmem_out->VirtualPageNumber;
+					r = tempmem_out->PhysicalMemory;
+					//put the choose one into swap area
+					//set it to the shadow pagetable
+					char memory_read[16] = { 0 };
+					Z502ReadPhysicalMemory(r, (char*)memory_read);
+					//set the swap one to invalid
+					currentPagetable[tempmem_out->VirtualPageNumber] = (short)(~PTBL_VALID_BIT) & (currentPagetable[tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO);
+					ShadowPageTable[tempmem_out->DiskID][tempmem_out->VirtualPageNumber] = (short)PTBL_REFERENCED_BIT | ((short)(~PTBL_VALID_BIT) & (currentPagetable[tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO));
+					pDisk_write(tempmem_out->DiskID, rr, (long)memory_read);
+					/////
+					//set the new one 
+					tempmem->PhysicalMemory = r;
+					//aprintf("framLocation: %d ************\n", r);
+					char memory_Write[16] = { 0 };
+					pDisk_read(tempmem->DiskID, tempmem->VirtualPageNumber, (long)memory_Write);
+					Z502WritePhysicalMemory(r, (char*)memory_Write);
+
+					currentPagetable[Status] = (short)(PTBL_VALID_BIT) | (r & PTBL_PHYS_PG_NO);
+					ShadowPageTable[currentPCB->PID][Status] = (short)PTBL_REFERENCED_BIT | ((short)(PTBL_VALID_BIT) | (r & PTBL_PHYS_PG_NO));
+
+
+
+
+
+					QInsertOnTail(memoryqueue, tempmem);
+					//currentPCB->pageTable = currentPagetable;
+					//currentPagetable[Status] = (short)PTBL_VALID_BIT | (r & PTBL_PHYS_PG_NO);
+					//ShadowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (r & PTBL_PHYS_PG_NO);
 				}
-				//printf("***********: frameLocation: %d \n", frameLocation);
-				currentPagetable[Status] = (short)PTBL_VALID_BIT | (frameLocation & PTBL_PHYS_PG_NO);
-				//char memory_read[16] = {0};
-				//pDisk_read(DeviceID, 100, (long)memory_read);
-				//Z502WritePhysicalMemory(frameLocation, (char*)memory_read);
-				ShadowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (frameLocation & PTBL_PHYS_PG_NO);
-				setBitmap_mem(frameLocation);
+				else {
+					//set to valid
+					//copy from disk
+					char memory_read[16] = { 0 };
+					pDisk_read(DeviceID, Status, (long)memory_read);
+					Z502WritePhysicalMemory(frameLocation, (char*)memory_read);
+
+					currentPagetable[Status] = (short)(PTBL_VALID_BIT) | (frameLocation & PTBL_PHYS_PG_NO);
+					ShadowPageTable[currentPCB->PID][Status] = (short)PTBL_REFERENCED_BIT | ((short)(PTBL_VALID_BIT) | (frameLocation & PTBL_PHYS_PG_NO));
+					
+					QInsertOnTail(memoryqueue, tempmem);
+					//put into that location
+					//currentPagetable[Status] = (short)PTBL_VALID_BIT | (frameLocation & PTBL_PHYS_PG_NO);
+					//char memory_read[16] = {0};
+					//pDisk_read(DeviceID, 100, (long)memory_read);
+					//Z502WritePhysicalMemory(frameLocation, (char*)memory_read);
+					//ShadowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (frameLocation & PTBL_PHYS_PG_NO);
+					setBitmap_mem(frameLocation);
+					//currentPCB->pageTable = currentPagetable;
+				}
 			}
 
-
+			//READ_MODIFY(MemoryQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED, &LockResult_memory);
 
 		}
 		else if (DeviceID == INVALID_PHYSICAL_MEMORY)
 		{
+			aprintf("invalid number %d \n", Status);
 			printf("INVALID_PHYSICAL_MEMORY \n");
 		}
 		else if (DeviceID == CPU_ERROR)
@@ -361,7 +444,7 @@ void FaultHandler(void) {
 		{
 			printf("PRIVILEGED_INSTRUCTION \n");
 		}
-
+		//
 
 		mmio.Mode = Z502GetInterruptInfo;
 		mmio.Field1 = mmio.Field2 = mmio.Field3 = mmio.Field4 = 0;

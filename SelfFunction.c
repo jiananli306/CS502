@@ -112,8 +112,9 @@ void osCreatProcess(int argc, char* argv[]) {
 	//create a message_sendqueue for sending message to stay
 	message_sendqueue = QCreate("message_sendqueue");
 	printf("%s\n", QGetName(message_sendqueue));
-	///
-
+	///create a memory queue for memory mapping
+	memoryqueue = QCreate("memory queue");
+	printf("%s\n", QGetName(memoryqueue));
 
 	//set shadow page table
 	for (int i = 0; i < MAX_Process_number; i++)
