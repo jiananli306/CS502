@@ -371,13 +371,13 @@ void FaultHandler(void) {
 				}
 
 
-				/*if (((short)(ShadowPageTable[currentPCB->PID][Status]|0x7FFF)& (short)(PTBL_VALID_BIT)) == (short)PTBL_VALID_BIT){
+				if (((short)(ShadowPageTable[currentPCB->PID][Status]|0x7FFF)& (short)(PTBL_VALID_BIT)) == (short)PTBL_VALID_BIT){
 					aprintf("**************** %d \n", (short)(ShadowPageTable[currentPCB->PID][Status] | 0x7FFF));
 					aprintf("PageOffset not correct, halt the system \n");
 					mmio.Mode = Z502Action;
 					mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 					MEM_WRITE(Z502Halt, &mmio);
-				}*/
+				}
 				currentPagetable = currentPCB->pageTable;
 				frameLocation = findFirst0Bitmap_mem();
 				//enqueue to the memory queue
@@ -454,6 +454,7 @@ void FaultHandler(void) {
 			}
 
 			//READ_MODIFY(MemoryQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED, &LockResult_memory);
+			memory_print();
 
 		}
 		else if (DeviceID == INVALID_PHYSICAL_MEMORY)

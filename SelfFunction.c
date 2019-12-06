@@ -89,8 +89,9 @@ void osCreatProcess(int argc, char* argv[]) {
 	pcb = calloc(1,sizeof(PCB));
 	if (pcb == 0)
 		printf("We didn't complete the malloc in pcb.");
-
-	
+	for (int i = 0; i < 8; i++) {
+		FrameTable[i] = 0;
+	}
 	//create a ready queue to store pcb
 	QID_ready = QCreate("readyQueue");
 	printf("%s\n", QGetName(QID_ready));
@@ -146,34 +147,39 @@ void osCreatProcess(int argc, char* argv[]) {
 
 	//check which test we will run
 	if (argc > 1) { 
-		if (strcmp(argv[1], "sample") == 0) { mmio.Field2 = (long)SampleCode; pcb->address = mmio.Field2; strcpy(pcb->processName, "sample"); scheduleprinterFlag = 0;}
-		else if (strcmp(argv[1], "test0") == 0) { mmio.Field2 = (long)test0; pcb->address = mmio.Field2; strcpy(pcb->processName, "test0"); scheduleprinterFlag = 0;}
-		else if (strcmp(argv[1], "test1") == 0) { mmio.Field2 = (long)test1; pcb->address = mmio.Field2; strcpy(pcb->processName, "test01"); scheduleprinterFlag = 0;}
-		else if (strcmp(argv[1], "test2") == 0) { mmio.Field2 = (long)test2; pcb->address = mmio.Field2; strcpy(pcb->processName, "test02"); scheduleprinterFlag = 0;}
-		else if (strcmp(argv[1], "test3") == 0) { mmio.Field2 = (long)test3; pcb->address = mmio.Field2; strcpy(pcb->processName, "test03"); scheduleprinterFlag = 1;}
-		else if (strcmp(argv[1], "test4") == 0) { mmio.Field2 = (long)test4; pcb->address = mmio.Field2; strcpy(pcb->processName, "test04"); scheduleprinterFlag = 1;}
-		else if (strcmp(argv[1], "test5") == 0) { mmio.Field2 = (long)test5; pcb->address = mmio.Field2; strcpy(pcb->processName, "test05"); scheduleprinterFlag = 1;}
-		else if (strcmp(argv[1], "test6") == 0) { mmio.Field2 = (long)test6; pcb->address = mmio.Field2; strcpy(pcb->processName, "test06"); scheduleprinterFlag = 1;}
-		else if (strcmp(argv[1], "test7") == 0) { mmio.Field2 = (long)test7; pcb->address = mmio.Field2; strcpy(pcb->processName, "test07"); scheduleprinterFlag = 1;}
-		else if (strcmp(argv[1], "test8") == 0) { mmio.Field2 = (long)test8; pcb->address = mmio.Field2; strcpy(pcb->processName, "test08"); scheduleprinterFlag = 1;}
-		else if (strcmp(argv[1], "test9") == 0) { mmio.Field2 = (long)test9; pcb->address = mmio.Field2; strcpy(pcb->processName, "test09"); scheduleprinterFlag = 1;}
-		else if (strcmp(argv[1], "test10") == 0) { mmio.Field2 = (long)test10; pcb->address = mmio.Field2; strcpy(pcb->processName, "test10"); scheduleprinterFlag = 1;}
-		else if (strcmp(argv[1], "test11") == 0) { mmio.Field2 = (long)test11; pcb->address = mmio.Field2; strcpy(pcb->processName, "test11"); scheduleprinterFlag = 2;}
-		else if (strcmp(argv[1], "test12") == 0) { mmio.Field2 = (long)test12; pcb->address = mmio.Field2; strcpy(pcb->processName, "test12"); scheduleprinterFlag = 2;}
-		else if (strcmp(argv[1], "test13") == 0) { mmio.Field2 = (long)test13; pcb->address = mmio.Field2; strcpy(pcb->processName, "test13"); scheduleprinterFlag = 2;}
-		else if (strcmp(argv[1], "test14") == 0) { mmio.Field2 = (long)test14; pcb->address = mmio.Field2; strcpy(pcb->processName, "test14"); scheduleprinterFlag = 2;}
-		else if (strcmp(argv[1], "test21") == 0) { mmio.Field2 = (long)test21; pcb->address = mmio.Field2; strcpy(pcb->processName, "test21"); scheduleprinterFlag = 0; }
-		else if (strcmp(argv[1], "test22") == 0) { mmio.Field2 = (long)test22; pcb->address = mmio.Field2; strcpy(pcb->processName, "test22"); scheduleprinterFlag = 0; }
-		else if (strcmp(argv[1], "test23") == 0) { mmio.Field2 = (long)test23; pcb->address = mmio.Field2; strcpy(pcb->processName, "test23"); scheduleprinterFlag = 0; }
-		else if (strcmp(argv[1], "test24") == 0) { mmio.Field2 = (long)test24; pcb->address = mmio.Field2; strcpy(pcb->processName, "test24"); scheduleprinterFlag = 0; }
-		else if (strcmp(argv[1], "test25") == 0) { mmio.Field2 = (long)test25; pcb->address = mmio.Field2; strcpy(pcb->processName, "test25"); scheduleprinterFlag = 0; }
-		else if (strcmp(argv[1], "test26") == 0) { mmio.Field2 = (long)test26; pcb->address = mmio.Field2; strcpy(pcb->processName, "test26"); scheduleprinterFlag = 0; }
-		else if (strcmp(argv[1], "test41") == 0) { mmio.Field2 = (long)test41; pcb->address = mmio.Field2; strcpy(pcb->processName, "test41"); scheduleprinterFlag = 0; }
-		else if (strcmp(argv[1], "test42") == 0) { mmio.Field2 = (long)test42; pcb->address = mmio.Field2; strcpy(pcb->processName, "test42"); scheduleprinterFlag = 0; }
-		else if (strcmp(argv[1], "test43") == 0) { mmio.Field2 = (long)test43; pcb->address = mmio.Field2; strcpy(pcb->processName, "test43"); scheduleprinterFlag = 0; }
-		else if (strcmp(argv[1], "test44") == 0) { mmio.Field2 = (long)test44; pcb->address = mmio.Field2; strcpy(pcb->processName, "test44"); scheduleprinterFlag = 0; }
-		else if (strcmp(argv[1], "test45") == 0) { mmio.Field2 = (long)test45; pcb->address = mmio.Field2; strcpy(pcb->processName, "test45"); scheduleprinterFlag = 0; }
-		else if (strcmp(argv[1], "test46") == 0) { mmio.Field2 = (long)test46; pcb->address = mmio.Field2; strcpy(pcb->processName, "test46"); scheduleprinterFlag = 0; }
+		if (strcmp(argv[1], "sample") == 0) { mmio.Field2 = (long)SampleCode; pcb->address = mmio.Field2; strcpy(pcb->processName, "sample"); scheduleprinterFlag = 0; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test0") == 0) { mmio.Field2 = (long)test0; pcb->address = mmio.Field2; strcpy(pcb->processName, "test0"); scheduleprinterFlag = 0; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test1") == 0) { mmio.Field2 = (long)test1; pcb->address = mmio.Field2; strcpy(pcb->processName, "test01"); scheduleprinterFlag = 0; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test2") == 0) { mmio.Field2 = (long)test2; pcb->address = mmio.Field2; strcpy(pcb->processName, "test02"); scheduleprinterFlag = 0; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test3") == 0) { mmio.Field2 = (long)test3; pcb->address = mmio.Field2; strcpy(pcb->processName, "test03"); scheduleprinterFlag = 1; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test4") == 0) { mmio.Field2 = (long)test4; pcb->address = mmio.Field2; strcpy(pcb->processName, "test04"); scheduleprinterFlag = 1; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test5") == 0) { mmio.Field2 = (long)test5; pcb->address = mmio.Field2; strcpy(pcb->processName, "test05"); scheduleprinterFlag = 1; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test6") == 0) { mmio.Field2 = (long)test6; pcb->address = mmio.Field2; strcpy(pcb->processName, "test06"); scheduleprinterFlag = 1; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test7") == 0) { mmio.Field2 = (long)test7; pcb->address = mmio.Field2; strcpy(pcb->processName, "test07"); scheduleprinterFlag = 1; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test8") == 0) { mmio.Field2 = (long)test8; pcb->address = mmio.Field2; strcpy(pcb->processName, "test08"); scheduleprinterFlag = 1; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test9") == 0) { mmio.Field2 = (long)test9; pcb->address = mmio.Field2; strcpy(pcb->processName, "test09"); scheduleprinterFlag = 1; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test10") == 0) { mmio.Field2 = (long)test10; pcb->address = mmio.Field2; strcpy(pcb->processName, "test10"); scheduleprinterFlag = 1; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test11") == 0) { mmio.Field2 = (long)test11; pcb->address = mmio.Field2; strcpy(pcb->processName, "test11"); scheduleprinterFlag = 2; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test12") == 0) { mmio.Field2 = (long)test12; pcb->address = mmio.Field2; strcpy(pcb->processName, "test12"); scheduleprinterFlag = 2; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test13") == 0) { mmio.Field2 = (long)test13; pcb->address = mmio.Field2; strcpy(pcb->processName, "test13"); scheduleprinterFlag = 2; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test14") == 0) { mmio.Field2 = (long)test14; pcb->address = mmio.Field2; strcpy(pcb->processName, "test14"); scheduleprinterFlag = 2; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test21") == 0) { mmio.Field2 = (long)test21; pcb->address = mmio.Field2; strcpy(pcb->processName, "test21"); scheduleprinterFlag = 0; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test22") == 0) { mmio.Field2 = (long)test22; pcb->address = mmio.Field2; strcpy(pcb->processName, "test22"); scheduleprinterFlag = 0; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test23") == 0) { mmio.Field2 = (long)test23; pcb->address = mmio.Field2; strcpy(pcb->processName, "test23"); scheduleprinterFlag = 1; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test24") == 0) { mmio.Field2 = (long)test24; pcb->address = mmio.Field2; strcpy(pcb->processName, "test24"); scheduleprinterFlag = 2; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test25") == 0) { mmio.Field2 = (long)test25; pcb->address = mmio.Field2; strcpy(pcb->processName, "test25"); scheduleprinterFlag = 2; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test26") == 0) { mmio.Field2 = (long)test26; pcb->address = mmio.Field2; strcpy(pcb->processName, "test26"); scheduleprinterFlag = 2; memoryprinterFlag = 0;}
+		else if (strcmp(argv[1], "test27") == 0) { mmio.Field2 = (long)test27; pcb->address = mmio.Field2; strcpy(pcb->processName, "test27"); scheduleprinterFlag = 0; memoryprinterFlag = 0; }
+		else if (strcmp(argv[1], "test28") == 0) { mmio.Field2 = (long)test28; pcb->address = mmio.Field2; strcpy(pcb->processName, "test28"); scheduleprinterFlag = 0; memoryprinterFlag = 0; }
+		else if (strcmp(argv[1], "test29") == 0) { mmio.Field2 = (long)test29; pcb->address = mmio.Field2; strcpy(pcb->processName, "test29"); scheduleprinterFlag = 0; memoryprinterFlag = 0; }
+		else if (strcmp(argv[1], "test41") == 0) { mmio.Field2 = (long)test41; pcb->address = mmio.Field2; strcpy(pcb->processName, "test41"); scheduleprinterFlag = 0; memoryprinterFlag = 1; }
+		else if (strcmp(argv[1], "test42") == 0) { mmio.Field2 = (long)test42; pcb->address = mmio.Field2; strcpy(pcb->processName, "test42"); scheduleprinterFlag = 0; memoryprinterFlag = 1; }
+		else if (strcmp(argv[1], "test43") == 0) { mmio.Field2 = (long)test43; pcb->address = mmio.Field2; strcpy(pcb->processName, "test43"); scheduleprinterFlag = 0; memoryprinterFlag = 1; }
+		else if (strcmp(argv[1], "test44") == 0) { mmio.Field2 = (long)test44; pcb->address = mmio.Field2; strcpy(pcb->processName, "test44"); scheduleprinterFlag = 0; memoryprinterFlag = 2; }
+		else if (strcmp(argv[1], "test45") == 0) { mmio.Field2 = (long)test45; pcb->address = mmio.Field2; strcpy(pcb->processName, "test45"); scheduleprinterFlag = 0; memoryprinterFlag = 2; }
+		else if (strcmp(argv[1], "test46") == 0) { mmio.Field2 = (long)test46; pcb->address = mmio.Field2; strcpy(pcb->processName, "test46"); scheduleprinterFlag = 0; memoryprinterFlag = 2; } 
+		else if (strcmp(argv[1], "test47") == 0) { mmio.Field2 = (long)test47; pcb->address = mmio.Field2; strcpy(pcb->processName, "test47"); scheduleprinterFlag = 0; memoryprinterFlag = 2; }
+		else if (strcmp(argv[1], "test48") == 0) { mmio.Field2 = (long)test48; pcb->address = mmio.Field2; strcpy(pcb->processName, "test48"); scheduleprinterFlag = 0; memoryprinterFlag = 2; }
 		//else if (strcmp(argv[1], "testX") == 0) { mmio.Field2 = (long)testX; pcb->address = mmio.Field2; strncpy(pcb->processName, "testX", sizeof("testX")); }
 
 	}
@@ -1629,7 +1635,7 @@ int findFirst0Bitmap_mem() {
 	return -1;//no empty space
 }
 
-
+//set the bit map for memory
 void setBitmap_mem(long frameLocation) {
 	
 	int bitTemp = 1;
@@ -1644,4 +1650,55 @@ void setBitmap_mem(long frameLocation) {
 	FrameTable[withinBlock] = FrameTable[withinBlock] + (bitTemp << (7 - withinBytes));
 	//printf("binary: %d\n", FrameTable[0]);
 
+}
+
+//memory printer
+void memory_print() {
+	MP_INPUT_DATA MPData;
+	memset(&MPData, 0, sizeof(MP_INPUT_DATA));  
+
+	MemoryStuct* tempmem;
+	//allocate memory
+	tempmem = calloc(1, sizeof(MemoryStuct));
+
+	{
+
+		int i = 0;
+		while (QWalk(memoryqueue, 0) != -1) {
+			//get the n th process
+			tempmem = QRemoveHead(memoryqueue);
+			//Z502ReadPhysicalMemory(tempmem->PhysicalMemory, (char*)memory_read);
+			
+			// 
+			MPData.frames[tempmem->PhysicalMemory].InUse = TRUE;
+			MPData.frames[tempmem->PhysicalMemory].Pid = tempmem->PID;
+			MPData.frames[tempmem->PhysicalMemory].LogicalPage = tempmem->VirtualPageNumber;
+			MPData.frames[tempmem->PhysicalMemory].State = ShadowPageTable[tempmem->DiskID][tempmem->VirtualPageNumber] & 0xE000;
+			
+			QInsertOnTail(QID_temp,tempmem);
+			//QInsertOnTail(memoryqueue, tempmem);
+		}
+		while (QWalk(QID_temp, 0) != -1) {
+			tempmem = QRemoveHead(QID_temp);
+			//QInsert(QID_timer, tempmem->timeCreated, tempmem);
+			QInsertOnTail(memoryqueue, tempmem);
+		}
+	
+	}
+
+
+
+	/*for (int j = 0; j < NUMBER_PHYSICAL_PAGES; j = j + 1) {
+		MPData.frames[j].InUse = TRUE;
+		MPData.frames[j].Pid = (j / 2) % 10;
+		MPData.frames[j].LogicalPage = j * 16 + 10;
+		MPData.frames[j].State = (j / 2) % 8;
+	}*/
+	
+
+
+	if (memoryprinterFlag == 1 || (memoryprinterFlag == 2 && memoryprinterCounter <= 50)) {
+		memoryprinterCounter++;
+		CALL(MPPrintLine(&MPData));
+	}
 }

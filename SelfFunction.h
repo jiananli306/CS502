@@ -1,11 +1,15 @@
 //define all the component we need
 #include "global.h"
 
+
+
 INT32 PID;
 INT32 FileID;
 INT32 CurrentProcessNumber;
 INT32 scheduleprinterFlag; //to enable scheduleprinter 0 == none; 1 == FULL; 2 == limited;
 INT32 scheduleprinterCounter; // for partial N <= 50 print
+INT32 memoryprinterFlag; //to enable scheduleprinter 0 == none; 1 == FULL; 2 == limited;
+INT32 memoryprinterCounter; // for partial N <= 50 print
 
 #define         DISK_INTERRUPT_DISK2            (short)7
 #define         DISK_INTERRUPT_DISK3            (short)8
@@ -76,24 +80,24 @@ INT32 sendMessageCount;
 //define block 0
 typedef struct {
 	char	FileSystem;
-	__int8	DiskId;
+	char	DiskId;//int8_t DiskId;
 	short	DiskLength;
-	unsigned __int8	Bitmap;
-	unsigned __int8	SwapSize;
+	char Bitmap;//unsigned __int8	Bitmap;//uint8_t Bitmap;
+	char	SwapSize;//uint8_t SwapSize;
 	short	BitmapLoca;
 	short	RootDirLoca;
 	short	SwapLoca;
-	__int8	Reserve0;
-	__int8	Reserve1;
-	__int8	Reserve2;
-	__int8	Revision;
+	char	Reserve0;//int8_t Reserve0;
+	char	Reserve1;//int8_t Reserve1;
+	char	Reserve2;//int8_t Reserve2;
+	char	Revision;//int8_t Revision;
 }Block0;
 //define the header of directry/file
 typedef struct {
-	__int8	Inode;
+	char	Inode;//int8_t Inode;
 	char	Name[7];
 	INT32	CreateTime; //we only use 3 bytes here
-	__int8	FileDiscrip;
+	char	FileDiscrip;//int8_t FileDiscrip;
 	short	IndexLoca;
 	short	FileSize;
 }Header;
@@ -138,7 +142,7 @@ typedef struct ProcessControlBlock {
 PCB *currentPCB;
 //memory part
 int ShadowPageTable[MAX_Process_number][NUMBER_VIRTUAL_PAGES];
-char FrameTable[8];//represent 64 frame table size for bit map
+char FrameTable[9];//represent 64 frame table size for bit map
 //memory structure 
 typedef struct {
 	INT32	PhysicalMemory;
@@ -199,3 +203,4 @@ extern void dir_content();
 ///memory function
 extern int findFirst0Bitmap_mem();
 extern void setBitmap_mem(long frameLocation);
+extern void memory_print();
