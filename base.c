@@ -270,6 +270,7 @@ void FaultHandler(void) {
 	MEMORY_MAPPED_IO mmio;       // Enables communication with hardware
 	short* currentPagetable;
 	INT32 frameLocation;
+	INT32 tempPID;
 
 	static BOOL remove_this_from_your_fault_code = TRUE;
 	static INT32 how_many_fault_entries = 0;
@@ -299,6 +300,7 @@ void FaultHandler(void) {
 	while (mmio.Field4 == ERR_SUCCESS) {
 		
 		if (DeviceID == INVALID_MEMORY) {
+			tempPID = currentPCB->PID;
 			//READ_MODIFY(MemoryQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED, &LockResult_memory);
 			//printf("INVALID_MEMORY \n");
 			if (Status >= NUMBER_VIRTUAL_PAGES || Status < 0) //status no correct
@@ -317,6 +319,7 @@ void FaultHandler(void) {
 				tempmem->PID = currentPCB->PID;
 				tempmem->PhysicalMemory = frameLocation;
 				tempmem->VirtualPageNumber = Status;
+				tempmem->pcb = currentPCB;
 				
 				
 				if (frameLocation == -1) {//no frame available
@@ -324,6 +327,7 @@ void FaultHandler(void) {
 					int r;
 					tempmem_out = QRemoveHead(memoryqueue);
 					int rr;
+					short* tempPt;
 					rr = tempmem_out->VirtualPageNumber;
 					r = tempmem_out->PhysicalMemory;
 					//put the choose one into swap area
@@ -331,16 +335,23 @@ void FaultHandler(void) {
 					char memory_read[16] = { 0 };
 					Z502ReadPhysicalMemory(r, (char*)memory_read);
 					//set the swap one to invalid
-					currentPagetable[tempmem_out->VirtualPageNumber] = (short)(~PTBL_VALID_BIT) & (currentPagetable[tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO);
-					ShadowPageTable[tempmem_out->DiskID][tempmem_out->VirtualPageNumber] = (short)PTBL_REFERENCED_BIT | ((short)(~PTBL_VALID_BIT) & (currentPagetable[tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO));
-					pDisk_write(tempmem_out->DiskID, rr, (long)memory_read);
+					//currentPagetable[tempmem_out->VirtualPageNumber] = (short)(~PTBL_VALID_BIT) & (currentPagetable[tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO);
+					READ_MODIFY(MemoryQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED, &LockResult_memory);
+					tempPt = tempmem_out->pcb->pageTable;
+					tempPt[tempmem_out->VirtualPageNumber]=(short)(~PTBL_VALID_BIT)& (tempPt[tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO);
+					//(char)(tempmem_out->pcb->pageTable)[tempmem_out->VirtualPageNumber] = (short)(~PTBL_VALID_BIT) & ((tempmem_out->pcb->pageTable)[tempmem_out->VirtualPageNumber][tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO);;
+					ShadowPageTable[tempmem_out->DiskID][tempmem_out->VirtualPageNumber] = (short)PTBL_REFERENCED_BIT | ((short)(~PTBL_VALID_BIT) & (ShadowPageTable[tempmem_out->DiskID][tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO));
+					READ_MODIFY(MemoryQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED, &LockResult_memory);
+					pDisk_write(tempmem_out->DiskID, (rr + 0x0600), (long)memory_read);
 					//pDisk_read(DeviceID, r, (long)memory_read);
 					
 					//set the new one 
 					tempmem->PhysicalMemory = r;
 					QInsertOnTail(memoryqueue, tempmem);
 					currentPagetable[Status] = (short)PTBL_VALID_BIT | (r & PTBL_PHYS_PG_NO);
+					READ_MODIFY(MemoryQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED, &LockResult_memory);
 					ShadowPageTable[currentPCB->PID][Status] = (short)(PTBL_REFERENCED_BIT | PTBL_VALID_BIT) | (r & PTBL_PHYS_PG_NO);
+					READ_MODIFY(MemoryQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED, &LockResult_memory);
 					
 					//currentPCB->pageTable = currentPagetable;
 				}
@@ -355,13 +366,18 @@ void FaultHandler(void) {
 			}
 			else {// memory address used before
 				//check page error
-				if (((short)(ShadowPageTable[currentPCB->PID][Status]|0x7FFF)& (short)(PTBL_VALID_BIT)) == (short)PTBL_VALID_BIT){
+				if (tempPID != currentPCB->PID) {
+					aprintf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa : panic! PID changed\n");
+				}
+
+
+				/*if (((short)(ShadowPageTable[currentPCB->PID][Status]|0x7FFF)& (short)(PTBL_VALID_BIT)) == (short)PTBL_VALID_BIT){
 					aprintf("**************** %d \n", (short)(ShadowPageTable[currentPCB->PID][Status] | 0x7FFF));
 					aprintf("PageOffset not correct, halt the system \n");
 					mmio.Mode = Z502Action;
 					mmio.Field1 = mmio.Field2 = mmio.Field3 = 0;
 					MEM_WRITE(Z502Halt, &mmio);
-				}
+				}*/
 				currentPagetable = currentPCB->pageTable;
 				frameLocation = findFirst0Bitmap_mem();
 				//enqueue to the memory queue
@@ -369,6 +385,7 @@ void FaultHandler(void) {
 				tempmem->PID = currentPCB->PID;
 				tempmem->PhysicalMemory = frameLocation;
 				tempmem->VirtualPageNumber = Status;
+				tempmem->pcb = currentPCB;
 				
 				
 				if (frameLocation == -1) {//no frame available
@@ -378,24 +395,32 @@ void FaultHandler(void) {
 					int rr;
 					rr = tempmem_out->VirtualPageNumber;
 					r = tempmem_out->PhysicalMemory;
+					short* tempPt;
 					//put the choose one into swap area
 					//set it to the shadow pagetable
 					char memory_read[16] = { 0 };
 					Z502ReadPhysicalMemory(r, (char*)memory_read);
 					//set the swap one to invalid
-					currentPagetable[tempmem_out->VirtualPageNumber] = (short)(~PTBL_VALID_BIT) & (currentPagetable[tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO);
-					ShadowPageTable[tempmem_out->DiskID][tempmem_out->VirtualPageNumber] = (short)PTBL_REFERENCED_BIT | ((short)(~PTBL_VALID_BIT) & (currentPagetable[tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO));
-					pDisk_write(tempmem_out->DiskID, rr, (long)memory_read);
+					//currentPagetable[tempmem_out->VirtualPageNumber] = (short)(~PTBL_VALID_BIT) & (currentPagetable[tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO);
+					READ_MODIFY(MemoryQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED, &LockResult_memory);
+					tempPt = tempmem_out->pcb->pageTable;
+					tempPt[tempmem_out->VirtualPageNumber] = (short)(~PTBL_VALID_BIT) & (tempPt[tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO);
+					ShadowPageTable[tempmem_out->DiskID][tempmem_out->VirtualPageNumber] = (short)PTBL_REFERENCED_BIT | ((short)(~PTBL_VALID_BIT) & (ShadowPageTable[tempmem_out->DiskID][tempmem_out->VirtualPageNumber] & PTBL_PHYS_PG_NO));
+					READ_MODIFY(MemoryQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED, &LockResult_memory);
+					pDisk_write(tempmem_out->DiskID, (rr + 0x0600), (long)memory_read);
 					/////
 					//set the new one 
 					tempmem->PhysicalMemory = r;
 					//aprintf("framLocation: %d ************\n", r);
 					char memory_Write[16] = { 0 };
-					pDisk_read(tempmem->DiskID, tempmem->VirtualPageNumber, (long)memory_Write);
+					pDisk_read(tempmem->DiskID, (tempmem->VirtualPageNumber + 0x0600), (long)memory_Write);
 					Z502WritePhysicalMemory(r, (char*)memory_Write);
 
+				
 					currentPagetable[Status] = (short)(PTBL_VALID_BIT) | (r & PTBL_PHYS_PG_NO);
+					READ_MODIFY(MemoryQueue_lock, DO_LOCK, SUSPEND_UNTIL_LOCKED, &LockResult_memory);
 					ShadowPageTable[currentPCB->PID][Status] = (short)PTBL_REFERENCED_BIT | ((short)(PTBL_VALID_BIT) | (r & PTBL_PHYS_PG_NO));
+					READ_MODIFY(MemoryQueue_lock, DO_UNLOCK, SUSPEND_UNTIL_LOCKED, &LockResult_memory);
 
 
 

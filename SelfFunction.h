@@ -146,6 +146,8 @@ typedef struct {
 	INT32	DiskID;
 	INT32	PID;
 
+	PCB* pcb;
+
 }MemoryStuct;
 
 
