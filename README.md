@@ -4,6 +4,7 @@ CS502 WPI
 Final grade:A
 
 First part:100/100
+
  _6__  [6] Test1 – GET_PROCESS_ID and GET_TIME_OF_DAY
  
 _6__  [6] Test2 - SLEEP and GET_TIME_OF_DAY
